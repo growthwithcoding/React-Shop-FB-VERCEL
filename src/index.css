@@ -1,0 +1,12 @@
+/* Light baseline — removes Vite demo dark theme and body centering */
+:root{
+  color-scheme: light;
+}
+*{box-sizing:border-box}
+html,body,#root{height:100%}
+body{
+  margin:0;
+  background: var(--bg, #f7f7f8);
+  color: var(--text, #111827);
+}
+a{color:inherit;text-decoration:none}
