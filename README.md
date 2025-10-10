@@ -244,7 +244,7 @@ advanced-shop-FB-Edition/
 ```bash
 # 1. Clone the repository
 git clone https://github.com/growthwithcoding/React-Shop-FB.git
-cd advanced-shop-capstone
+cd React-Shop-FB
 
 # 2. Install dependencies
 npm install
