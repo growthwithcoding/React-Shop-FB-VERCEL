@@ -1,0 +1,35 @@
+{
+  "store": {
+    "name": "Advanced Shop",
+    "email": "support@advancedshop.com",
+    "logo": "",
+    "supportPhone": "+1-801-555-SHOP (7467)",
+    "supportHours": {
+      "monday": { "isOpen": true, "open": "09:00", "close": "17:00" },
+      "tuesday": { "isOpen": true, "open": "09:00", "close": "17:00" },
+      "wednesday": { "isOpen": true, "open": "09:00", "close": "17:00" },
+      "thursday": { "isOpen": true, "open": "09:00", "close": "17:00" },
+      "friday": { "isOpen": true, "open": "09:00", "close": "17:00" },
+      "saturday": { "isOpen": true, "open": "10:00", "close": "16:00" },
+      "sunday": { "isOpen": false, "open": "10:00", "close": "14:00" }
+    }
+  },
+  "payments": {
+    "enableCards": true,
+    "cod": false,
+    "pk": "",
+    "connected": false,
+    "acceptedMethods": ["card", "paypal", "apple_pay", "google_pay"]
+  },
+  "shipping": {
+    "base": 5,
+    "freeAt": 50
+  },
+  "taxes": {
+    "rate": 7.5,
+    "origin": "UT"
+  },
+  "createdAt": "2025-01-01T00:00:00Z",
+  "updatedAt": "2025-10-01T10:00:00Z",
+  "updatedBy": "ADMIN-001"
+}

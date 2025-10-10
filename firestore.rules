@@ -1,0 +1,107 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ---- Helpers ----
+    function isSignedIn() { return request.auth != null; }
+    function isOwner(uid) { return isSignedIn() && request.auth.uid == uid; }
+
+    // Check admin role from users/{uid}.role
+    function callerIsAdmin() {
+      return isSignedIn()
+        && exists(/databases/$(database)/documents/users/$(request.auth.uid))
+        && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+
+    // Check agent role from users/{uid}.role
+    function callerIsAgent() {
+      return isSignedIn()
+        && exists(/databases/$(database)/documents/users/$(request.auth.uid))
+        && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'agent';
+    }
+
+    // ---- Users ----
+    match /users/{uid} {
+      allow read: if isOwner(uid) || callerIsAdmin();
+      // Allow initial admin creation during onboarding (when no setup doc exists)
+      // Also allow if creating first admin user (isInitialAdmin flag)
+      allow create: if (isOwner(uid) && (!('role' in request.resource.data) || request.resource.data.role == 'customer'))
+        || callerIsAdmin()
+        || (isOwner(uid) && request.resource.data.role == 'admin' && !exists(/databases/$(database)/documents/system/setup))
+        || (isOwner(uid) && request.resource.data.role == 'admin' && request.resource.data.isInitialAdmin == true && !exists(/databases/$(database)/documents/system/setup));
+      allow update: if (isOwner(uid) && request.resource.data.role == resource.data.role) || callerIsAdmin();
+      allow delete: if callerIsAdmin();
+    }
+
+    // ---- Addresses (top-level collection) ----
+    match /addresses/{id} {
+      allow read: if isSignedIn() && resource.data.userId == request.auth.uid || callerIsAdmin();
+      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
+      allow update: if (isSignedIn() && resource.data.userId == request.auth.uid) || callerIsAdmin();
+      allow delete: if (isSignedIn() && resource.data.userId == request.auth.uid) || callerIsAdmin();
+    }
+
+    // ---- Payment Methods (top-level collection) ----
+    match /paymentMethods/{id} {
+      allow read: if isSignedIn() && resource.data.userId == request.auth.uid || callerIsAdmin();
+      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
+      allow update: if (isSignedIn() && resource.data.userId == request.auth.uid) || callerIsAdmin();
+      allow delete: if (isSignedIn() && resource.data.userId == request.auth.uid) || callerIsAdmin();
+    }
+
+    // ---- System (onboarding & settings) ----
+    match /system/{docId} {
+      allow read: if true;  // Public read to check onboarding status and settings
+      // Allow creation/update during onboarding (when setup doc doesn't exist) or by admins
+      allow create, update: if callerIsAdmin() || !exists(/databases/$(database)/documents/system/setup);
+      allow delete: if callerIsAdmin();
+    }
+
+    // ---- Settings ----
+    match /settings/{docId} {
+      allow read: if true;  // Public read for branding
+      allow create, update, delete: if callerIsAdmin();
+    }
+
+    // ---- Config (hero, promos, etc.) ----
+    match /config/{docId} {
+      allow read: if true;  // Public read so Hero component works for all users
+      allow create, update, delete: if callerIsAdmin();
+    }
+
+    // ---- Products ----
+    match /products/{id} {
+      allow read: if true;  // Public catalog
+      allow create, update, delete: if callerIsAdmin();
+    }
+
+    // ---- Discounts ----
+    match /discounts/{id} {
+      allow read: if true;  // Public read so checkout can validate codes
+      allow create, update, delete: if callerIsAdmin();
+    }
+
+    // ---- Orders ----
+    match /orders/{orderId} {
+      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
+      allow read: if (isSignedIn() && resource.data.userId == request.auth.uid) || callerIsAdmin() || callerIsAgent();
+      allow update, delete: if callerIsAdmin();
+    }
+
+    // ---- Support Tickets ----
+    match /supportTickets/{id} {
+      allow read: if (isSignedIn() && resource.data.userId == request.auth.uid) || callerIsAdmin() || callerIsAgent();
+      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
+      // Allow user to update their own ticket, or staff to update any ticket
+      allow update: if (isSignedIn() && resource.data.userId == request.auth.uid) || callerIsAdmin() || callerIsAgent();
+      allow delete: if callerIsAdmin();
+    }
+
+    // ---- Ticket Replies ----
+    match /ticketReplies/{id} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
+      allow update, delete: if callerIsAdmin();
+    }
+  }
+}

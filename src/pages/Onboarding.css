@@ -1,0 +1,297 @@
+/* Onboarding Wizard Styles */
+
+/* Override body styles for onboarding page */
+body:has(.onboarding-container) {
+  padding: 0 !important;
+  margin: 0 !important;
+  overflow: hidden;
+}
+
+/* Main Container */
+.onboarding-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100vw;
+  height: 100vh;
+  background: #090c12;
+  padding: 0 !important;
+  margin: 0 !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow-y: auto;
+  z-index: 9999;
+}
+
+.onboarding-container .container-xl {
+  padding: 16px;
+  margin: 0;
+  width: 100%;
+}
+
+/* Header */
+.onboarding-header {
+  text-align: center;
+  margin: 0 0 8px 0;
+  padding: 0;
+}
+
+.onboarding-logo-container {
+  margin: 0;
+  padding: 0;
+  line-height: 0;
+}
+
+.onboarding-logo {
+  height: 160px;
+  width: auto;
+  object-fit: contain;
+  display: block;
+  margin: 0 auto;
+  padding: 0;
+}
+
+.onboarding-title {
+  margin: 0;
+  padding: 0;
+  color: white;
+  font-size: 2rem;
+  font-weight: 700;
+}
+
+.onboarding-subtitle {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 1rem;
+  margin: 0;
+}
+
+/* Step Indicator */
+.step-indicator {
+  display: flex;
+  gap: 8px;
+  margin: 12px 0;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.step-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-size: 14px;
+  transition: all 0.2s ease;
+}
+
+.step-item.active {
+  border: 2px solid #ff9900;
+  background: white;
+  color: #ff9900;
+  font-weight: 700;
+}
+
+.step-item.complete {
+  border: 2px solid #ff9900;
+  background: #ff9900;
+  color: white;
+  font-weight: 500;
+}
+
+.step-item.inactive {
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: transparent;
+  color: rgba(255, 255, 255, 0.6);
+  font-weight: 400;
+}
+
+/* Step Cards */
+.onboarding-card {
+  padding: 24px 32px;
+  max-width: 750px;
+  margin: 0 auto 16px;
+  box-shadow: 0 4px 20px rgba(255, 255, 255, 0.1);
+}
+
+.onboarding-card.center {
+  text-align: center;
+}
+
+/* Step Header */
+.step-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.step-icon-circle {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: #ff9900;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.step-header-text h2 {
+  margin: 0;
+  font-size: 1.5rem;
+}
+
+.step-header-text p {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 14px;
+}
+
+/* Form Buttons */
+.form-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: space-between;
+  margin-top: 32px;
+  padding-top: 24px;
+  border-top: 1px solid var(--border);
+}
+
+.btn-onboarding {
+  padding: 12px 32px;
+  font-size: 14px;
+  font-weight: 700;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-width: 120px;
+}
+
+.btn-onboarding:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.btn-onboarding-primary {
+  background: #ff9900;
+  color: white;
+  box-shadow: 0 2px 4px rgba(255, 153, 0, 0.2);
+}
+
+.btn-onboarding-primary:hover:not(:disabled) {
+  background: #e88800;
+  box-shadow: 0 4px 8px rgba(255, 153, 0, 0.3);
+  transform: translateY(-1px);
+}
+
+.btn-onboarding-secondary {
+  background: #ff9900;
+  color: white;
+  border: 1px solid #ff9900;
+  box-shadow: 0 2px 4px rgba(255, 153, 0, 0.2);
+}
+
+.btn-onboarding-secondary:hover:not(:disabled) {
+  background: #e88800;
+  border-color: #e88800;
+  box-shadow: 0 4px 8px rgba(255, 153, 0, 0.3);
+  transform: translateY(-1px);
+}
+
+.btn-onboarding-large {
+  min-width: 200px;
+  padding: 14px 32px;
+  font-size: 16px;
+}
+
+/* Info Card */
+.info-card {
+  padding: 16px;
+  margin-bottom: 24px;
+  text-align: left;
+  background: var(--surface);
+  border-radius: 8px;
+}
+
+.info-card h3 {
+  font-size: 16px;
+  margin-bottom: 12px;
+}
+
+.info-card ul {
+  margin: 0;
+  padding-left: 20px;
+}
+
+.info-card li {
+  margin-bottom: 8px;
+}
+
+.info-card li:last-child {
+  margin-bottom: 0;
+}
+
+/* Code Block */
+.code-block {
+  background: #f5f5f5;
+  padding: 12px;
+  border-radius: 4px;
+  font-family: "Courier New", Courier, monospace;
+  font-size: 13px;
+  margin-bottom: 12px;
+  line-height: 1.6;
+}
+
+/* Success State */
+.success-state {
+  text-align: center;
+  padding: 32px;
+}
+
+.success-icon {
+  font-size: 64px;
+  margin-bottom: 16px;
+}
+
+.success-state h3 {
+  margin-bottom: 8px;
+}
+
+.success-state p {
+  color: var(--text-secondary);
+}
+
+/* Welcome Emoji */
+.welcome-emoji {
+  font-size: 48px;
+  margin-bottom: 16px;
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+  .step-indicator {
+    gap: 6px;
+  }
+  
+  .step-item {
+    padding: 6px 12px;
+    font-size: 12px;
+  }
+  
+  .onboarding-card {
+    padding: 24px 16px;
+  }
+  
+  .form-actions {
+    flex-direction: column-reverse;
+  }
+  
+  .btn-onboarding {
+    width: 100%;
+  }
+}

@@ -1,0 +1,507 @@
+[
+  {
+    "userId": "ADMIN-001",
+    "email": "admin@advancedshop.com",
+    "firstName": "Austin",
+    "lastName": "Carlson",
+    "name": "Austin Carlson",
+    "phone": "+1-801-555-0001",
+    "role": "admin",
+    "isInitialAdmin": true,
+    "marketingOptIn": false,
+    "addresses": [
+      { 
+        "id": "addr_admin_1",
+        "label": "default", 
+        "line1": "1000 Admin Plaza", 
+        "line2": "Suite 500",
+        "city": "Provo", 
+        "region": "UT", 
+        "postalCode": "84601", 
+        "country": "US",
+        "isDefault": true
+      }
+    ],
+    "paymentMethods": [
+      {
+        "id": "pm_admin_1",
+        "type": "card",
+        "brand": "visa",
+        "last4": "4242",
+        "expiryMonth": "12",
+        "expiryYear": "2027",
+        "holderName": "Austin Carlson",
+        "isDefault": true,
+        "createdAt": "2025-01-15T10:00:00Z"
+      }
+    ],
+    "createdAt": "2025-01-01T00:00:00Z",
+    "lastLogin": "2025-10-09T18:00:00Z"
+  },
+  {
+    "userId": "AGENT-001",
+    "email": "sarah.johnson@advancedshop.com",
+    "firstName": "Sarah",
+    "lastName": "Johnson",
+    "name": "Sarah Johnson",
+    "phone": "+1-801-555-0002",
+    "role": "agent",
+    "marketingOptIn": false,
+    "addresses": [
+      { 
+        "id": "addr_agent1_1",
+        "label": "default", 
+        "line1": "250 Support Street", 
+        "city": "Salt Lake City", 
+        "region": "UT", 
+        "postalCode": "84101", 
+        "country": "US",
+        "isDefault": true
+      }
+    ],
+    "paymentMethods": [],
+    "createdAt": "2025-01-05T00:00:00Z",
+    "lastLogin": "2025-10-09T17:30:00Z",
+    "agentStats": {
+      "ticketsAssigned": 8,
+      "ticketsResolved": 5,
+      "avgResponseTimeMinutes": 45,
+      "customerSatisfaction": 4.8
+    }
+  },
+  {
+    "userId": "AGENT-002",
+    "email": "michael.chen@advancedshop.com",
+    "firstName": "Michael",
+    "lastName": "Chen",
+    "name": "Michael Chen",
+    "phone": "+1-801-555-0003",
+    "role": "agent",
+    "marketingOptIn": false,
+    "addresses": [
+      { 
+        "id": "addr_agent2_1",
+        "label": "default", 
+        "line1": "300 Agent Avenue", 
+        "city": "Orem", 
+        "region": "UT", 
+        "postalCode": "84057", 
+        "country": "US",
+        "isDefault": true
+      }
+    ],
+    "paymentMethods": [],
+    "createdAt": "2025-01-05T00:00:00Z",
+    "lastLogin": "2025-10-09T16:45:00Z",
+    "agentStats": {
+      "ticketsAssigned": 7,
+      "ticketsResolved": 4,
+      "avgResponseTimeMinutes": 38,
+      "customerSatisfaction": 4.9
+    }
+  },
+  {
+    "userId": "lhoijzfg2ya5Z7LzY2RBiWBI3sa2",
+    "email": "gm@eimutah.com",
+    "firstName": "GM",
+    "lastName": "Test User",
+    "name": "GM Test User (TEST USER - REMOVE LATER)",
+    "phone": "+1-801-555-0101",
+    "role": "customer",
+    "marketingOptIn": true,
+    "addresses": [
+      { 
+        "id": "addr_gm_1",
+        "label": "default", 
+        "line1": "123 Maple St", 
+        "city": "Provo", 
+        "region": "UT", 
+        "postalCode": "84601", 
+        "country": "US",
+        "isDefault": true
+      },
+      { 
+        "id": "addr_gm_2",
+        "label": "billing", 
+        "line1": "456 Oak Ave", 
+        "city": "Provo", 
+        "region": "UT", 
+        "postalCode": "84602", 
+        "country": "US",
+        "isDefault": false
+      }
+    ],
+    "paymentMethods": [
+      {
+        "id": "pm_gm_1",
+        "type": "card",
+        "brand": "mastercard",
+        "last4": "5555",
+        "expiryMonth": "08",
+        "expiryYear": "2026",
+        "holderName": "GM Test User",
+        "isDefault": true,
+        "createdAt": "2025-09-15T10:00:00Z"
+      },
+      {
+        "id": "pm_gm_2",
+        "type": "card",
+        "brand": "visa",
+        "last4": "1234",
+        "expiryMonth": "12",
+        "expiryYear": "2027",
+        "holderName": "GM Test User",
+        "isDefault": false,
+        "createdAt": "2025-09-20T14:30:00Z"
+      }
+    ],
+    "accountCredit": 10.00,
+    "createdAt": "2025-09-01T00:00:00Z",
+    "lastLogin": "2025-10-09T12:00:00Z"
+  },
+  {
+    "userId": "USR-0002",
+    "email": "b.lee@example.com",
+    "firstName": "Brianna",
+    "lastName": "Lee",
+    "name": "Brianna Lee",
+    "phone": "+1-617-555-0102",
+    "role": "customer",
+    "marketingOptIn": false,
+    "addresses": [
+      { 
+        "id": "addr_usr2_1",
+        "label": "default", 
+        "line1": "55 Harbor Way", 
+        "city": "Boston", 
+        "region": "MA", 
+        "postalCode": "02210", 
+        "country": "US",
+        "isDefault": true
+      }
+    ],
+    "paymentMethods": [
+      {
+        "id": "pm_usr2_1",
+        "type": "card",
+        "brand": "amex",
+        "last4": "0005",
+        "expiryMonth": "06",
+        "expiryYear": "2026",
+        "holderName": "Brianna Lee",
+        "isDefault": true,
+        "createdAt": "2025-08-10T09:00:00Z"
+      }
+    ],
+    "createdAt": "2025-08-01T00:00:00Z",
+    "lastLogin": "2025-10-05T11:00:00Z"
+  },
+  {
+    "userId": "USR-0003",
+    "email": "c.mendoza@example.com",
+    "firstName": "Carlos",
+    "lastName": "Mendoza",
+    "name": "Carlos Mendoza",
+    "phone": "+1-323-555-0103",
+    "role": "customer",
+    "marketingOptIn": true,
+    "addresses": [
+      { 
+        "id": "addr_usr3_1",
+        "label": "default", 
+        "line1": "904 Sunset Blvd", 
+        "city": "Los Angeles", 
+        "region": "CA", 
+        "postalCode": "90036", 
+        "country": "US",
+        "isDefault": true
+      }
+    ],
+    "paymentMethods": [
+      {
+        "id": "pm_usr3_1",
+        "type": "card",
+        "brand": "visa",
+        "last4": "6789",
+        "expiryMonth": "03",
+        "expiryYear": "2027",
+        "holderName": "Carlos Mendoza",
+        "isDefault": true,
+        "createdAt": "2025-07-15T14:00:00Z"
+      }
+    ],
+    "createdAt": "2025-07-01T00:00:00Z",
+    "lastLogin": "2025-10-09T10:45:00Z"
+  },
+  {
+    "userId": "USR-0004",
+    "email": "dina.patel@example.com",
+    "firstName": "Dina",
+    "lastName": "Patel",
+    "name": "Dina Patel",
+    "phone": "+1-206-555-0104",
+    "role": "customer",
+    "marketingOptIn": true,
+    "addresses": [
+      { 
+        "id": "addr_usr4_1",
+        "label": "default", 
+        "line1": "777 King St", 
+        "city": "Seattle", 
+        "region": "WA", 
+        "postalCode": "98101", 
+        "country": "US",
+        "isDefault": true
+      },
+      { 
+        "id": "addr_usr4_2",
+        "label": "work", 
+        "line1": "1500 Tech Campus", 
+        "line2": "Building C",
+        "city": "Seattle", 
+        "region": "WA", 
+        "postalCode": "98109", 
+        "country": "US",
+        "isDefault": false
+      }
+    ],
+    "paymentMethods": [
+      {
+        "id": "pm_usr4_1",
+        "type": "card",
+        "brand": "mastercard",
+        "last4": "9876",
+        "expiryMonth": "11",
+        "expiryYear": "2026",
+        "holderName": "Dina Patel",
+        "isDefault": true,
+        "createdAt": "2025-06-20T16:00:00Z"
+      }
+    ],
+    "createdAt": "2025-06-15T00:00:00Z",
+    "lastLogin": "2025-10-08T17:00:00Z"
+  },
+  {
+    "userId": "USR-0005",
+    "email": "evan.wright@example.com",
+    "firstName": "Evan",
+    "lastName": "Wright",
+    "name": "Evan Wright",
+    "phone": "+1-352-555-0105",
+    "role": "customer",
+    "marketingOptIn": false,
+    "addresses": [
+      { 
+        "id": "addr_usr5_1",
+        "label": "default", 
+        "line1": "40 College Ave", 
+        "city": "Gainesville", 
+        "region": "FL", 
+        "postalCode": "32601", 
+        "country": "US",
+        "isDefault": true
+      }
+    ],
+    "paymentMethods": [
+      {
+        "id": "pm_usr5_1",
+        "type": "card",
+        "brand": "visa",
+        "last4": "3210",
+        "expiryMonth": "09",
+        "expiryYear": "2026",
+        "holderName": "Evan Wright",
+        "isDefault": true,
+        "createdAt": "2025-05-10T11:00:00Z"
+      }
+    ],
+    "accountCredit": 10.00,
+    "createdAt": "2025-05-01T00:00:00Z",
+    "lastLogin": "2025-10-09T10:15:00Z"
+  },
+  {
+    "userId": "USR-0006",
+    "email": "fatima.noor@example.com",
+    "firstName": "Fatima",
+    "lastName": "Noor",
+    "name": "Fatima Noor",
+    "phone": "+1-512-555-0106",
+    "role": "customer",
+    "marketingOptIn": true,
+    "addresses": [
+      { 
+        "id": "addr_usr6_1",
+        "label": "default", 
+        "line1": "88 Innovation Dr", 
+        "city": "Austin", 
+        "region": "TX", 
+        "postalCode": "73301", 
+        "country": "US",
+        "isDefault": true
+      }
+    ],
+    "paymentMethods": [
+      {
+        "id": "pm_usr6_1",
+        "type": "card",
+        "brand": "mastercard",
+        "last4": "7890",
+        "expiryMonth": "04",
+        "expiryYear": "2027",
+        "holderName": "Fatima Noor",
+        "isDefault": true,
+        "createdAt": "2025-04-15T13:00:00Z"
+      }
+    ],
+    "createdAt": "2025-04-01T00:00:00Z",
+    "lastLogin": "2025-10-09T10:00:00Z"
+  },
+  {
+    "userId": "USR-0007",
+    "email": "grace.kim@example.com",
+    "firstName": "Grace",
+    "lastName": "Kim",
+    "name": "Grace Kim",
+    "phone": "+1-415-555-0107",
+    "role": "customer",
+    "marketingOptIn": true,
+    "addresses": [
+      { 
+        "id": "addr_usr7_1",
+        "label": "default", 
+        "line1": "12 Market St", 
+        "city": "San Francisco", 
+        "region": "CA", 
+        "postalCode": "94105", 
+        "country": "US",
+        "isDefault": true
+      }
+    ],
+    "paymentMethods": [
+      {
+        "id": "pm_usr7_1",
+        "type": "card",
+        "brand": "visa",
+        "last4": "5678",
+        "expiryMonth": "07",
+        "expiryYear": "2026",
+        "holderName": "Grace Kim",
+        "isDefault": true,
+        "createdAt": "2025-03-20T15:00:00Z"
+      }
+    ],
+    "createdAt": "2025-03-15T00:00:00Z",
+    "lastLogin": "2025-10-09T15:30:00Z"
+  },
+  {
+    "userId": "USR-0008",
+    "email": "hiro.tanaka@example.com",
+    "firstName": "Hiro",
+    "lastName": "Tanaka",
+    "name": "Hiro Tanaka",
+    "phone": "+1-312-555-0108",
+    "role": "customer",
+    "marketingOptIn": false,
+    "addresses": [
+      { 
+        "id": "addr_usr8_1",
+        "label": "default", 
+        "line1": "900 Tech Park", 
+        "city": "Chicago", 
+        "region": "IL", 
+        "postalCode": "60601", 
+        "country": "US",
+        "isDefault": true
+      }
+    ],
+    "paymentMethods": [
+      {
+        "id": "pm_usr8_1",
+        "type": "card",
+        "brand": "amex",
+        "last4": "4321",
+        "expiryMonth": "10",
+        "expiryYear": "2027",
+        "holderName": "Hiro Tanaka",
+        "isDefault": true,
+        "createdAt": "2025-02-25T17:00:00Z"
+      }
+    ],
+    "createdAt": "2025-02-20T00:00:00Z",
+    "lastLogin": "2025-10-09T14:30:00Z"
+  },
+  {
+    "userId": "USR-0009",
+    "email": "isabella.rossi@example.com",
+    "firstName": "Isabella",
+    "lastName": "Rossi",
+    "name": "Isabella Rossi",
+    "phone": "+1-212-555-0109",
+    "role": "customer",
+    "marketingOptIn": false,
+    "addresses": [
+      { 
+        "id": "addr_usr9_1",
+        "label": "default", 
+        "line1": "21 Via Roma", 
+        "city": "New York", 
+        "region": "NY", 
+        "postalCode": "10001", 
+        "country": "US",
+        "isDefault": true
+      }
+    ],
+    "paymentMethods": [
+      {
+        "id": "pm_usr9_1",
+        "type": "card",
+        "brand": "visa",
+        "last4": "4242",
+        "expiryMonth": "05",
+        "expiryYear": "2026",
+        "holderName": "Isabella Rossi",
+        "isDefault": true,
+        "createdAt": "2025-02-10T12:00:00Z"
+      }
+    ],
+    "createdAt": "2025-02-01T00:00:00Z",
+    "lastLogin": "2025-10-04T11:00:00Z"
+  },
+  {
+    "userId": "USR-0010",
+    "email": "jake.t@example.com",
+    "firstName": "Jake",
+    "lastName": "Thompson",
+    "name": "Jake Thompson",
+    "phone": "+1-303-555-0110",
+    "role": "customer",
+    "marketingOptIn": true,
+    "addresses": [
+      { 
+        "id": "addr_usr10_1",
+        "label": "default", 
+        "line1": "501 Pine St", 
+        "city": "Denver", 
+        "region": "CO", 
+        "postalCode": "80203", 
+        "country": "US",
+        "isDefault": true
+      }
+    ],
+    "paymentMethods": [
+      {
+        "id": "pm_usr10_1",
+        "type": "card",
+        "brand": "mastercard",
+        "last4": "8765",
+        "expiryMonth": "01",
+        "expiryYear": "2028",
+        "holderName": "Jake Thompson",
+        "isDefault": true,
+        "createdAt": "2025-01-20T09:00:00Z"
+      }
+    ],
+    "createdAt": "2025-01-15T00:00:00Z",
+    "lastLogin": "2025-10-08T12:10:00Z"
+  }
+]

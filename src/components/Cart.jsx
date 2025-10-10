@@ -22,13 +22,21 @@ export default function Cart() {
   const totalPrice = useSelector(selectTotalPrice)
 
   // Assignment: Empty Cart View
-  // If you’ve got nothing, I’m not making you scroll through existential emptiness.
+  // If you've got nothing, I'm not making you scroll through existential emptiness.
   if (!items || items.length === 0) {
     return (
       <section className="container cart">
-        <h1>Your Cart</h1>
+        <div className="hero-headline" style={{ marginBottom: 12 }}>
+          <div>
+            <div className="kicker">Your Selections</div>
+            <h1 style={{ margin: 0 }}>Shopping Cart</h1>
+            <div className="meta" style={{ marginTop: 8 }}>
+              Your cart is empty. Start adding items to begin shopping.
+            </div>
+          </div>
+        </div>
         <div className="card" style={{ textAlign: 'center', padding: 24 }}>
-          <p>Cart’s looking a little… minimalist.</p>
+          <p>Cart's looking a little… minimalist.</p>
           <button className="btn btn-primary" onClick={() => navigate('/')}>
             Browse Products
           </button>
@@ -43,10 +51,14 @@ export default function Cart() {
   return (
     <section className="container cart" aria-live="polite">
       {/* Assignment: Cart Header w/ Counts */}
-      <h1>Your Cart</h1>
-      <div className="meta" style={{ marginBottom: 12 }}>
-        {/* You grabbed {totalCount} {totalCount === 1 ? 'item' : 'items'} — bold choices. */}
-        <strong>{totalCount}</strong> {totalCount === 1 ? 'item' : 'items'}
+      <div className="hero-headline" style={{ marginBottom: 12 }}>
+        <div>
+          <div className="kicker">Your Selections</div>
+          <h1 style={{ margin: 0 }}>Shopping Cart</h1>
+          <div className="meta" style={{ marginTop: 8 }}>
+            Review your items and proceed to checkout. <strong>{totalCount}</strong> {totalCount === 1 ? 'item' : 'items'} in cart.
+          </div>
+        </div>
       </div>
 
       {/* Assignment: Cart Line Items */}
@@ -153,13 +165,22 @@ export default function Cart() {
         <div style={{ fontWeight: 800 }}>
           Subtotal: {formatPrice(totalPrice)}
         </div>
-        <button
-          className="btn btn-primary"
-          onClick={() => navigate('/checkout')}
-          aria-label="Proceed to checkout"
-        >
-          Proceed to Checkout
-        </button>
+        <div style={{ display: 'flex', gap: 12 }}>
+          <button
+            className="btn btn-secondary"
+            onClick={() => navigate('/')}
+            aria-label="Continue shopping"
+          >
+            Continue Shopping
+          </button>
+          <button
+            className="btn btn-primary"
+            onClick={() => navigate('/checkout')}
+            aria-label="Proceed to checkout"
+          >
+            Proceed to Checkout
+          </button>
+        </div>
       </div>
 
       {/* Assignment: Accessibility Notes

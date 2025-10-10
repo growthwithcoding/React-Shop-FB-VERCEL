@@ -1,0 +1,14 @@
+{
+  "completed": true,
+  "completedAt": "2025-01-01T00:00:00Z",
+  "version": "1.0.0",
+  "initialSetupBy": "ADMIN-001",
+  "features": {
+    "supportTickets": true,
+    "analytics": true,
+    "discounts": true,
+    "multiplePaymentMethods": true,
+    "addressManagement": true
+  },
+  "lastMaintenance": "2025-10-01T00:00:00Z"
+}

@@ -1,0 +1,113 @@
+[
+  {
+    "userId": "lhoijzfg2ya5Z7LzY2RBiWBI3sa2",
+    "email": "gm@eimutah.com",
+    "name": "GM Test User (TEST USER - REMOVE LATER)",
+    "phone": "+1-801-555-0101",
+    "role": "customer",
+    "marketingOptIn": true,
+    "addresses": [
+      { "label": "default", "line1": "123 Maple St", "city": "Provo", "region": "UT", "postalCode": "84601", "country": "US" },
+      { "label": "billing", "line1": "456 Oak Ave", "city": "Provo", "region": "UT", "postalCode": "84602", "country": "US" }
+    ]
+  },
+  {
+    "userId": "USR-0002",
+    "email": "b.lee@example.com",
+    "name": "Brianna Lee",
+    "phone": "+1-617-555-0102",
+    "role": "customer",
+    "marketingOptIn": false,
+    "addresses": [
+      { "label": "default", "line1": "55 Harbor Way", "city": "Boston", "region": "MA", "postalCode": "02210", "country": "US" }
+    ]
+  },
+  {
+    "userId": "USR-0003",
+    "email": "c.mendoza@example.com",
+    "name": "Carlos Mendoza",
+    "phone": "+1-323-555-0103",
+    "role": "customer",
+    "marketingOptIn": true,
+    "addresses": [
+      { "label": "default", "line1": "904 Sunset Blvd", "city": "Los Angeles", "region": "CA", "postalCode": "90036", "country": "US" }
+    ]
+  },
+  {
+    "userId": "USR-0004",
+    "email": "dina.patel@example.com",
+    "name": "Dina Patel",
+    "phone": "+1-206-555-0104",
+    "role": "customer",
+    "marketingOptIn": true,
+    "addresses": [
+      { "label": "default", "line1": "777 King St", "city": "Seattle", "region": "WA", "postalCode": "98101", "country": "US" }
+    ]
+  },
+  {
+    "userId": "USR-0005",
+    "email": "evan.wright@example.com",
+    "name": "Evan Wright",
+    "phone": "+1-352-555-0105",
+    "role": "customer",
+    "marketingOptIn": false,
+    "addresses": [
+      { "label": "default", "line1": "40 College Ave", "city": "Gainesville", "region": "FL", "postalCode": "32601", "country": "US" }
+    ]
+  },
+  {
+    "userId": "USR-0006",
+    "email": "fatima.noor@example.com",
+    "name": "Fatima Noor",
+    "phone": "+1-512-555-0106",
+    "role": "customer",
+    "marketingOptIn": true,
+    "addresses": [
+      { "label": "default", "line1": "88 Innovation Dr", "city": "Austin", "region": "TX", "postalCode": "73301", "country": "US" }
+    ]
+  },
+  {
+    "userId": "USR-0007",
+    "email": "grace.kim@example.com",
+    "name": "Grace Kim",
+    "phone": "+1-415-555-0107",
+    "role": "customer",
+    "marketingOptIn": true,
+    "addresses": [
+      { "label": "default", "line1": "12 Market St", "city": "San Francisco", "region": "CA", "postalCode": "94105", "country": "US" }
+    ]
+  },
+  {
+    "userId": "USR-0008",
+    "email": "hiro.tanaka@example.com",
+    "name": "Hiro Tanaka",
+    "phone": "+1-312-555-0108",
+    "role": "customer",
+    "marketingOptIn": false,
+    "addresses": [
+      { "label": "default", "line1": "900 Tech Park", "city": "Chicago", "region": "IL", "postalCode": "60601", "country": "US" }
+    ]
+  },
+  {
+    "userId": "USR-0009",
+    "email": "isabella.rossi@example.com",
+    "name": "Isabella Rossi",
+    "phone": "+1-212-555-0109",
+    "role": "customer",
+    "marketingOptIn": false,
+    "addresses": [
+      { "label": "default", "line1": "21 Via Roma", "city": "New York", "region": "NY", "postalCode": "10001", "country": "US" }
+    ]
+  },
+  {
+    "userId": "USR-0010",
+    "email": "jake.t@example.com",
+    "name": "Jake Thompson",
+    "phone": "+1-303-555-0110",
+    "role": "customer",
+    "marketingOptIn": true,
+    "addresses": [
+      { "label": "default", "line1": "501 Pine St", "city": "Denver", "region": "CO", "postalCode": "80203", "country": "US" }
+    ]
+  }
+]

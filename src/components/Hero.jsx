@@ -1,144 +1,297 @@
-// Hero.jsx
-// ------------------------------------------------------------
-// WHAT THIS DOES:
-// Dynamic hero that swaps between “Today’s Picks” and category-specific highlights, fetches live data, and renders a promo grid with unbreakable images per the assignment.
-// ------------------------------------------------------------
+// src/components/Hero.jsx
+import { useMemo } from "react";
+import { useQuery } from "@tanstack/react-query";
+import {
+  listProducts,
+  getProductsByCategory,
+  getCategories,
+  categoryLabel,
+} from "../services/productService";
+import { getHeroContent, getPromos } from "../services/contentService";
+import { listDiscounts, saveDiscountForCheckout } from "../services/discountService";
+import { useAuth } from "../auth/useAuth";
+import { Link } from "react-router-dom";
 
-import { useMemo } from 'react'
-import { useQuery } from '@tanstack/react-query'
-import { getAllProducts, getProductsByCategory, normalizeCategory } from '../api/fakestore.js'
-import { Link } from 'react-router-dom'
+const FALLBACK = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="400" height="300"%3E%3Crect width="400" height="300" fill="%23f5f5f5"/%3E%3Ctext x="50%25" y="50%25" dominant-baseline="middle" text-anchor="middle" font-family="sans-serif" font-size="18" fill="%23999"%3EProduct%3C/text%3E%3C/svg%3E';
 
-// Assignment: Image fallback so we NEVER flex a busted image icon.
-// If an item image is missing (or throws an error), this steps in like a stunt double.
-const FALLBACK = 'https://via.placeholder.com/800x600?text=Product'
+const truncate = (s, n = 40) =>
+  !s ? "" : s.length > n ? s.slice(0, n - 1) + "…" : s;
 
-// Tiny formatter so our headings stay pretty without a whole parade of conditionals.
-const pretty = (cat)=> !cat || cat==='all' ? "Today's Picks" :
-  ({ "men's clothing":"Men's Clothing","women's clothing":"Women's Clothing", jewelery:"Jewelery", electronics:"Electronics"}[cat] || cat)
+export default function Hero({ activeCategory = "all" }) {
+  const { user } = useAuth();
+  const normCat = activeCategory;
+  const viewingCategory = !!(normCat && normCat !== "all");
 
-export default function Hero({ activeCategory='all' }){
-  // Assignment: Category normalization — accept anything, output the canonical category
-  const normCat = normalizeCategory(activeCategory)
-  const viewingCategory = !!(normCat && normCat !== 'all')
+  // Products for current context
+  const {
+    data: products = [],
+    isLoading: loadingProducts,
+    isError: productsError,
+  } = useQuery({
+    queryKey: ["hero-products", normCat],
+    queryFn: () =>
+      viewingCategory ? getProductsByCategory(normCat) : listProducts(),
+  });
 
-  // Assignment: Data fetching — hero pulls either all products or just the category
-  const { data: products = [] } = useQuery({
-    queryKey: ['hero-products', normCat],
-    queryFn: () => viewingCategory ? getProductsByCategory(normCat) : getAllProducts(),
-  })
+  // Categories (labels for home mode)
+  const {
+    data: categories = [],
+    isLoading: loadingCats,
+  } = useQuery({
+    queryKey: ["hero-categories"],
+    queryFn: getCategories,
+  });
 
-  // Assignment: Pick logic — choose 4 cards and punchy labels for either mode
-  const picks = useMemo(()=>{
-    const men = products.filter(p => (p.category||'').toLowerCase().includes('men'))
-    const women = products.filter(p => (p.category||'').toLowerCase().includes('women'))
+  // Hero copy
+  const {
+    data: heroCopy = {
+      homeKicker: "Today's Picks",
+      homeHeadline: "Add It. Love It. Keep It Simple.",
+    },
+    isLoading: loadingCopy,
+  } = useQuery({
+    queryKey: ["hero-content"],
+    queryFn: getHeroContent,
+  });
 
-    if (viewingCategory){
-      const list = products.slice(0,4)
+  // Promos
+  const {
+    data: promos = [],
+  } = useQuery({
+    queryKey: ["hero-promos"],
+    queryFn: getPromos,
+  });
+
+  // Active discounts
+  const {
+    data: discounts = [],
+  } = useQuery({
+    queryKey: ["hero-discounts"],
+    queryFn: listDiscounts,
+  });
+
+  // Select random active discount
+  const activeDiscount = useMemo(() => {
+    const activeDiscounts = discounts.filter(d => d.isActive === true);
+    if (!activeDiscounts.length) return null;
+
+    // Filter by category if viewing a specific category
+    const categoryDiscounts = viewingCategory 
+      ? activeDiscounts.filter(d => d.category === normCat || !d.category)
+      : activeDiscounts;
+
+    // If we have category-specific discounts, use those, otherwise use any active discount
+    const availableDiscounts = categoryDiscounts.length > 0 ? categoryDiscounts : activeDiscounts;
+    
+    // Select random discount
+    const randomIndex = Math.floor(Math.random() * availableDiscounts.length);
+    return availableDiscounts[randomIndex];
+  }, [discounts, viewingCategory, normCat]);
+
+  // Build tiles - need 4 product cards for the layout
+  const productTiles = useMemo(() => {
+    const first4 = (products || [])
+      .slice()
+      .sort(
+        (a, b) =>
+          (b?.rating?.rate ?? 0) - (a?.rating?.rate ?? 0) ||
+          (Number(b?.price ?? 0) - Number(a?.price ?? 0))
+      )
+      .slice(0, 4);
+
+    return Array.from({ length: 4 }).map((_, i) => {
+      const p = first4[i];
+      const catLabels = (categories || []).map((c) => categoryLabel(c));
+      const maybeLabel = catLabels[i % Math.max(catLabels.length, 1)] || "Product";
+
+      // Use fallback for missing images or fakestoreapi (which often 404s)
+      const imageUrl = p?.image && p.image.trim() && !p.image.includes('fakestoreapi') ? p.image : FALLBACK;
+
       return {
-        headline: `Top Picks in ${pretty(normCat)}`,
-        cards: list,
-        labels: ['Popular','Trending',"Editor's Pick",'New In'],
-        mode: 'category'
-      }
+        img: imageUrl,
+        label: p?.title ? truncate(p.title, 30) : maybeLabel,
+        href: p?.id ? `/product/${p.id}` : "/#hero-start",
+      };
+    });
+  }, [products, categories]);
+
+  const showSkeleton = loadingProducts || loadingCats || loadingCopy;
+  const promo = (promos && promos[0]) || null;
+  
+  // Format discount display text
+  const getDiscountText = (discount) => {
+    if (!discount) return null;
+    if (discount.type === 'percentage') {
+      return `Use code ${discount.code} for ${discount.value}% OFF!`;
+    } else if (discount.type === 'fixed') {
+      return `Use code ${discount.code} for $${discount.value} OFF!`;
+    } else if (discount.type === 'free_shipping') {
+      return `Use code ${discount.code} for FREE SHIPPING!`;
     }
+    return `Use code ${discount.code}`;
+  };
 
-    // Home mode: grab a tasteful spread. Not perfect, just delightfully curated.
-    const girl = women[0] || products[0]
-    const man  = products.find(p => p.id === 1) || men[0] || products[1]
-    return {
-      headline: 'Add It. Love It. Keep It Simple.',
-      cards: [girl, man, men[1]||men[0]||products[2], women[1]||women[0]||products[3]],
-      labels: ["Girl's Top","Man's Bag",'Men Collection','Women Collection'],
-      mode: 'home'
+  // Handle promo click - save discount code and navigate to checkout
+  const handlePromoClick = (e, discountCode) => {
+    e.preventDefault();
+    if (discountCode) {
+      console.log('Saving discount code:', discountCode);
+      saveDiscountForCheckout(discountCode);
+      console.log('Saved codes:', localStorage.getItem('savedDiscountCodes'));
+      
+      // Show user feedback with a brief notification
+      const notification = document.createElement('div');
+      notification.textContent = `✓ ${discountCode} saved! Code will be applied at checkout.`;
+      notification.style.cssText = `
+        position: fixed;
+        top: 80px;
+        right: 20px;
+        background: #10b981;
+        color: white;
+        padding: 12px 20px;
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        z-index: 9999;
+        font-weight: 600;
+        animation: slideIn 0.3s ease-out;
+      `;
+      document.body.appendChild(notification);
+      setTimeout(() => {
+        notification.style.animation = 'slideOut 0.3s ease-out';
+        setTimeout(() => notification.remove(), 300);
+      }, 2500);
     }
-  }, [products, normCat, viewingCategory])
-
-  // Unpack our four headliners + their labels
-  const [c1,c2,c3,c4] = picks.cards
-  const [l1,l2,l3,l4] = picks.labels
-
-  // Quick category links for the “collection” labels in home mode
-  const enc = encodeURIComponent
-  // Include #hero-start in the URL so clicking these drops users at the hero.
-  const menCatUrl   = `/?cat=${enc("men's clothing")}#hero-start`
-  const womenCatUrl = `/?cat=${enc("women's clothing")}#hero-start`
-  const productLink = (p)=> p ? `/product/${p.id}` : "/"
-  const categoryLinkByLabel = (label)=>{
-    const low = (label||'').toLowerCase()
-    if (low.includes('women')) return womenCatUrl
-    if (low.includes('men'))   return menCatUrl
-    return "/#hero-start"
-  }
-
-  // Link resolution: category mode → always product pages; home mode → mix of product and category links
-  const link1 = picks.mode==='category' ? productLink(c1) : (l1.toLowerCase().includes('collection') ? categoryLinkByLabel(l1) : productLink(c1))
-  const link2 = picks.mode==='category' ? productLink(c2) : (l2.toLowerCase().includes('collection') ? categoryLinkByLabel(l2) : productLink(c2))
-  const link3 = picks.mode==='category' ? productLink(c3) : (l3.toLowerCase().includes('collection') ? categoryLinkByLabel(l3) : productLink(c3))
-  const link4 = picks.mode==='category' ? productLink(c4) : (l4.toLowerCase().includes('collection') ? categoryLinkByLabel(l4) : productLink(c4))
+    // Scroll to products
+    const productsSection = document.getElementById('products-start');
+    if (productsSection) {
+      productsSection.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
 
   return (
-    // 👇 Anchor for category switches:
-    // We jump here (via #hero-start) when the category changes,
-    // so the viewport lands at the top of the Hero—not mid-page.
     <section id="hero-start" className="hero-v2">
-      {/* Assignment: Headline block with kicker and “Shop Now” jump link */}
+      {/* Header */}
       <div className="hero-headline">
-        <div
-          className="hero-title-row"
-          style={{display:'flex',alignItems:'center',justifyContent:'space-between',gap:16,flexWrap:'wrap'}}
+        <div className="hero-title-wrap">
+          <div className="kicker">
+            {heroCopy.homeKicker || "Today's Picks"}
+          </div>
+          <h1 className="hero-title" style={{ margin: 0 }}>
+            {heroCopy.homeHeadline || "Add It. Love It. Keep It Simple."}
+          </h1>
+        </div>
+        <a
+          href="#products-start"
+          className="btn btn-primary"
+          style={{ 
+            backgroundColor: "#febd69", 
+            color: "#111", 
+            fontWeight: 700,
+            padding: "12px 24px",
+            borderRadius: 8,
+            border: "none"
+          }}
         >
-          <div className="hero-title-wrap">
-            <div className="kicker">{pretty(normCat)}</div>
-            <h1 className="hero-title" style={{margin:0}}>{picks.headline}</h1>
-          </div>
-          {/* CTA intentionally points to products list */}
-          <a href="#products-start" className="btn btn-primary btn-slim" style={{whiteSpace:'nowrap', marginLeft:'auto'}}>
-            Shop Now
-          </a>
-        </div>
+          Shop Now
+        </a>
       </div>
 
-      {/* Assignment: Promo grid — one promo card + four dynamic picks */}
-      <div className="promo-grid">
-        {/* Offer tile: it’s giving “marketing”, but conveniently non-intrusive */}
-        <div className="promo-card soft">
-          <div style={{fontWeight:800, fontSize:'18px', lineHeight:1.2}}>
-            Use code <code>REACT20</code> for 20% OFF.
-          </div>
-          <div className="promo-btn">Special Offer</div>
-        </div>
+      {/* Hero Grid - 5 cards layout */}
+      <div className="hero-grid-v2">
+        {showSkeleton ? (
+          <>
+            <div className="hero-card hero-card-large skeleton">Loading...</div>
+            <div className="hero-card hero-card-promo skeleton">Loading...</div>
+            <div className="hero-card skeleton">Loading...</div>
+            <div className="hero-card skeleton">Loading...</div>
+            <div className="hero-card skeleton">Loading...</div>
+          </>
+        ) : (
+          <>
+            {/* Large card - first product */}
+            <Link 
+              to={productTiles[0].href} 
+              className="hero-card hero-card-large"
+              style={{ 
+                backgroundImage: `url(${productTiles[0].img})`,
+                backgroundSize: 'cover',
+                backgroundPosition: 'center',
+                backgroundRepeat: 'no-repeat'
+              }}
+            >
+              <div className="hero-card-overlay">
+                <h3>{productTiles[0].label}</h3>
+              </div>
+            </Link>
 
-        {/* Cards 1–4: each image uses a placeholder fallback and onError handler.
-            Translation: if the API serves a blank stare, your UI still looks flawless. */}
-        <Link to={link1} className="promo-card">
-          <div className="promo-img">
-            <img src={c1?.image || FALLBACK} alt="" onError={(e)=>{ e.currentTarget.src = FALLBACK }} />
-          </div>
-          <div className="promo-overlay">{l1}</div>
-        </Link>
+            {/* Promo card - shows active discount if available */}
+            {activeDiscount ? (
+              <a 
+                href="#products-start" 
+                className="hero-card hero-card-promo"
+                style={{ 
+                  backgroundColor: viewingCategory ? "#fff4e6" : "#e8f5e9",
+                  cursor: "pointer"
+                }}
+                onClick={(e) => handlePromoClick(e, activeDiscount.code)}
+              >
+                <div className="promo-content">
+                  <h3>{getDiscountText(activeDiscount)}</h3>
+                  <span className="promo-badge">
+                    {viewingCategory ? `${categoryLabel(normCat)} Special` : 'Store-Wide Offer'}
+                  </span>
+                </div>
+              </a>
+            ) : promo ? (
+              <a 
+                href={promo.ctaHref || "#hero-start"} 
+                className="hero-card hero-card-promo"
+                style={{ backgroundColor: "#e8f5e9" }}
+              >
+                <div className="promo-content">
+                  <h3>{promo.title || "Use code REACT20 for 20% OFF."}</h3>
+                  <span className="promo-badge">Special Offer</span>
+                </div>
+              </a>
+            ) : (
+              <div className="hero-card hero-card-promo" style={{ backgroundColor: "#e8f5e9" }}>
+                <div className="promo-content">
+                  <h3>Check back for special offers!</h3>
+                  <span className="promo-badge">Coming Soon</span>
+                </div>
+              </div>
+            )}
 
-        <Link to={link2} className="promo-card tall">
-          <div className="promo-img">
-            <img src={c2?.image || FALLBACK} alt="" onError={(e)=>{ e.currentTarget.src = FALLBACK }} />
-          </div>
-          <div className="promo-overlay">{l2}</div>
-        </Link>
-
-        <Link to={link3} className="promo-card">
-          <div className="promo-img">
-            <img src={c3?.image || FALLBACK} alt="" onError={(e)=>{ e.currentTarget.src = FALLBACK }} />
-          </div>
-          <div className="promo-overlay">{l3}</div>
-        </Link>
-
-        <Link to={link4} className="promo-card">
-          <div className="promo-img">
-            <img src={c4?.image || FALLBACK} alt="" onError={(e)=>{ e.currentTarget.src = FALLBACK }} />
-          </div>
-          <div className="promo-overlay">{l4}</div>
-        </Link>
+            {/* Remaining product cards */}
+            {productTiles.slice(1).map((tile, idx) => (
+              <Link 
+                key={idx}
+                to={tile.href} 
+                className="hero-card"
+                style={{ 
+                  backgroundImage: `url(${tile.img})`,
+                  backgroundSize: 'cover',
+                  backgroundPosition: 'center',
+                  backgroundRepeat: 'no-repeat'
+                }}
+              >
+                <div className="hero-card-overlay">
+                  <h3>{tile.label}</h3>
+                </div>
+              </Link>
+            ))}
+          </>
+        )}
       </div>
+
+      {/* Empty state */}
+      {!showSkeleton && !productsError && products.length === 0 && user?.role === "admin" && (
+        <div style={{ marginTop: 16, textAlign: "center" }}>
+          <Link to="/admin/products" className="btn btn-primary">
+            + Add your first product
+          </Link>
+        </div>
+      )}
     </section>
-  )
+  );
 }

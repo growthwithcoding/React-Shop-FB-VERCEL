@@ -1,0 +1,419 @@
+[
+  {
+    "orderId": "ORD-2025-1001",
+    "userId": "lhoijzfg2ya5Z7LzY2RBiWBI3sa2",
+    "placedAt": "2025-10-04T15:22:00Z",
+    "status": "paid",
+    "items": [
+      { "sku": "KB-KCR-K2V3", "qty": 1 },
+      { "sku": "AC-LOGI-MX3S", "qty": 1 }
+    ],
+    "shippingUSD": 12.95,
+    "taxRate": 0.07,
+    "paymentMethod": "card",
+    "shippingAddress": { "line1": "123 Maple St", "city": "Provo", "region": "UT", "postalCode": "84601", "country": "US" }
+  },
+  {
+    "orderId": "ORD-2025-1002",
+    "userId": "lhoijzfg2ya5Z7LzY2RBiWBI3sa2",
+    "placedAt": "2025-10-02T10:05:00Z",
+    "status": "shipped",
+    "items": [
+      { "sku": "SW-JB-IDEA-ULT", "qty": 1 },
+      { "sku": "SW-DOCKER-DESKTOP-PRO", "qty": 1 },
+      { "sku": "SW-POSTMAN-TEAM", "qty": 3 }
+    ],
+    "shippingUSD": 0,
+    "taxRate": 0.065,
+    "paymentMethod": "card",
+    "shippingAddress": { "line1": "55 Harbor Way", "city": "Boston", "region": "MA", "postalCode": "02210", "country": "US" }
+  },
+  {
+    "orderId": "ORD-2025-1003",
+    "userId": "lhoijzfg2ya5Z7LzY2RBiWBI3sa2",
+    "placedAt": "2025-09-29T18:41:00Z",
+    "status": "paid",
+    "items": [
+      { "sku": "DEV-RPI-5-4GB", "qty": 2 },
+      { "sku": "DEV-ADA-4884", "qty": 2 }
+    ],
+    "shippingUSD": 9.99,
+    "taxRate": 0.0825,
+    "paymentMethod": "paypal",
+    "shippingAddress": { "line1": "904 Sunset Blvd", "city": "Los Angeles", "region": "CA", "postalCode": "90036", "country": "US" }
+  },
+  {
+    "orderId": "ORD-2025-1004",
+    "userId": "USR-0004",
+    "placedAt": "2025-10-01T08:12:00Z",
+    "status": "processing",
+    "items": [
+      { "sku": "KB-KCR-Q1PRO", "qty": 1 },
+      { "sku": "AC-ELG-STREAMDECK-MK2", "qty": 1 }
+    ],
+    "shippingUSD": 14.5,
+    "taxRate": 0.07,
+    "paymentMethod": "card",
+    "shippingAddress": { "line1": "777 King St", "city": "Seattle", "region": "WA", "postalCode": "98101", "country": "US" }
+  },
+  {
+    "orderId": "ORD-2025-1005",
+    "userId": "USR-0005",
+    "placedAt": "2025-09-25T13:30:00Z",
+    "status": "paid",
+    "items": [
+      { "sku": "BK-DDIA-1E", "qty": 1 },
+      { "sku": "BK-CLRS-4E", "qty": 1 },
+      { "sku": "BK-PRAG-20", "qty": 1 }
+    ],
+    "shippingUSD": 6.99,
+    "taxRate": 0.06,
+    "paymentMethod": "card",
+    "shippingAddress": { "line1": "40 College Ave", "city": "Gainesville", "region": "FL", "postalCode": "32601", "country": "US" }
+  },
+  {
+    "orderId": "ORD-2025-1006",
+    "userId": "USR-0006",
+    "placedAt": "2025-10-03T21:02:00Z",
+    "status": "paid",
+    "items": [
+      { "sku": "DEV-NV-JETSON-NANO", "qty": 1 },
+      { "sku": "DEV-ADA-3382", "qty": 1 }
+    ],
+    "shippingUSD": 15,
+    "taxRate": 0.075,
+    "paymentMethod": "card",
+    "shippingAddress": { "line1": "88 Innovation Dr", "city": "Austin", "region": "TX", "postalCode": "73301", "country": "US" }
+  },
+  {
+    "orderId": "ORD-2025-1007",
+    "userId": "USR-0007",
+    "placedAt": "2025-09-27T12:15:00Z",
+    "status": "shipped",
+    "items": [
+      { "sku": "KB-LOGI-MXMECH-FULL", "qty": 1 },
+      { "sku": "AC-LOGI-MX3S", "qty": 1 }
+    ],
+    "shippingUSD": 0,
+    "taxRate": 0.095,
+    "paymentMethod": "card",
+    "shippingAddress": { "line1": "12 Market St", "city": "San Francisco", "region": "CA", "postalCode": "94105", "country": "US" }
+  },
+  {
+    "orderId": "ORD-2025-1008",
+    "userId": "USR-0008",
+    "placedAt": "2025-10-04T02:44:00Z",
+    "status": "paid",
+    "items": [
+      { "sku": "SW-TABLEPLUS-PL", "qty": 5 }
+    ],
+    "shippingUSD": 0,
+    "taxRate": 0.08,
+    "paymentMethod": "card",
+    "shippingAddress": { "line1": "900 Tech Park", "city": "Chicago", "region": "IL", "postalCode": "60601", "country": "US" }
+  },
+  {
+    "orderId": "ORD-2025-1009",
+    "userId": "USR-0009",
+    "placedAt": "2025-09-20T09:10:00Z",
+    "status": "cancelled",
+    "items": [
+      { "sku": "CH-HM-AERON-B", "qty": 1 }
+    ],
+    "shippingUSD": 0,
+    "taxRate": 0.07,
+    "paymentMethod": "card",
+    "shippingAddress": { "line1": "21 Via Roma", "city": "New York", "region": "NY", "postalCode": "10001", "country": "US" }
+  },
+  {
+    "orderId": "ORD-2025-1010",
+    "userId": "lhoijzfg2ya5Z7LzY2RBiWBI3sa2",
+    "placedAt": "2025-10-03T14:18:00Z",
+    "status": "paid",
+    "items": [
+      { "sku": "KB-KCR-K8PRO", "qty": 1 },
+      { "sku": "BK-YDKJSY-2E", "qty": 1 },
+      { "sku": "SW-POSTMAN-TEAM", "qty": 2 }
+    ],
+    "shippingUSD": 8.5,
+    "taxRate": 0.07,
+    "paymentMethod": "card",
+    "shippingAddress": { "line1": "501 Pine St", "city": "Denver", "region": "CO", "postalCode": "80203", "country": "US" }
+  },
+  {
+    "orderId": "ORD-2025-1011",
+    "userId": "lhoijzfg2ya5Z7LzY2RBiWBI3sa2",
+    "placedAt": "2025-10-05T09:15:00Z",
+    "status": "processing",
+    "items": [
+      { "sku": "KB-KCR-K2V3", "qty": 1 },
+      { "sku": "AC-LOGI-MX3S", "qty": 2 }
+    ],
+    "shippingUSD": 11.99,
+    "taxRate": 0.07,
+    "paymentMethod": "card",
+    "shippingAddress": { "line1": "321 Oak Ave", "city": "Portland", "region": "OR", "postalCode": "97201", "country": "US" }
+  },
+  {
+    "orderId": "ORD-2025-1012",
+    "userId": "USR-0004",
+    "placedAt": "2025-10-05T14:30:00Z",
+    "status": "paid",
+    "items": [
+      { "sku": "BK-DDIA-1E", "qty": 2 },
+      { "sku": "BK-CLRS-4E", "qty": 1 }
+    ],
+    "shippingUSD": 7.99,
+    "taxRate": 0.065,
+    "paymentMethod": "paypal",
+    "shippingAddress": { "line1": "456 Elm St", "city": "Miami", "region": "FL", "postalCode": "33101", "country": "US" }
+  },
+  {
+    "orderId": "ORD-2025-1013",
+    "userId": "USR-0005",
+    "placedAt": "2025-10-04T11:20:00Z",
+    "status": "shipped",
+    "items": [
+      { "sku": "DEV-RPI-5-4GB", "qty": 1 },
+      { "sku": "DEV-ADA-4884", "qty": 1 }
+    ],
+    "shippingUSD": 10.50,
+    "taxRate": 0.08,
+    "paymentMethod": "card",
+    "shippingAddress": { "line1": "789 Birch Ln", "city": "Phoenix", "region": "AZ", "postalCode": "85001", "country": "US" }
+  },
+  {
+    "orderId": "ORD-2025-1014",
+    "userId": "USR-0006",
+    "placedAt": "2025-10-03T16:45:00Z",
+    "status": "paid",
+    "items": [
+      { "sku": "SW-JB-IDEA-ULT", "qty": 1 },
+      { "sku": "SW-DOCKER-DESKTOP-PRO", "qty": 1 }
+    ],
+    "shippingUSD": 0,
+    "taxRate": 0.075,
+    "paymentMethod": "card",
+    "shippingAddress": { "line1": "234 Cedar St", "city": "Houston", "region": "TX", "postalCode": "77001", "country": "US" }
+  },
+  {
+    "orderId": "ORD-2025-1015",
+    "userId": "USR-0007",
+    "placedAt": "2025-10-02T08:30:00Z",
+    "status": "paid",
+    "items": [
+      { "sku": "KB-LOGI-MXMECH-FULL", "qty": 1 }
+    ],
+    "shippingUSD": 13.25,
+    "taxRate": 0.09,
+    "paymentMethod": "card",
+    "shippingAddress": { "line1": "567 Willow Dr", "city": "Philadelphia", "region": "PA", "postalCode": "19101", "country": "US" }
+  },
+  {
+    "orderId": "ORD-2025-1016",
+    "userId": "USR-0008",
+    "placedAt": "2025-10-01T19:10:00Z",
+    "status": "shipped",
+    "items": [
+      { "sku": "CH-HM-AERON-B", "qty": 1 },
+      { "sku": "AC-ELG-STREAMDECK-MK2", "qty": 1 }
+    ],
+    "shippingUSD": 0,
+    "taxRate": 0.0825,
+    "paymentMethod": "card",
+    "shippingAddress": { "line1": "890 Maple Ct", "city": "San Diego", "region": "CA", "postalCode": "92101", "country": "US" }
+  },
+  {
+    "orderId": "ORD-2025-1017",
+    "userId": "USR-0009",
+    "placedAt": "2025-09-30T12:50:00Z",
+    "status": "paid",
+    "items": [
+      { "sku": "BK-PRAG-20", "qty": 2 },
+      { "sku": "BK-YDKJSY-2E", "qty": 1 }
+    ],
+    "shippingUSD": 6.50,
+    "taxRate": 0.07,
+    "paymentMethod": "paypal",
+    "shippingAddress": { "line1": "123 Cherry Blvd", "city": "Dallas", "region": "TX", "postalCode": "75201", "country": "US" }
+  },
+  {
+    "orderId": "ORD-2025-1018",
+    "userId": "lhoijzfg2ya5Z7LzY2RBiWBI3sa2",
+    "placedAt": "2025-09-29T07:25:00Z",
+    "status": "paid",
+    "items": [
+      { "sku": "SW-POSTMAN-TEAM", "qty": 5 },
+      { "sku": "SW-TABLEPLUS-PL", "qty": 2 }
+    ],
+    "shippingUSD": 0,
+    "taxRate": 0.065,
+    "paymentMethod": "card",
+    "shippingAddress": { "line1": "456 Peach St", "city": "Atlanta", "region": "GA", "postalCode": "30301", "country": "US" }
+  },
+  {
+    "orderId": "ORD-2025-1019",
+    "userId": "USR-0004",
+    "placedAt": "2025-10-04T20:15:00Z",
+    "status": "processing",
+    "items": [
+      { "sku": "DEV-NV-JETSON-NANO", "qty": 2 }
+    ],
+    "shippingUSD": 18.00,
+    "taxRate": 0.08,
+    "paymentMethod": "card",
+    "shippingAddress": { "line1": "789 Vine Ave", "city": "San Jose", "region": "CA", "postalCode": "95101", "country": "US" }
+  },
+  {
+    "orderId": "ORD-2025-1020",
+    "userId": "USR-0005",
+    "placedAt": "2025-10-05T06:40:00Z",
+    "status": "paid",
+    "items": [
+      { "sku": "KB-KCR-Q1PRO", "qty": 1 },
+      { "sku": "AC-LOGI-MX3S", "qty": 1 }
+    ],
+    "shippingUSD": 12.75,
+    "taxRate": 0.07,
+    "paymentMethod": "card",
+    "shippingAddress": { "line1": "321 Rose Ln", "city": "Columbus", "region": "OH", "postalCode": "43201", "country": "US" }
+  },
+  {
+    "orderId": "ORD-2025-1021",
+    "userId": "USR-0006",
+    "placedAt": "2025-10-02T15:55:00Z",
+    "status": "shipped",
+    "items": [
+      { "sku": "BK-DDIA-1E", "qty": 1 },
+      { "sku": "BK-CLRS-4E", "qty": 1 },
+      { "sku": "BK-PRAG-20", "qty": 1 }
+    ],
+    "shippingUSD": 8.99,
+    "taxRate": 0.06,
+    "paymentMethod": "paypal",
+    "shippingAddress": { "line1": "654 Lily Dr", "city": "Charlotte", "region": "NC", "postalCode": "28201", "country": "US" }
+  },
+  {
+    "orderId": "ORD-2025-1022",
+    "userId": "USR-0007",
+    "placedAt": "2025-10-01T11:30:00Z",
+    "status": "paid",
+    "items": [
+      { "sku": "DEV-ADA-3382", "qty": 3 },
+      { "sku": "DEV-RPI-5-4GB", "qty": 1 }
+    ],
+    "shippingUSD": 14.25,
+    "taxRate": 0.075,
+    "paymentMethod": "card",
+    "shippingAddress": { "line1": "987 Palm Ave", "city": "San Antonio", "region": "TX", "postalCode": "78201", "country": "US" }
+  },
+  {
+    "orderId": "ORD-2025-1023",
+    "userId": "USR-0008",
+    "placedAt": "2025-09-30T18:20:00Z",
+    "status": "paid",
+    "items": [
+      { "sku": "KB-KCR-K8PRO", "qty": 1 },
+      { "sku": "KB-KCR-K2V3", "qty": 1 }
+    ],
+    "shippingUSD": 15.50,
+    "taxRate": 0.085,
+    "paymentMethod": "card",
+    "shippingAddress": { "line1": "147 Daisy Rd", "city": "Indianapolis", "region": "IN", "postalCode": "46201", "country": "US" }
+  },
+  {
+    "orderId": "ORD-2025-1024",
+    "userId": "USR-0009",
+    "placedAt": "2025-09-29T14:05:00Z",
+    "status": "shipped",
+    "items": [
+      { "sku": "SW-JB-IDEA-ULT", "qty": 2 }
+    ],
+    "shippingUSD": 0,
+    "taxRate": 0.07,
+    "paymentMethod": "card",
+    "shippingAddress": { "line1": "258 Orchid Way", "city": "Jacksonville", "region": "FL", "postalCode": "32099", "country": "US" }
+  },
+  {
+    "orderId": "ORD-2025-1025",
+    "userId": "lhoijzfg2ya5Z7LzY2RBiWBI3sa2",
+    "placedAt": "2025-10-03T09:35:00Z",
+    "status": "paid",
+    "items": [
+      { "sku": "AC-ELG-STREAMDECK-MK2", "qty": 2 }
+    ],
+    "shippingUSD": 12.00,
+    "taxRate": 0.08,
+    "paymentMethod": "paypal",
+    "shippingAddress": { "line1": "369 Tulip St", "city": "Detroit", "region": "MI", "postalCode": "48201", "country": "US" }
+  },
+  {
+    "orderId": "ORD-2025-1026",
+    "userId": "USR-0004",
+    "placedAt": "2025-10-05T17:50:00Z",
+    "status": "processing",
+    "items": [
+      { "sku": "CH-HM-AERON-B", "qty": 1 }
+    ],
+    "shippingUSD": 0,
+    "taxRate": 0.09,
+    "paymentMethod": "card",
+    "shippingAddress": { "line1": "741 Jasmine Pl", "city": "Memphis", "region": "TN", "postalCode": "37501", "country": "US" }
+  },
+  {
+    "orderId": "ORD-2025-1027",
+    "userId": "USR-0005",
+    "placedAt": "2025-10-04T13:40:00Z",
+    "status": "paid",
+    "items": [
+      { "sku": "BK-YDKJSY-2E", "qty": 3 }
+    ],
+    "shippingUSD": 9.25,
+    "taxRate": 0.07,
+    "paymentMethod": "card",
+    "shippingAddress": { "line1": "852 Violet Ct", "city": "Louisville", "region": "KY", "postalCode": "40201", "country": "US" }
+  },
+  {
+    "orderId": "ORD-2025-1028",
+    "userId": "USR-0006",
+    "placedAt": "2025-10-02T21:25:00Z",
+    "status": "shipped",
+    "items": [
+      { "sku": "KB-LOGI-MXMECH-FULL", "qty": 1 },
+      { "sku": "AC-LOGI-MX3S", "qty": 2 }
+    ],
+    "shippingUSD": 13.75,
+    "taxRate": 0.075,
+    "paymentMethod": "card",
+    "shippingAddress": { "line1": "963 Magnolia Ave", "city": "Baltimore", "region": "MD", "postalCode": "21201", "country": "US" }
+  },
+  {
+    "orderId": "ORD-2025-1029",
+    "userId": "USR-0007",
+    "placedAt": "2025-10-01T05:10:00Z",
+    "status": "paid",
+    "items": [
+      { "sku": "SW-DOCKER-DESKTOP-PRO", "qty": 3 },
+      { "sku": "SW-POSTMAN-TEAM", "qty": 2 }
+    ],
+    "shippingUSD": 0,
+    "taxRate": 0.06,
+    "paymentMethod": "paypal",
+    "shippingAddress": { "line1": "159 Poppy Ln", "city": "Milwaukee", "region": "WI", "postalCode": "53201", "country": "US" }
+  },
+  {
+    "orderId": "ORD-2025-1030",
+    "userId": "USR-0008",
+    "placedAt": "2025-09-30T22:45:00Z",
+    "status": "paid",
+    "items": [
+      { "sku": "DEV-NV-JETSON-NANO", "qty": 1 },
+      { "sku": "DEV-ADA-4884", "qty": 2 },
+      { "sku": "DEV-ADA-3382", "qty": 1 }
+    ],
+    "shippingUSD": 16.99,
+    "taxRate": 0.08,
+    "paymentMethod": "card",
+    "shippingAddress": { "line1": "357 Iris Rd", "city": "Albuquerque", "region": "NM", "postalCode": "87101", "country": "US" }
+  }
+]

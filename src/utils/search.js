@@ -1,8 +1,6 @@
 // src/utils/search.js
 // Smart search + ranking + tiering for FakeStore products.
 
-import { normalizeCategory } from "../api/fakestore";
-
 /* ────────────────────────────────────────────────────────────
  * Synonyms / near-terms (extend as needed)
  * ──────────────────────────────────────────────────────────── */
@@ -65,7 +63,7 @@ const buildHaystacks = (p) => {
 
 const containsWholeWord = (hay, word) => hay.includes(` ${word} `);
 
-const canonicalCat = (val = "") => normalizeCategory(val);
+const canonicalCat = (val = "") => (val);
 
 /* ────────────────────────────────────────────────────────────
  * Relevance scoring (phrase > title > description > category > prefix)

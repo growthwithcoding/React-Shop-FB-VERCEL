@@ -2,10 +2,11 @@
 // ------------------------------------------------------------
 // WHAT THIS DOES:
 // Controlled search input that pipes keystrokes up to the parent
-// for product filtering.
+// for product filtering. Optional debounced emit. Optional clear.
+// NEW: You can wrap this in a <form> and submit it. If you pass
+// a submit handler to that form, the header will render a button
+// next to it (see NavBar).
 // ------------------------------------------------------------
-
-// SearchBar.jsx — no prop-types; debounced optional; universal clear button
 import { useEffect } from "react";
 
 /**
@@ -39,6 +40,7 @@ export default function SearchBar({
   ariaLabel = "Search products",
   inputProps = {},
 }) {
+  // Debounce (optional)
   useEffect(() => {
     if (!onDebouncedChange || debounceMs <= 0) return;
     const t = setTimeout(() => onDebouncedChange(value), debounceMs);
@@ -60,12 +62,13 @@ export default function SearchBar({
         type="search"
         placeholder={placeholder}
         value={value}
-        onChange={(e) => onChange(e.target.value)}   // emits STRING
+        onChange={(e) => onChange(e.target.value)}
         aria-label={ariaLabel}
         autoFocus={autoFocus}
         autoComplete="off"
         spellCheck={false}
         enterKeyHint="search"
+        style={{ height: '40px', ...inputProps?.style }}
         {...inputProps}
       />
 
@@ -79,16 +82,7 @@ export default function SearchBar({
             onDebouncedChange?.("");
             onClear?.();
           }}
-          style={{
-            position: "absolute",
-            right: 8,
-            background: "transparent",
-            border: "none",
-            cursor: "pointer",
-            fontSize: "1.25rem",
-            lineHeight: 1,
-            padding: 0,
-          }}
+          className="search-clear"
         >
           ×
         </button>
