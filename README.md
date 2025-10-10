@@ -359,7 +359,13 @@ npm install
 
 #### Step 2: Create Master Seeding Script
 
-Create `seed-all.mjs` in the `seeding/` directory (or use the script from [SEEDING_GUIDE.md](seeding/SEEDING_GUIDE.md)):
+**Option A: Use the Comprehensive Guide** (Recommended)
+
+See [seeding/SEEDING_GUIDE.md](seeding/SEEDING_GUIDE.md) for the complete master seeding script with all collections.
+
+**Option B: Quick Script Template**
+
+If you prefer to create your own, here's a template for `seed-all.mjs`:
 
 ```javascript
 import admin from "firebase-admin";
