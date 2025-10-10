@@ -338,19 +338,206 @@ On first launch (when no `.env` file exists), you'll be redirected to the **onbo
 
 For detailed onboarding instructions, see [`ONBOARDING.md`](ONBOARDING.md) and [`ONBOARDING_SERVER.md`](ONBOARDING_SERVER.md).
 
-### Database Seeding (Optional)
+### Database Seeding (Optional but Recommended)
 
-To populate your store with sample data:
+To populate your store with comprehensive test data including products, orders, users, support tickets, and more:
+
+#### Quick Start
 
 ```bash
-cd store-seeder
+cd seeding
 npm install
-
-# Configure firebase-admin.json with service account credentials
-# (See store-seeder/README.md for details)
-
-node seed-store.mjs
 ```
+
+#### Step 1: Get Firebase Service Account Key
+
+1. Go to [Firebase Console](https://console.firebase.google.com)
+2. Select your project
+3. Navigate to **Project Settings** (gear icon) → **Service Accounts**
+4. Click **"Generate New Private Key"**
+5. Save the downloaded JSON file as `firebase-admin.json` in the `seeding/` directory
+
+#### Step 2: Create Master Seeding Script
+
+Create `seed-all.mjs` in the `seeding/` directory (or use the script from [SEEDING_GUIDE.md](seeding/SEEDING_GUIDE.md)):
+
+```javascript
+import admin from "firebase-admin";
+import { readFile } from "fs/promises";
+
+// Initialize Firebase Admin
+const serviceAccount = JSON.parse(
+  await readFile(new URL("./firebase-admin.json", import.meta.url))
+);
+
+admin.initializeApp({
+  credential: admin.credential.cert(serviceAccount)
+});
+
+const db = admin.firestore();
+
+console.log("🚀 Starting comprehensive database seeding...\n");
+
+// Helper function to seed a collection
+async function seedCollection(collectionName, dataFile, options = {}) {
+  const { useIdAsDocId = false, docId = null } = options;
+  
+  console.log(`📦 Seeding ${collectionName}...`);
+  
+  const data = JSON.parse(
+    await readFile(new URL(`./${dataFile}`, import.meta.url))
+  );
+  
+  if (docId) {
+    await db.collection(collectionName).doc(docId).set(data);
+    console.log(`✅ ${collectionName}/${docId} created\n`);
+    return;
+  }
+  
+  const batch = db.batch();
+  let count = 0;
+  
+  for (const item of data) {
+    const id = useIdAsDocId ? item.id || item.userId || item.sku || item.orderId : null;
+    const ref = id 
+      ? db.collection(collectionName).doc(id)
+      : db.collection(collectionName).doc();
+    
+    const processedItem = { ...item };
+    if (collectionName === 'products') {
+      processedItem.createdAt = admin.firestore.FieldValue.serverTimestamp();
+      processedItem.updatedAt = admin.firestore.FieldValue.serverTimestamp();
+    }
+    
+    batch.set(ref, processedItem, { merge: true });
+    count++;
+  }
+  
+  await batch.commit();
+  console.log(`✅ ${collectionName}: ${count} documents created\n`);
+}
+
+// Seed in correct order
+async function seedAll() {
+  try {
+    await seedCollection("system", "systemSeed.json", { docId: "setup" });
+    await seedCollection("settings", "settingsSeed.json", { docId: "default" });
+    await seedCollection("users", "usersEnhancedSeed.json", { useIdAsDocId: true });
+    await seedCollection("products", "productSeed.json", { useIdAsDocId: true });
+    await seedCollection("orders", "ordersSeed.json", { useIdAsDocId: true });
+    await seedCollection("discounts", "discountsSeed.json", { useIdAsDocId: true });
+    await seedCollection("supportTickets", "supportTicketsSeed.json", { useIdAsDocId: true });
+    await seedCollection("ticketReplies", "ticketRepliesSeed.json", { useIdAsDocId: true });
+    
+    console.log("🎉 Database seeding completed successfully!");
+    console.log("\n📊 Summary:");
+    console.log("  • 13 Users (1 admin, 2 agents, 10 customers)");
+    console.log("  • 27 Products");
+    console.log("  • 30 Orders");
+    console.log("  • 15 Discounts");
+    console.log("  • 15 Support tickets");
+    console.log("  • 29 Ticket replies");
+    console.log("\n✨ Your database is ready for testing!");
+  } catch (error) {
+    console.error("❌ Seeding failed:", error);
+    process.exit(1);
+  }
+}
+
+seedAll().then(() => process.exit(0));
+```
+
+#### Step 3: Run Seeding Script
+
+```bash
+node seed-all.mjs
+```
+
+#### Step 4: Create Authentication Accounts
+
+**Important:** After seeding Firestore data, you must create Firebase Authentication accounts for users to log in.
+
+Create `create-auth-users.mjs`:
+
+```javascript
+import admin from "firebase-admin";
+import { readFile } from "fs/promises";
+
+const serviceAccount = JSON.parse(
+  await readFile(new URL("./firebase-admin.json", import.meta.url))
+);
+
+admin.initializeApp({
+  credential: admin.credential.cert(serviceAccount)
+});
+
+const users = JSON.parse(
+  await readFile(new URL("./usersEnhancedSeed.json", import.meta.url))
+);
+
+async function createAuthUsers() {
+  for (const user of users) {
+    try {
+      await admin.auth().createUser({
+        uid: user.userId,
+        email: user.email,
+        password: "TestPass123!",  // Change this to a secure password!
+        displayName: user.name
+      });
+      console.log(`✅ Created auth user: ${user.email}`);
+    } catch (error) {
+      if (error.code === 'auth/uid-already-exists') {
+        console.log(`⚠️  User already exists: ${user.email}`);
+      } else {
+        console.error(`❌ Failed to create ${user.email}:`, error.message);
+      }
+    }
+  }
+}
+
+createAuthUsers().then(() => process.exit(0));
+```
+
+Run:
+```bash
+node create-auth-users.mjs
+```
+
+#### Test Accounts
+
+After seeding, you can log in with these accounts (password: `TestPass123!` or what you set):
+
+- **Admin:** admin@advancedshop.com
+- **Agent 1:** sarah.johnson@advancedshop.com
+- **Agent 2:** michael.chen@advancedshop.com
+- **Customer:** gm@eimutah.com (+ 9 more customers)
+
+#### What Gets Seeded
+
+The seeding process populates your database with:
+
+- ✅ **130 documents** across 8 Firestore collections
+- ✅ **Complete user profiles** with addresses and payment methods
+- ✅ **Product catalog** (27 products with inventory)
+- ✅ **Order history** (30 orders in various states)
+- ✅ **Discount codes** (15 promotional codes)
+- ✅ **Support ticket system** (15 tickets + 29 threaded replies)
+- ✅ **Store settings** and system configuration
+
+#### Detailed Documentation
+
+For comprehensive seeding documentation including:
+- Complete schema reference for all collections
+- User journey testing scenarios
+- Edge case coverage
+- Troubleshooting guide
+- Data cleanup procedures
+
+**See:** [seeding/SEEDING_GUIDE.md](seeding/SEEDING_GUIDE.md)
+
+For a complete coverage checklist of all features and data:
+
+**See:** [seeding/SEED_DATA_SUMMARY.md](seeding/SEED_DATA_SUMMARY.md)
 
 ---
 
