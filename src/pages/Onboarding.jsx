@@ -868,7 +868,7 @@ function DatabaseSeedStep({ onNext, onSkip }) {
           <div className="card" style={{ padding: 16, marginBottom: 24, background: "var(--surface)" }}>
             <h3 style={{ fontSize: 16, marginBottom: 12 }}>📦 Sample Data Available</h3>
             <p style={{ margin: "0 0 12px", color: "var(--text-secondary)", fontSize: 14 }}>
-              The store-seeder utility includes sample products across multiple categories:
+              The seeding utility includes sample products across multiple categories:
             </p>
             <ul style={{ margin: 0, paddingLeft: 20, fontSize: 14 }}>
               <li>Mechanical Keyboards</li>
@@ -885,12 +885,12 @@ function DatabaseSeedStep({ onNext, onSkip }) {
               To populate your database with sample products, run these commands:
             </p>
             <div style={{ background: "#f5f5f5", padding: 12, borderRadius: 4, fontFamily: "monospace", fontSize: 13, marginBottom: 12 }}>
-              cd store-seeder<br/>
+              cd seeding<br/>
               npm install<br/>
               node seed-store.mjs
             </div>
             <p style={{ margin: 0, fontSize: 13, color: "var(--text-secondary)" }}>
-              ⚠️ Make sure you've configured <code>firebase-admin.json</code> first. See <code>store-seeder/README.md</code> for details.
+              ⚠️ Make sure you've configured <code>firebase-admin.json</code> first. See <code>seeding/README.md</code> for details.
             </p>
           </div>
 
