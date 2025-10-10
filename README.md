@@ -60,12 +60,6 @@ A modern, feature-rich e-commerce platform built with React 19 and Firebase. Fea
 
 ### 📊 Analytics & Insights
 - **Revenue Tracking** - Real-time revenue targets and performance charts with period comparison ([`src/components/dashboard/Charts.jsx`](src/components/dashboard/Charts.jsx))
-- **Gross vs Net Sales** - Track revenue before and after refunds with visual charts
-- **KPI Monitoring** - Average order value, conversion rate, gross margin tracking
-- **Inventory Value** - Real-time inventory valuation and tracking
-- **Support Metrics** - Ticket backlog, status tracking, and agent workload monitoring
-- **Interactive Visualizations** - Powered by Recharts with line charts and sparklines
-- **Period Comparison** - Compare current performance against previous periods
 
 ### 🔐 Authentication & Security
 - **Firebase Authentication** - Secure user management ([`src/lib/firebase.js`](src/lib/firebase.js))
