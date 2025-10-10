@@ -48,7 +48,7 @@ Each product document includes:
 ### 1. Install Dependencies
 
 ```bash
-cd store-seeder
+cd seding
 npm install
 ```
 

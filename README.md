@@ -243,7 +243,7 @@ advanced-shop-FB-Edition/
 
 ```bash
 # 1. Clone the repository
-git clone https://github.com/growthwithcoding/advanced-shop-capstone.git
+git clone https://github.com/growthwithcoding/React-Shop-FB.git
 cd advanced-shop-capstone
 
 # 2. Install dependencies
