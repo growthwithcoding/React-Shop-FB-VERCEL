@@ -59,12 +59,13 @@ A modern, feature-rich e-commerce platform built with React 19 and Firebase. Fea
 - **Support Ticket System** - Track and respond to customer inquiries ([`src/components/CreateSupportTicketModal.jsx`](src/components/CreateSupportTicketModal.jsx))
 
 ### 📊 Analytics & Insights
-- **Revenue Tracking** - Real-time revenue targets and performance charts ([`src/components/dashboard/Charts.jsx`](src/components/dashboard/Charts.jsx))
-- **Conversion Funnels** - Visualize customer journey from browsing to purchase
-- **Product Performance** - Pareto analysis for top-selling products
-- **Inventory Management** - Aging reports and turnover metrics
-- **Support Metrics** - Ticket backlog and agent workload tracking
-- **Interactive Visualizations** - Powered by Recharts with heatmaps, gauges, and waterfalls
+- **Revenue Tracking** - Real-time revenue targets and performance charts with period comparison ([`src/components/dashboard/Charts.jsx`](src/components/dashboard/Charts.jsx))
+- **Gross vs Net Sales** - Track revenue before and after refunds with visual charts
+- **KPI Monitoring** - Average order value, conversion rate, gross margin tracking
+- **Inventory Value** - Real-time inventory valuation and tracking
+- **Support Metrics** - Ticket backlog, status tracking, and agent workload monitoring
+- **Interactive Visualizations** - Powered by Recharts with line charts and sparklines
+- **Period Comparison** - Compare current performance against previous periods
 
 ### 🔐 Authentication & Security
 - **Firebase Authentication** - Secure user management ([`src/lib/firebase.js`](src/lib/firebase.js))
