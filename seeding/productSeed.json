@@ -1,303 +1,272 @@
 [
   {
-    "name": "Keychron K2 QMK (V3)",
-    "title": "Keychron K2 QMK (V3)",
-    "category": "Mechanical Keyboards",
-    "priceUSD": 119.99,
-    "inventory": 25,
-    "sku": "KB-KCR-K2V3",
-    "imageUrl": "https://placehold.co/400x300/1a1a1a/ffffff/png?text=Keychron+K2",
-    "shortDescription": "75% wireless mechanical keyboard with QMK and hot-swap switches.",
-    "fullDescription": "The K2 V3 is a compact 75% board with QMK/VIA programmability, Bluetooth multi-device pairing, hot-swappable MX-style sockets, and Mac/Windows keycaps."
-  },
-  {
-    "name": "Logitech MX Mechanical (Full Size)",
-    "title": "Logitech MX Mechanical (Full Size)",
-    "category": "Mechanical Keyboards",
-    "priceUSD": 179.99,
-    "inventory": 15,
-    "sku": "KB-LOGI-MXMECH-FULL",
-    "imageUrl": "https://placehold.co/400x300/2c3e50/ffffff/png?text=Logitech+MX",
-    "shortDescription": "Low-profile mechanical keyboard for coders and creators.",
-    "fullDescription": "Offers Tactile Quiet/Linear/Clicky low-profile switches, smart backlighting, multi-OS legends, Easy-Switch pairing for three devices via Bluetooth LE or Logi Bolt."
-  },
-  {
-    "name": "Keychron K8 Pro",
-    "title": "Keychron K8 Pro",
-    "category": "Mechanical Keyboards",
-    "priceUSD": 149.00,
-    "inventory": 0,
-    "sku": "KB-KCR-K8PRO",
-    "imageUrl": "https://placehold.co/400x300/34495e/ffffff/png?text=K8+Pro",
-    "shortDescription": "Compact TKL with QMK/VIA and hot-swappable switches.",
-    "fullDescription": "The K8 Pro brings factory-lubed stabilizers, south-facing RGB, gasket mounting, PBT keycaps, and wired/Bluetooth modes to a tenkeyless form factor."
-  },
-  {
-    "name": "Keychron Q1 Pro",
-    "title": "Keychron Q1 Pro",
-    "category": "Mechanical Keyboards",
-    "priceUSD": 199.00,
-    "inventory": 8,
-    "sku": "KB-KCR-Q1PRO",
-    "imageUrl": "https://placehold.co/400x300/16a085/ffffff/png?text=Q1+Pro",
-    "shortDescription": "75% aluminum gasket-mount custom board with QMK/VIA.",
-    "fullDescription": "Wireless/wired with tri-mode connectivity, CNC aluminum case, double-gasket design, south-facing RGB, and hot-swap sockets for easy switch changes."
-  },
-  {
-    "name": "Corsair K70 RGB Pro",
-    "title": "Corsair K70 RGB Pro",
-    "category": "Mechanical Keyboards",
-    "priceUSD": 159.99,
-    "inventory": 0,
-    "sku": "KB-CORS-K70RGB",
-    "imageUrl": "https://placehold.co/400x300/c0392b/ffffff/png?text=Corsair+K70",
-    "shortDescription": "Full-size RGB mechanical gaming keyboard.",
-    "fullDescription": "Tournament-ready with CHERRY MX switches, per-key RGB backlighting, dedicated media controls, and durable aluminum frame. Out of Stock - Popular Item!"
-  },
-
-  {
-    "name": "Raspberry Pi 5 (4GB)",
-    "title": "Raspberry Pi 5 (4GB)",
-    "category": "Development Boards",
-    "priceUSD": 66.00,
-    "inventory": 42,
-    "sku": "DEV-RPI-5-4GB",
-    "imageUrl": "https://placehold.co/400x300/c43e5e/ffffff/png?text=Raspberry+Pi+5",
-    "shortDescription": "Quad-core Arm Cortex-A76 SBC with dual 4K HDMI.",
-    "fullDescription": "2.4GHz Cortex-A76 CPU, VideoCore VII GPU, PCIe 2.0 x1 via HAT+, dual MIPI, 2× USB 3.0, GbE, and improved I/O via the RP1 southbridge."
-  },
-  {
-    "name": "NVIDIA Jetson Nano Developer Kit (4GB)",
-    "title": "NVIDIA Jetson Nano Developer Kit (4GB)",
-    "category": "Development Boards",
-    "priceUSD": 149.00,
-    "inventory": 12,
-    "sku": "DEV-NV-JETSON-NANO",
-    "imageUrl": "https://placehold.co/400x300/76b900/ffffff/png?text=Jetson+Nano",
-    "shortDescription": "Entry-level AI computer for edge ML projects.",
-    "fullDescription": "GPU-accelerated compute suitable for computer vision and robotics. Includes USB 3.0, GbE, HDMI/DP, CSI camera connectors, and 40-pin GPIO."
-  },
-  {
-    "name": "Adafruit Feather RP2040",
-    "title": "Adafruit Feather RP2040",
-    "category": "Development Boards",
-    "priceUSD": 11.95,
-    "inventory": 150,
-    "sku": "DEV-ADA-4884",
-    "imageUrl": "https://placehold.co/400x300/9b59b6/ffffff/png?text=Feather+RP2040",
-    "shortDescription": "Feather-format microcontroller with Raspberry Pi RP2040.",
-    "fullDescription": "Dual-core M0+ ~125MHz, 8MB QSPI flash, USB-C, LiPo charging, STEMMA QT, and plentiful GPIO—great for embedded prototyping and teaching."
-  },
-  {
-    "name": "Adafruit Metro M4 Express (SAMD51)",
-    "title": "Adafruit Metro M4 Express (SAMD51)",
-    "category": "Development Boards",
-    "priceUSD": 27.50,
-    "inventory": 85,
-    "sku": "DEV-ADA-3382",
-    "imageUrl": "https://placehold.co/400x300/8e44ad/ffffff/png?text=Metro+M4",
-    "shortDescription": "Arduino-compatible board with 120MHz Cortex-M4F.",
-    "fullDescription": "Fast SAMD51 MCU with floating point, USB native support, CircuitPython/Arduino compatibility, and lots of GPIO for serious prototyping."
-  },
-  {
-    "name": "Arduino Mega 2560 Rev3",
-    "title": "Arduino Mega 2560 Rev3",
-    "category": "Development Boards",
-    "priceUSD": 48.70,
-    "inventory": 0,
-    "sku": "DEV-ARD-MEGA2560",
-    "imageUrl": "https://placehold.co/400x300/00979d/ffffff/png?text=Arduino+Mega",
-    "shortDescription": "Classic Arduino with 54 digital I/O pins.",
-    "fullDescription": "ATmega2560 microcontroller with 256KB flash, perfect for complex projects requiring many I/O pins. Currently Out of Stock."
-  },
-
-  {
-    "name": "IntelliJ IDEA Ultimate",
-    "title": "IntelliJ IDEA Ultimate",
-    "category": "Software Tools",
-    "priceUSD": 169.00,
-    "inventory": 999,
-    "sku": "SW-JB-IDEA-ULT",
-    "imageUrl": "https://placehold.co/400x300/000000/ffffff/png?text=IntelliJ+IDEA",
-    "shortDescription": "Full-featured IDE for JVM and polyglot development.",
-    "fullDescription": "Advanced code analysis, refactorings, debuggers, test runners, and ecosystem plugins for Java, Kotlin, and more."
-  },
-  {
-    "name": "Postman (Team Plan)",
-    "title": "Postman (Team Plan)",
-    "category": "Software Tools",
-    "priceUSD": 15.00,
-    "inventory": 999,
-    "sku": "SW-POSTMAN-TEAM",
-    "imageUrl": "https://placehold.co/400x300/ff6c37/ffffff/png?text=Postman",
-    "shortDescription": "API design, testing, and collaboration platform.",
-    "fullDescription": "Collections, environments, monitors, mock servers, and team workspaces to accelerate API development and QA."
-  },
-  {
-    "name": "Docker Desktop (Pro)",
-    "title": "Docker Desktop (Pro)",
-    "category": "Software Tools",
-    "priceUSD": 5.00,
-    "inventory": 999,
-    "sku": "SW-DOCKER-DESKTOP-PRO",
-    "imageUrl": "https://placehold.co/400x300/2496ed/ffffff/png?text=Docker",
-    "shortDescription": "Local containers and Kubernetes for Windows/macOS.",
-    "fullDescription": "Build, share, and run containers with Compose, Dev Environments, and optional Kubernetes—streamlined developer UX."
-  },
-  {
-    "name": "TablePlus (Perpetual License)",
-    "title": "TablePlus (Perpetual License)",
-    "category": "Software Tools",
-    "priceUSD": 119.00,
-    "inventory": 999,
-    "sku": "SW-TABLEPLUS-PL",
-    "imageUrl": "https://placehold.co/400x300/3498db/ffffff/png?text=TablePlus",
-    "shortDescription": "Modern native database GUI.",
-    "fullDescription": "Manage Postgres, MySQL, SQLite, SQL Server, and more with fast inline editing, safe change review, and powerful filters."
-  },
-  {
-    "name": "The Pragmatic Programmer (20th Anniversary Edition)",
-    "title": "The Pragmatic Programmer (20th Anniversary Edition)",
-    "category": "Programming Books",
-    "priceUSD": 54.99,
-    "inventory": 32,
-    "sku": "BK-PRAG-20",
-    "imageUrl": "https://placehold.co/400x300/27ae60/ffffff/png?text=Pragmatic",
-    "shortDescription": "Modern classic on the craft of software.",
-    "fullDescription": "Practical advice on coding, debugging, automation, and career-long habits—updated for today's tools and practices."
-  },
-  {
-    "name": "Designing Data-Intensive Applications",
-    "title": "Designing Data-Intensive Applications",
-    "category": "Programming Books",
-    "priceUSD": 59.99,
-    "inventory": 18,
-    "sku": "BK-DDIA-1E",
-    "imageUrl": "https://placehold.co/400x300/2980b9/ffffff/png?text=Data+Apps",
-    "shortDescription": "A deep dive into scalable, reliable data systems.",
-    "fullDescription": "Explains data models, storage, stream processing, replication, and consistency with real-world trade-offs."
-  },
-  {
-    "name": "Introduction to Algorithms (CLRS, 4e)",
-    "title": "Introduction to Algorithms (CLRS, 4e)",
-    "category": "Programming Books",
-    "priceUSD": 99.00,
-    "inventory": 0,
-    "sku": "BK-CLRS-4E",
-    "imageUrl": "https://placehold.co/400x300/e74c3c/ffffff/png?text=CLRS",
-    "shortDescription": "Comprehensive algorithms textbook.",
-    "fullDescription": "Covers fundamental algorithms and data structures with proofs, analysis, and pseudocode used worldwide in academia and industry. Currently Out of Stock - Awaiting Reprint."
-  },
-  {
-    "name": "You Don't Know JS Yet (2nd Ed.)",
-    "title": "You Don't Know JS Yet (2nd Ed.)",
-    "category": "Programming Books",
-    "priceUSD": 39.99,
+    "title": "Nike Men's Vapor Elite 2 Jersey",
+    "category": "Apparel",
+    "priceUSD": 89.99,
     "inventory": 45,
-    "sku": "BK-YDKJSY-2E",
-    "imageUrl": "https://placehold.co/400x300/f39c12/000000/png?text=YDKJS",
-    "shortDescription": "JavaScript deeply explained.",
-    "fullDescription": "Explores JS mechanics like scope, closures, types, and async patterns to help you write clearer, more reliable code."
+    "sku": "AP-NIKE-VAPOR-ELITE-JER",
+    "imageUrl": "/sample/product-images/AP-NIKE-VAPOR-ELITE-JER.jpg",
+    "shortDescription": "Professional-grade baseball jersey with moisture-wicking technology.",
+    "longDescription": "The Nike Vapor Elite 2 Jersey delivers premium performance for serious baseball players. Featuring Nike's advanced Dri-FIT technology, this jersey keeps you cool and dry during intense games. The streamlined fit reduces drag while allowing full range of motion, and the durable construction withstands the rigors of competitive play. Designed with input from MLB players, it combines authentic team styling with cutting-edge fabric technology for unmatched comfort on the diamond."
   },
   {
-    "name": "Clean Code by Robert C. Martin",
-    "title": "Clean Code by Robert C. Martin",
-    "category": "Programming Books",
-    "priceUSD": 44.99,
-    "inventory": 28,
-    "sku": "BK-CLEAN-CODE",
-    "imageUrl": "https://placehold.co/400x300/1abc9c/ffffff/png?text=Clean+Code",
-    "shortDescription": "A handbook of agile software craftsmanship.",
-    "fullDescription": "Learn how to write clean, maintainable code that's easy to understand and modify. Essential reading for every developer."
-  },
-
-  {
-    "name": "Herman Miller Aeron (Size B)",
-    "title": "Herman Miller Aeron (Size B)",
-    "category": "Chairs",
-    "priceUSD": 1445.00,
-    "inventory": 5,
-    "sku": "CH-HM-AERON-B",
-    "imageUrl": "https://placehold.co/400x300/34495e/ffffff/png?text=Aeron+Chair",
-    "shortDescription": "Iconic ergonomic mesh office chair.",
-    "fullDescription": "Adjustable lumbar support, breathable mesh, and durable build designed for long, comfortable coding sessions."
-  },
-  {
-    "name": "IKEA Markus",
-    "title": "IKEA Markus",
-    "category": "Chairs",
-    "priceUSD": 279.00,
-    "inventory": 22,
-    "sku": "CH-IKEA-MARKUS",
-    "imageUrl": "https://placehold.co/400x300/3498db/ffffff/png?text=IKEA+Markus",
-    "shortDescription": "High-back chair with headrest.",
-    "fullDescription": "Supportive mesh back, tilt/lock, and height adjustment—popular budget-friendly option for home offices."
-  },
-  {
-    "name": "Steelcase Leap V2",
-    "title": "Steelcase Leap V2",
-    "category": "Chairs",
-    "priceUSD": 1099.00,
-    "inventory": 0,
-    "sku": "CH-STEEL-LEAPV2",
-    "imageUrl": "https://placehold.co/400x300/95a5a6/ffffff/png?text=Steelcase+Leap",
-    "shortDescription": "Award-winning ergonomic office chair.",
-    "fullDescription": "LiveBack technology flexes to support your spine, with adjustable everything for all-day comfort. Currently Out of Stock."
-  },
-
-  {
-    "name": "Logitech MX Master 3S",
-    "title": "Logitech MX Master 3S",
-    "category": "Accessories",
-    "priceUSD": 99.99,
-    "inventory": 67,
-    "sku": "AC-LOGI-MX3S",
-    "imageUrl": "https://placehold.co/400x300/2c3e50/ffffff/png?text=MX+Master+3S",
-    "shortDescription": "Ergonomic wireless mouse with silent clicks.",
-    "fullDescription": "MagSpeed electromagnetic scroll, 8K DPI, Flow multi-computer control, and USB-C quick charging."
-  },
-  {
-    "name": "Elgato Stream Deck MK.2",
-    "title": "Elgato Stream Deck MK.2",
-    "category": "Accessories",
-    "priceUSD": 149.99,
-    "inventory": 31,
-    "sku": "AC-ELG-STREAMDECK-MK2",
-    "imageUrl": "https://placehold.co/400x300/8e44ad/ffffff/png?text=Stream+Deck",
-    "shortDescription": "15-key customizable macro pad.",
-    "fullDescription": "Programmable LCD keys trigger apps, shortcuts, and multi-actions—great for automations, builds, and streaming controls."
-  },
-  {
-    "name": "Blue Yeti USB Microphone",
-    "title": "Blue Yeti USB Microphone",
-    "category": "Accessories",
-    "priceUSD": 129.99,
-    "inventory": 0,
-    "sku": "AC-BLUE-YETI",
-    "imageUrl": "https://placehold.co/400x300/3498db/ffffff/png?text=Blue+Yeti",
-    "shortDescription": "Professional USB microphone for streaming and recording.",
-    "fullDescription": "Four pickup patterns, studio-quality sound, and plug-and-play setup. Perfect for podcasting, streaming, and voice-overs. Out of Stock - High Demand."
-  },
-  {
-    "name": "LG UltraWide 34\" Monitor",
-    "title": "LG UltraWide 34\" Monitor",
-    "category": "Accessories",
-    "priceUSD": 449.99,
-    "inventory": 14,
-    "sku": "AC-LG-UW34",
-    "imageUrl": "https://placehold.co/400x300/1a1a1a/ffffff/png?text=LG+UltraWide",
-    "shortDescription": "34-inch curved ultrawide monitor with QHD resolution.",
-    "fullDescription": "3440x1440 IPS display with HDR10, USB-C connectivity, and built-in speakers for immersive productivity."
-  },
-  {
-    "name": "Anker USB-C Hub (7-in-1)",
-    "title": "Anker USB-C Hub (7-in-1)",
-    "category": "Accessories",
+    "title": "Under Armour Men's Leadoff Baseball Pants",
+    "category": "Apparel",
     "priceUSD": 39.99,
+    "inventory": 78,
+    "sku": "AP-UA-LEADOFF-PANTS",
+    "imageUrl": "/sample/product-images/AP-UA-LEADOFF-PANTS.jpg",
+    "shortDescription": "Classic fit baseball pants with reinforced knees and belt loops.",
+    "longDescription": "Under Armour's Leadoff Baseball Pants are built for players who demand durability and comfort. The light, durable fabric stretches with your movements while maintaining its shape game after game. Double-reinforced knees provide extra protection during slides, and the tunnel belt loop system works with most belts for a secure fit."
+  },
+  {
+    "title": "New Era 59FIFTY Fitted Baseball Cap",
+    "category": "Apparel",
+    "priceUSD": 44.99,
     "inventory": 120,
-    "sku": "AC-ANKER-HUB7",
-    "imageUrl": "https://placehold.co/400x300/16a085/ffffff/png?text=Anker+Hub",
-    "shortDescription": "Compact 7-port USB-C hub with 4K HDMI.",
-    "fullDescription": "Includes HDMI, USB 3.0 ports, SD/microSD readers, and 100W Power Delivery passthrough for laptops."
+    "sku": "AP-NE-59FIFTY-CAP",
+    "imageUrl": "/sample/product-images/AP-NE-59FIFTY-CAP.jpg",
+    "shortDescription": "Authentic on-field fitted cap with structured crown and flat brim.",
+    "longDescription": "The New Era 59FIFTY is the official on-field cap of Major League Baseball and the gold standard for fitted baseball caps. Its structured, fitted design maintains its shape while providing a professional look that's been trusted by players and fans for decades. Made with premium materials, it features a moisture-wicking sweatband to keep you comfortable."
+  },
+  {
+    "title": "Majestic Cool Base Replica Jersey",
+    "category": "Apparel",
+    "priceUSD": 119.99,
+    "inventory": 34,
+    "sku": "AP-MAJ-COOLBASE-REP",
+    "imageUrl": "/sample/product-images/AP-MAJ-COOLBASE-REP.jpg",
+    "shortDescription": "Official MLB replica jersey with Cool Base moisture management.",
+    "longDescription": "The Majestic Cool Base Replica Jersey brings authentic MLB styling to fans and players alike. Featuring the same Cool Base technology used in on-field jerseys, this replica offers superior moisture management and temperature control. The tackle twill team logos and player numbers are sewn on for durability and authentic appearance."
+  },
+  {
+    "title": "Wilson A2000 Baseball Glove (11.5 inch)",
+    "category": "Gear",
+    "priceUSD": 289.99,
+    "inventory": 18,
+    "sku": "GR-WIL-A2000-11.5",
+    "imageUrl": "/sample/product-images/GR-WIL-A2000-11.5.jpg",
+    "shortDescription": "Premium leather infield glove with Pro Stock patterns.",
+    "longDescription": "The Wilson A2000 is the most popular glove among professional baseball players, trusted by more pros than any other model. Handcrafted from premium Pro Stock leather, each glove is built to provide exceptional feel and durability. The 11.5-inch infield pattern offers the perfect pocket depth for quick transfers, while the Dual Welting technology reinforces the pocket for maximum stability."
+  },
+  {
+    "title": "Rawlings Heart of the Hide Catcher's Mitt",
+    "category": "Gear",
+    "priceUSD": 349.99,
+    "inventory": 0,
+    "sku": "GR-RAW-HOH-CATCH",
+    "imageUrl": "/sample/product-images/GR-RAW-HOH-CATCH.jpg",
+    "shortDescription": "Elite catcher's mitt made from select Heart of the Hide leather.",
+    "longDescription": "Rawlings Heart of the Hide represents the pinnacle of baseball glove craftsmanship, featuring ultra-premium steer hide leather from the top 5% of hides. This catcher's mitt is designed for serious backstops who demand the best protection and control behind the plate. Currently Out of Stock - High Demand Item."
+  },
+  {
+    "title": "Easton Ghost Double Barrel BBCOR Bat",
+    "category": "Gear",
+    "priceUSD": 399.99,
+    "inventory": 24,
+    "sku": "GR-EAST-GHOST-BBCOR",
+    "imageUrl": "/sample/product-images/GR-EAST-GHOST-BBCOR.jpg",
+    "shortDescription": "High-performance BBCOR baseball bat with revolutionary double barrel construction.",
+    "longDescription": "The Easton Ghost Double Barrel redefines what's possible in BBCOR bat performance. Featuring revolutionary Double Barrel technology that combines inner and outer barrels to create the largest sweet spot in Easton history, this bat delivers explosive power across the entire hitting surface. BBCOR certified for high school and college regulations."
+  },
+  {
+    "title": "Louisville Slugger MLB Prime Maple Wood Bat",
+    "category": "Gear",
+    "priceUSD": 149.99,
+    "inventory": 32,
+    "sku": "GR-LS-MAPLE-C271",
+    "imageUrl": "/sample/product-images/GR-LS-MAPLE-C271.jpg",
+    "shortDescription": "Pro-grade maple wood bat with traditional C271 profile used by MLB stars.",
+    "longDescription": "Louisville Slugger has been crafting legendary baseball bats since 1884, and the MLB Prime Maple continues that tradition of excellence. Made from top-grade maple wood selected for its superior hardness and durability, this bat features the C271 turning model that's been used by countless big league players."
+  },
+  {
+    "title": "Diamond iX3 Baseball (DOZ)",
+    "category": "Gear",
+    "priceUSD": 54.99,
+    "inventory": 156,
+    "sku": "GR-DIA-IX3-DOZ",
+    "imageUrl": "/sample/product-images/GR-DIA-IX3-DOZ.jpg",
+    "shortDescription": "Premium raised seam baseballs for competitive play and practice (1 dozen).",
+    "longDescription": "Diamond iX3 baseballs deliver consistent performance that serious teams demand for both games and practice. Each ball features a cushioned cork center for optimal resilience and performance, wrapped with wool and cotton windings, and covered with premium full-grain leather. These NFHS certified baseballs maintain their shape and performance through multiple innings of play."
+  },
+  {
+    "title": "Mizuno Classic Pro Soft Baseball Glove (12 inch)",
+    "category": "Gear",
+    "priceUSD": 199.99,
+    "inventory": 28,
+    "sku": "GR-MIZ-CLASSIC-12",
+    "imageUrl": "/sample/product-images/GR-MIZ-CLASSIC-12.jpg",
+    "shortDescription": "Professional-quality outfield glove with deep pocket design.",
+    "longDescription": "Mizuno's Classic Pro Soft series represents decades of Japanese glove-making expertise, offering players a perfectly balanced combination of soft feel and structural integrity. The 12-inch pattern is ideal for outfielders who need a deep pocket to secure fly balls, while the Bio Soft leather breaks in quickly without sacrificing durability."
+  },
+  {
+    "title": "Nike Alpha Huarache Elite 4 Mid Baseball Cleats",
+    "category": "Shoes",
+    "priceUSD": 89.99,
+    "inventory": 67,
+    "sku": "SH-NIKE-HUARACHE-MID",
+    "imageUrl": "/sample/product-images/SH-NIKE-HUARACHE-MID.jpg",
+    "shortDescription": "Mid-cut baseball cleats with responsive cushioning and elite traction.",
+    "longDescription": "The Nike Alpha Huarache Elite 4 Mid is engineered for explosive performance on the diamond. Featuring Nike React foam technology in the midsole, these cleats provide responsive cushioning that returns energy with every step. The mid-cut collar design offers ankle support without restricting mobility, perfect for quick direction changes."
+  },
+  {
+    "title": "New Balance FuelCell 4040 v7 Metal Baseball Cleats",
+    "category": "Shoes",
+    "priceUSD": 139.99,
+    "inventory": 42,
+    "sku": "SH-NB-4040V7-METAL",
+    "imageUrl": "/sample/product-images/SH-NB-4040V7-METAL.jpg",
+    "shortDescription": "High-performance metal cleats with FuelCell cushioning technology.",
+    "longDescription": "The New Balance FuelCell 4040 v7 represents the cutting edge of baseball cleat technology, combining lightweight construction with explosive energy return. FuelCell midsole technology provides elite cushioning that propels you forward with every stride, while the metal spike configuration is optimized for maximum traction and acceleration."
+  },
+  {
+    "title": "Under Armour Yard Low MT Baseball Cleats",
+    "category": "Shoes",
+    "priceUSD": 79.99,
+    "inventory": 88,
+    "sku": "SH-UA-YARD-LOW-MT",
+    "imageUrl": "/sample/product-images/SH-UA-YARD-LOW-MT.jpg",
+    "shortDescription": "Versatile molded turf cleats for multi-surface play and training.",
+    "longDescription": "Under Armour's Yard Low MT cleats are designed for players who need versatility and durability across multiple surfaces. The low-cut design allows for natural ankle mobility and lighter weight, while the molded rubber studs provide reliable traction on turf, dirt, and grass. The Charged Cushioning midsole absorbs impact and converts it to responsive energy."
+  },
+  {
+    "title": "Adidas Icon 7 Bounce Baseball Cleats",
+    "category": "Shoes",
+    "priceUSD": 94.99,
+    "inventory": 55,
+    "sku": "SH-ADI-ICON7-BOUNCE",
+    "imageUrl": "/sample/product-images/SH-ADI-ICON7-BOUNCE.jpg",
+    "shortDescription": "Premium baseball cleats with Bounce cushioning and lockdown fit.",
+    "longDescription": "The Adidas Icon 7 Bounce combines innovative cushioning technology with a sleek, performance-driven design. Bounce midsole cushioning provides responsive comfort that adapts to your playing style. The Sprintframe TPU outsole is engineered for optimal weight distribution and traction, while the Ironskin synthetic leather toe cap offers enhanced durability."
+  },
+  {
+    "title": "Franklin Sports Baseball Batting Gloves",
+    "category": "Accessories",
+    "priceUSD": 29.99,
+    "inventory": 145,
+    "sku": "AC-FRANK-BAT-GLOVES",
+    "imageUrl": "/sample/product-images/AC-FRANK-BAT-GLOVES.jpg",
+    "shortDescription": "Digi-Tek batting gloves with superior grip and flexibility.",
+    "longDescription": "Franklin Sports has been outfitting baseball players for over 70 years, and these Digi-Tek batting gloves represent the perfect blend of comfort, grip, and durability. The digitally embossed palm provides exceptional bat grip in all weather conditions, while the four-way stretch mesh back ensures a flexible, breathable fit."
+  },
+  {
+    "title": "EvoShield PRO-SRZ Batter's Leg Guard",
+    "category": "Accessories",
+    "priceUSD": 49.99,
+    "inventory": 72,
+    "sku": "AC-EVO-LEG-GUARD",
+    "imageUrl": "/sample/product-images/AC-EVO-LEG-GUARD.jpg",
+    "shortDescription": "Custom-molding leg guard for batters with Gel-to-Shell technology.",
+    "longDescription": "The EvoShield PRO-SRZ Leg Guard uses revolutionary Gel-to-Shell technology that custom-molds to your leg for a perfect, personalized fit. Within 30 minutes of opening the package, the protective shield hardens to create a lightweight, low-profile guard that won't restrict your movement in the batter's box."
+  },
+  {
+    "title": "Champro Baseball Helmet with Faceguard",
+    "category": "Accessories",
+    "priceUSD": 64.99,
+    "inventory": 0,
+    "sku": "AC-CHAMP-HELMET-FG",
+    "imageUrl": "/sample/product-images/AC-CHAMP-HELMET-FG.jpg",
+    "shortDescription": "NOCSAE certified batting helmet with attached wire faceguard.",
+    "longDescription": "Safety meets performance in the Champro Baseball Helmet with Faceguard, designed to provide maximum protection for batters and base runners. The high-impact ABS shell is NOCSAE certified and meets all safety standards for competitive play. The steel wire faceguard is permanently attached and engineered to protect against wild pitches. Currently Out of Stock - Awaiting New Shipment."
+  },
+  {
+    "title": "Rawlings Velo Wheeled Baseball Bag",
+    "category": "Accessories",
+    "priceUSD": 119.99,
+    "inventory": 38,
+    "sku": "AC-RAW-VELO-WHEEL",
+    "imageUrl": "/sample/product-images/AC-RAW-VELO-WHEEL.jpg",
+    "shortDescription": "Premium wheeled equipment bag with multiple compartments and durable construction.",
+    "longDescription": "The Rawlings Velo Wheeled Baseball Bag is the ultimate equipment hauler for serious players who need to transport their gear in style and comfort. This spacious bag features a main compartment large enough for helmets, gloves, and uniforms, plus separate ventilated shoe and dirty gear pockets to keep things organized."
+  },
+  {
+    "title": "Stance Baseball Diamond Pro OTC Socks",
+    "category": "Accessories",
+    "priceUSD": 19.99,
+    "inventory": 210,
+    "sku": "AC-STANCE-DIAMOND-PRO",
+    "imageUrl": "/sample/product-images/AC-STANCE-DIAMOND-PRO.jpg",
+    "shortDescription": "Performance baseball socks with moisture-wicking and arch support.",
+    "longDescription": "Stance Diamond Pro OTC socks are engineered specifically for baseball players who demand comfort and performance from every piece of their uniform. The over-the-calf design provides full coverage under stirrups or for a classic baseball look, while the moisture-wicking blend keeps your feet dry during the longest games."
+  },
+  {
+    "title": "Shock Doctor Core Compression Shorts with Bio-Flex Cup",
+    "category": "Accessories",
+    "priceUSD": 34.99,
+    "inventory": 95,
+    "sku": "AC-SHOCK-COMP-CUP",
+    "imageUrl": "/sample/product-images/AC-SHOCK-COMP-CUP.jpg",
+    "shortDescription": "Compression shorts with integrated protective cup pocket and moisture-wicking fabric.",
+    "longDescription": "The Shock Doctor Core Compression Shorts provide essential protection and performance for baseball players. Featuring a built-in pocket that securely holds the included Bio-Flex protective cup, these shorts eliminate shifting and ensure consistent protection throughout the game. The compression fabric supports muscles, reduces fatigue, and wicks moisture away to keep you dry and comfortable. The soft cup design flexes with your movement while providing rigid protection where you need it most. Perfect for players at all levels who prioritize safety without sacrificing mobility."
+  },
+  {
+    "title": "McDavid Flex Cup Athletic Supporter",
+    "category": "Accessories",
+    "priceUSD": 24.99,
+    "inventory": 118,
+    "sku": "AC-MCD-FLEX-SUP",
+    "imageUrl": "/sample/product-images/AC-MCD-FLEX-SUP.jpg",
+    "shortDescription": "Traditional athletic supporter with flex shield protective cup.",
+    "longDescription": "McDavid's Flex Cup Athletic Supporter offers classic jockstrap design with modern protective technology. The flex shield cup is constructed from high-impact resistant material that disperses force upon impact while maintaining flexibility for natural movement. The supporter features a comfortable waistband with no-slip gripper strips and durable elastic leg straps that keep the cup securely in place during aggressive play. Moisture-wicking fabric keeps you dry, and the mesh ventilation panels provide breathability. Essential protection for batters, catchers, and infielders who face high-speed pitches and hard-hit balls. Trusted by players for decades as fundamental protective gear."
+  },
+  {
+    "title": "Rawlings Official League Practice Baseball (DOZ)",
+    "category": "Gear",
+    "priceUSD": 39.99,
+    "inventory": 185,
+    "sku": "GR-RAW-OL-REC-DOZ",
+    "imageUrl": "/sample/product-images/GR-RAW-OL-REC-DOZ.jpg",
+    "shortDescription": "Value-priced practice baseballs for recreational play (1 dozen).",
+    "longDescription": "Rawlings Official League Practice baseballs offer excellent value for teams, coaches, and players who need quality practice balls without breaking the budget. Each ball features a cushioned cork center and synthetic leather cover that provides good durability for batting practice and recreational games. With a dozen balls included, you'll have plenty for extended training sessions."
+  },
+  {
+    "title": "DeMarini CF Zen BBCOR Baseball Bat",
+    "category": "Gear",
+    "priceUSD": 449.99,
+    "inventory": 16,
+    "sku": "GR-DEMA-CF-ZEN-BBCOR",
+    "imageUrl": "/sample/product-images/GR-DEMA-CF-ZEN-BBCOR.jpg",
+    "shortDescription": "Elite BBCOR bat with Paraflex Plus composite barrel for maximum performance.",
+    "longDescription": "The DeMarini CF Zen is consistently rated as one of the best BBCOR bats on the market, combining cutting-edge composite technology with a perfectly balanced swing weight. The Paraflex Plus composite barrel creates a massive sweet spot with exceptional responsiveness, while the 3Fusion Connection system joins the handle to the barrel to reduce vibration."
+  },
+  {
+    "title": "Marucci CAT9 BBCOR Baseball Bat",
+    "category": "Gear",
+    "priceUSD": 349.99,
+    "inventory": 0,
+    "sku": "GR-MAR-CAT9-BBCOR",
+    "imageUrl": "/sample/product-images/GR-MAR-CAT9-BBCOR.jpg",
+    "shortDescription": "One-piece aluminum bat with AZ105 alloy and precision-balanced barrel.",
+    "longDescription": "The Marucci CAT9 represents the pinnacle of aluminum bat engineering, utilizing aerospace-grade AZ105 alloy for maximum pop and durability. The precision-balanced AV2 Anti-Vibration Knob drastically reduces hand sting on mishits, while the multi-variable wall design creates a wider sweet spot. Currently Out of Stock - New Shipment Expected Soon."
+  },
+  {
+    "title": "Rawlings Pro Preferred Outfield Glove (12.75 inch)",
+    "category": "Gear",
+    "priceUSD": 429.99,
+    "inventory": 9,
+    "sku": "GR-RAW-PROPREF-1275",
+    "imageUrl": "/sample/product-images/GR-RAW-PROPREF-1275.jpg",
+    "shortDescription": "Premium outfield glove with Kip leather and deep pocket design.",
+    "longDescription": "The Rawlings Pro Preferred series represents the absolute finest gloves available, crafted from 100% Kip leather that's tanned to Rawlings' exact specifications. This 12.75-inch outfield pattern provides the deep pocket and reach that elite outfielders need to track down fly balls in the gap. Each glove is individually crafted by master glove makers."
+  },
+  {
+    "title": "Akadema ProSoft Elite Baseball Glove (11.25 inch)",
+    "category": "Gear",
+    "priceUSD": 159.99,
+    "inventory": 45,
+    "sku": "GR-AKA-PROSOFT-1125",
+    "imageUrl": "/sample/product-images/GR-AKA-PROSOFT-1125.jpg",
+    "shortDescription": "Versatile infield pitcher glove with game-ready feel out of the box.",
+    "longDescription": "Akadema's ProSoft Elite series offers exceptional value for players who want professional-quality leather without the extensive break-in period. The 11.25-inch pattern is versatile enough for middle infielders and pitchers, providing a shallow pocket for quick ball transfer while maintaining enough depth for secure catching."
+  },
+  {
+    "title": "Schutt F7 Baseball Batter's Helmet",
+    "category": "Accessories",
+    "priceUSD": 89.99,
+    "inventory": 52,
+    "sku": "AC-SCHUTT-F7-HELMET",
+    "imageUrl": "/sample/product-images/AC-SCHUTT-F7-HELMET.jpg",
+    "shortDescription": "Advanced protection batting helmet with TPU cushioning system.",
+    "longDescription": "The Schutt F7 Baseball Helmet sets a new standard for head protection in baseball. Featuring TPU cushioning that absorbs and disperses impact energy more effectively than traditional foam, this helmet provides elite protection without adding weight. The sleek, aerodynamic design reduces drag, while strategically placed vents keep you cool during at-bats."
   }
 ]

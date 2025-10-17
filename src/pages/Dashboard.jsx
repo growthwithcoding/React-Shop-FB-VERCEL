@@ -8,8 +8,6 @@ import { getPaymentMethods, deletePaymentMethod, setDefaultPaymentMethod } from 
 import { getUser } from "../services/userService";
 import { collection, query, where, getDocs } from "firebase/firestore";
 import { db, firebaseInitialized } from "../lib/firebase";
-import BreadcrumbNav from '../components/BreadcrumbNav';
-import { useTotalHeaderHeight } from '../hooks/useTotalHeaderHeight';;
 import EditProfileModal from "../components/EditProfileModal";
 import AddAddressModal from "../components/AddAddressModal";
 import AddPaymentModal from "../components/AddPaymentModal";
@@ -18,7 +16,6 @@ import CreateSupportTicketModal from "../components/CreateSupportTicketModal";
 const USD = new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" });
 
 export default function Dashboard() {
-  const totalHeaderHeight = useTotalHeaderHeight();
   const { user } = useAuth();
   const navigate = useNavigate();
   
@@ -246,21 +243,24 @@ export default function Dashboard() {
   const userName = user?.displayName || user?.firstName || user?.email?.split("@")[0] || "there";
 
   return (
-    <>
-      <BreadcrumbNav
-        currentPage="Dashboard"
-        backButton={{ label: "Home", path: "/" }}
-      />
-      <div className="container-xl" style={{ paddingTop: 16, paddingBottom: 24 }}>
-      {/* HEADER */}
+    <div className="container-xl" style={{ paddingTop: 24, paddingBottom: 24 }}>
+      {/* Hero Headline */}
       <div className="hero-headline" style={{ marginBottom: 16 }}>
         <div>
           <div className="kicker">Welcome back</div>
           <h1 style={{ margin: 0 }}>Hi, {userName}! 👋</h1>
+          <div className="meta" style={{ marginTop: 8 }}>
+            Manage your orders, addresses, and account settings
+          </div>
         </div>
-        <button onClick={openEditProfile} className="btn btn-secondary">
-          Edit Profile
-        </button>
+        <div style={{ display: "flex", gap: 8 }}>
+          <button onClick={openEditProfile} className="btn btn-secondary" style={{ fontSize: "13px", padding: "8px 14px" }}>
+            Edit Profile
+          </button>
+          <Link to="/" className="btn btn-secondary" style={{ fontSize: "13px", padding: "8px 14px", whiteSpace: "nowrap" }}>
+            ← Back to Home
+          </Link>
+        </div>
       </div>
 
       {/* QUICK STATS */}
@@ -515,8 +515,7 @@ export default function Dashboard() {
         onClose={() => setCreateTicketModalOpen(false)}
         onSuccess={refreshTickets}
       />
-      </div>
-    </>
+    </div>
   );
 }
 

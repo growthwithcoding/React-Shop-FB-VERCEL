@@ -1,16 +1,16 @@
 import { useState, useEffect, useMemo } from "react";
+import { Link } from "react-router-dom";
 import { useAuth } from "../auth/useAuth";
-import { useQuery } from "@tanstack/react-query";
 import {
   listDiscounts,
   createDiscount,
   updateDiscount,
   deleteDiscount,
 } from "../services/discountService";
-import { getCategories, categoryLabel } from "../services/productService";
+import { categoryLabel } from "../services/productService";
 import { Pagination } from "../components/Pagination";
-import BreadcrumbNav from '../components/BreadcrumbNav';
-import { useTotalHeaderHeight } from "../hooks/useTotalHeaderHeight";
+import CreateDiscountModal from "../components/CreateDiscountModal";
+import { Plus } from "lucide-react";
 
 // Helper formatter for amount discounts
 const USD = new Intl.NumberFormat("en-US", {
@@ -24,22 +24,12 @@ const USD = new Intl.NumberFormat("en-US", {
  */
 export function AdminDiscounts() {
   const { user } = useAuth();
-  const { totalHeaderHeight } = useTotalHeaderHeight();
   const [codes, setCodes] = useState([]);
-  const [draft, setDraft] = useState({ code: "", type: "percent", value: 10, active: true, category: "" });
+  const [showCreateModal, setShowCreateModal] = useState(false);
 
   // Pagination state
   const [page, setPage] = useState(1);
   const [perPage, setPerPage] = useState(25);
-
-  // Fetch active categories
-  const {
-    data: categories = [],
-    isLoading: loadingCategories,
-  } = useQuery({
-    queryKey: ["discount-categories"],
-    queryFn: getCategories,
-  });
 
   // Paginated codes
   const paginatedCodes = useMemo(() => {
@@ -65,6 +55,27 @@ export function AdminDiscounts() {
     return () => { alive = false; };
   }, []);
 
+  // Amazon color palette
+  const amazonColors = {
+    orange: "#FF9900",
+    darkOrange: "#FF6600",
+    darkBg: "#232F3E",
+    lightBg: "#37475A",
+    accentBlue: "#146EB4",
+    textLight: "#FFFFFF",
+    textDark: "#0F1111",
+    borderLight: "#DDD",
+    success: "#067D62",
+    warning: "#F9C74F",
+    danger: "#E53E3E",
+  };
+  
+  // Enhanced box shadow styles
+  const cardShadow = {
+    boxShadow: "0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24)",
+    transition: "all 0.3s cubic-bezier(.25,.8,.25,1)",
+  };
+
   if (!user || user.role !== "admin") {
     return (
       <div className="container" style={{ padding: 24 }}>
@@ -73,33 +84,22 @@ export function AdminDiscounts() {
     );
   }
 
-  async function addCode(e) {
-    e.preventDefault();
-    const code = draft.code.trim().toUpperCase().replace(/\s/g, "");
-    if (!code) return;
+  async function handleCreateDiscount(discountData) {
     try {
-      await createDiscount({
-        code,
-        type: draft.type,
-        value: Number(draft.value) || 0,
-        active: !!draft.active,
-        category: draft.category || null,
-        uses: 0,
-      });
+      await createDiscount(discountData);
       const data = await listDiscounts();
       setCodes(Array.isArray(data) ? data : []);
-      setDraft({ code: "", type: "percent", value: 10, active: true, category: "" });
     } catch (err) {
-      // TODO: handle error feedback (e.g. toast)
       console.error(err);
+      throw err;
     }
   }
 
-  async function handleActiveToggle(id, active) {
+  async function handleActiveToggle(id, isActive) {
     try {
-      await updateDiscount({ id, active });
+      await updateDiscount({ id, isActive });
       setCodes((prev) =>
-        prev.map((c) => (c.id === id ? { ...c, active } : c))
+        prev.map((c) => (c.id === id ? { ...c, isActive } : c))
       );
     } catch (err) {
       // TODO: handle error feedback
@@ -119,81 +119,77 @@ export function AdminDiscounts() {
   }
 
   return (
-    <>
-      <BreadcrumbNav
-        currentPage="Discounts"
-        backButton={{ label: "Back to Dashboard", path: "/admin" }}
-      />
-      
-      <div className="container-xl" style={{ paddingTop: totalHeaderHeight, paddingBottom: 24 }}>
-        <div className="hero-headline" style={{ marginBottom: 8, marginTop: -8 }}>
+    <div className="min-h-screen" style={{ background: "linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%)" }}>
+      <div className="container-xl" style={{ paddingTop: 24, paddingBottom: 24 }}>
+        {/* Hero Headline with Title, Description, and Actions */}
+        <div className="hero-headline" style={{ marginBottom: 16 }}>
           <div>
-            <div className="kicker" style={{ marginBottom: 0 }}>Admin</div>
+            <div className="kicker">Admin</div>
             <h1 style={{ margin: 0 }}>Discounts</h1>
+            <div className="meta" style={{ marginTop: 8 }}>
+              Manage discount codes and promotional offers
+            </div>
+          </div>
+          <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+            <Link 
+              to="/admin" 
+              className="btn btn-secondary"
+              style={{
+                fontSize: "13px",
+                padding: "8px 14px",
+                whiteSpace: "nowrap"
+              }}
+            >
+              ← Back
+            </Link>
+            <button
+              onClick={() => setShowCreateModal(true)}
+              className="btn btn-primary"
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "8px",
+                fontSize: "13px",
+                padding: "8px 14px",
+                whiteSpace: "nowrap"
+              }}
+            >
+              <Plus size={14} />
+              Create Discount
+            </button>
           </div>
         </div>
 
-      <form className="card" style={{ padding: 12, marginBottom: 12 }} onSubmit={addCode}>
-        <div className="hero-title-row">
-          <h3 style={{ margin: 0 }}>New Discount</h3>
-          <button className="btn btn-primary">Create</button>
-        </div>
-
-        <div
-          className="grid"
-          style={{ gridTemplateColumns: "2fr 1fr 1fr 1fr 1fr", gap: 8, alignItems: "center" }}
-        >
-          <input
-            className="input"
-            placeholder="CODE"
-            value={draft.code}
-            onChange={(e) =>
-              setDraft((d) => ({ ...d, code: e.target.value.toUpperCase().replace(/\s/g, "") }))
-            }
-          />
-          <select
-            className="select"
-            value={draft.type}
-            onChange={(e) => setDraft((d) => ({ ...d, type: e.target.value }))}
-          >
-            <option value="percent">% off</option>
-            <option value="amount">$ off</option>
-            <option value="shipping">Free shipping</option>
-          </select>
-          <input
-            className="input"
-            type="number"
-            step="1"
-            value={draft.value}
-            onChange={(e) => setDraft((d) => ({ ...d, value: Number(e.target.value) }))}
-          />
-          <select
-            className="select"
-            value={draft.category || ""}
-            onChange={(e) => setDraft((d) => ({ ...d, category: e.target.value }))}
-            disabled={loadingCategories}
-          >
-            <option value="">All Categories</option>
-            {categories.map((cat) => (
-              <option key={cat} value={cat}>
-                {categoryLabel(cat)}
-              </option>
-            ))}
-          </select>
-          <label className="checkbox" style={{ whiteSpace: "nowrap" }}>
-            <input
-              type="checkbox"
-              checked={draft.active}
-              onChange={(e) => setDraft((d) => ({ ...d, active: e.target.checked }))}
-            />{" "}
-            Active
-          </label>
-        </div>
-      </form>
-
-      <div className="card" style={{ padding: 0 }}>
-        <>
-          <table style={{ width: "100%", borderCollapse: "separate", borderSpacing: 0 }}>
+          <div className="card" style={{ 
+            padding: 20,
+            background: "#fff",
+            borderRadius: "12px",
+            ...cardShadow
+          }}>
+            <>
+              {/* Single Row: Title - Filters - Stats */}
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 24, marginBottom: 16 }}>
+                {/* Title */}
+                <h2 style={{ margin: 0, fontSize: 20, fontWeight: 800, color: amazonColors.darkBg, minWidth: "140px" }}>Discount Codes</h2>
+                
+                {/* Filters Placeholder - Centered */}
+                <div style={{ flex: 1, maxWidth: "500px", display: "flex", justifyContent: "center" }}>
+                  <input 
+                    className="input" 
+                    placeholder="Search discount codes..." 
+                    style={{ fontSize: "13px", padding: "6px 10px", width: "100%" }}
+                  />
+                </div>
+                
+                {/* Stats */}
+                <div style={{ minWidth: "200px", textAlign: "right" }}>
+                  <div style={{ fontSize: "13px", color: "#718096", fontWeight: 600 }}>
+                    {codes.length} discount{codes.length !== 1 ? 's' : ''}
+                  </div>
+                </div>
+              </div>
+              
+              <table style={{ width: "100%", borderCollapse: "separate", borderSpacing: 0 }}>
           <thead style={{ background: "#f9fafb" }}>
             <tr>
               <Th>Code</Th>
@@ -206,16 +202,24 @@ export function AdminDiscounts() {
             </tr>
           </thead>
           <tbody>
-            {paginatedCodes.map((c) => (
-              <tr key={c.id} style={{ borderBottom: "1px solid var(--border)" }}>
+            {paginatedCodes.map((c, index) => (
+              <tr key={c.id} style={{ 
+                borderBottom: "1px solid var(--border)",
+                background: index % 2 === 0 ? "#fff" : "#f9fafb"
+              }}>
                 <Td>
                   <strong>{c.code}</strong>
                 </Td>
-                <Td>{c.type}</Td>
+                <Td>
+                  {c.type === "percentage" && "% off"}
+                  {c.type === "fixed" && "$ off"}
+                  {c.type === "free_shipping" && "Free shipping"}
+                  {!["percentage", "fixed", "free_shipping"].includes(c.type) && c.type}
+                </Td>
                 <Td align="right">
-                  {c.type === "percent"
+                  {c.type === "percentage"
                     ? `${c.value}%`
-                    : c.type === "amount"
+                    : c.type === "fixed"
                     ? USD.format(c.value)
                     : "—"}
                 </Td>
@@ -228,17 +232,29 @@ export function AdminDiscounts() {
                     <span className="meta">All</span>
                   )}
                 </Td>
-                <Td align="right">{c.uses ?? 0}</Td>
+                <Td align="right">{c.usageCount ?? c.uses ?? 0}</Td>
                 <Td align="center">
                   <input
                     type="checkbox"
-                    checked={!!c.active}
+                    checked={!!c.isActive}
                     onChange={(e) => handleActiveToggle(c.id, e.target.checked)}
                   />
                 </Td>
-                <Td align="center">
+                <Td align="center" style={{ whiteSpace: "nowrap" }}>
                   <button 
-                    className="btn btn-secondary btn-slim"
+                    style={{
+                      padding: "6px 12px",
+                      fontSize: "12px",
+                      fontWeight: 600,
+                      background: "#fef2f2",
+                      border: "1px solid #fecaca",
+                      borderRadius: "6px",
+                      color: "#991b1b",
+                      cursor: "pointer",
+                      transition: "all 0.2s ease"
+                    }}
+                    onMouseEnter={(e) => e.currentTarget.style.background = "#fee2e2"}
+                    onMouseLeave={(e) => e.currentTarget.style.background = "#fef2f2"}
                     onClick={() => handleDelete(c.id)}
                   >
                     Delete
@@ -254,26 +270,33 @@ export function AdminDiscounts() {
                 </tr>
               )}
           </tbody>
-          </table>
+              </table>
 
-          {/* Pagination */}
-          {totalPages > 1 && (
-            <Pagination
-              currentPage={page}
-              totalPages={totalPages}
-              onPageChange={setPage}
-              totalItems={codes.length}
-              itemsPerPage={perPage}
-              onItemsPerPageChange={(newPerPage) => {
-                setPerPage(newPerPage);
-                setPage(1);
-              }}
-            />
-          )}
-        </>
+              {/* Pagination */}
+              {totalPages > 1 && (
+                <Pagination
+                  currentPage={page}
+                  totalPages={totalPages}
+                  onPageChange={setPage}
+                  totalItems={codes.length}
+                  itemsPerPage={perPage}
+                  onItemsPerPageChange={(newPerPage) => {
+                    setPerPage(newPerPage);
+                    setPage(1);
+                  }}
+                />
+              )}
+            </>
+        </div>
       </div>
-      </div>
-    </>
+      
+      {/* Discount Creation Modal */}
+      <CreateDiscountModal
+        open={showCreateModal}
+        onClose={() => setShowCreateModal(false)}
+        onSave={handleCreateDiscount}
+      />
+    </div>
   );
 }
 

@@ -1,20 +1,26 @@
-# 🌱 Firebase Product Seeding Utility
+# 🌱 Firebase Store Seeding Utility
 
 [![Firebase_Admin](https://img.shields.io/badge/Firebase_Admin-13.5.0-orange)](https://www.npmjs.com/package/firebase-admin)
 [![Node](https://img.shields.io/badge/Node-ES_Modules-green)](https://nodejs.org)
 [![License](https://img.shields.io/badge/license-ISC-blue)]()
 
-This directory contains the **Firebase Product Seeding Utility** for populating your Firestore database with initial product data. The script uses the **Firebase Admin SDK** to batch-write products from a JSON file directly to your Firebase project.
+This directory contains the **Firebase Store Seeding Utility** for populating your Firestore database with initial data including products, users, orders, discounts, support tickets, and ticket replies. The script uses the **Firebase Admin SDK** to batch-write data from JSON files directly to your Firebase project.
 
 ---
 
 ## 📌 What this utility does
 
 ### Database Population
-- **Batch writes** product data from `productSeed.json` to Firestore collection `products`.
-- Uses **SKU as document ID** for predictable references and updates.
-- Includes automatic **server timestamps** (`createdAt`, `updatedAt`) for all products.
-- Processes up to **500 products per batch** for optimal performance.
+- **Batch writes** data from JSON seed files to Firestore collections:
+  - Products (`productSeed.json` → `products`)
+  - Users (`usersSeed.json` → `users`)
+  - Orders (`ordersSeed.json` → `orders`)
+  - Discounts (`discountsSeed.json` → `discounts`)
+  - Support Tickets (`supportTicketsSeed.json` → `supportTickets`)
+  - Ticket Replies (`ticketRepliesSeed.json` → `ticketReplies`)
+- Uses appropriate **document IDs** for predictable references and updates.
+- Includes automatic **server timestamps** (`createdAt`, `updatedAt`) for all documents.
+- Processes up to **400 documents per batch** for optimal performance.
 
 ### Data Structure
 Each product document includes:
@@ -120,16 +126,53 @@ const jsonPath = "K:\\advanced-shop-FB-Edition\\seeding\\productSeed.json";
 
 ### 4. Run the Seeding Script
 
+**Seed everything (default):**
 ```bash
-node seed-products.mjs
+node seed-store.mjs
+```
+
+**Seed specific collections using flags:**
+```bash
+# Seed only users
+node seed-store.mjs --users
+
+# Seed only products
+node seed-store.mjs --products
+
+# Seed only orders
+node seed-store.mjs --orders
+
+# Seed only discounts
+node seed-store.mjs --discounts
+
+# Seed only support tickets
+node seed-store.mjs --tickets
+
+# Seed only ticket replies
+node seed-store.mjs --replies
+
+# Combine multiple flags
+node seed-store.mjs --products --users --tickets --replies
 ```
 
 You should see output like:
 
 ```
 Project ID: your-project-id
-Committed 23 docs...
-Seeding complete.
+Users: committed 10 docs...
+Users: seeded 10 docs to 'users'.
+Addresses: seeded 20 docs to 'addresses'.
+Products: committed 23 docs...
+Products: seeded 23 docs to 'products'.
+Discounts: committed 5 docs...
+Discounts: seeded 5 docs to 'discounts'.
+Orders: committed 15 docs...
+Orders: seeded 15 docs to 'orders'.
+Support Tickets: committed 15 docs...
+Support Tickets: seeded 15 docs to 'supportTickets'.
+Ticket Replies: committed 29 docs...
+Ticket Replies: seeded 29 docs to 'ticketReplies'.
+Done.
 ```
 
 ---
@@ -142,31 +185,61 @@ seeding/
 ├─ firebase-admin.sample.json   # Template for credentials (SAFE to commit)
 ├─ package.json                 # Dependencies (firebase-admin)
 ├─ package-lock.json            # Lock file
-├─ productSeed.json             # Sample product data (23 items)
-├─ seed-products.mjs            # Seeding script
-└─ README.md                    # This file
+├─ productSeed.json             # Product data (23 items)
+├─ usersSeed.json               # User data
+├─ ordersSeed.json              # Order data
+├─ discountsSeed.json           # Discount codes
+├─ supportTicketsSeed.json      # Support tickets (15 tickets)
+├─ ticketRepliesSeed.json       # Ticket replies (29 replies)
+├─ seed-store.mjs               # Main seeding script
+├─ flush-firestore.mjs          # Script to clear Firestore collections
+├─ README.md                    # This file
+├─ SEEDING_GUIDE.md             # Detailed seeding guide
+└─ SEED_DATA_SUMMARY.md         # Summary of all seed data
 ```
 
 ---
 
-## 🗂️ Sample Product Categories
+## 🗂️ Sample Data Included
 
-The included `productSeed.json` contains **23 products** across these categories:
+### Products (`productSeed.json`)
+**23 products** across these categories:
+- Mechanical Keyboards, Programming Books, Development Boards
+- Software Tools, Monitors, Accessories, Chairs
 
-- **Mechanical Keyboards** (4 products)
-  - TKL, Split Ergonomic, 60%, Macro Pad
-- **Programming Books** (4 products)
-  - Clean Code, Git & CI/CD, APIs, Systems Design
-- **Development Boards** (4 products)
-  - ESP32-S3, Raspberry Pi 5, RP2040 Feather, Jetson Nano
-- **Software Tools** (4 products)
-  - IDE, QA Suite, API Client, DB Designer
-- **Monitors** (2 products)
-  - 27" 4K IPS, 34" Ultrawide QHD
-- **Accessories** (3 products)
-  - USB-C Dock, Bluetooth Mouse, Miscellaneous
-- **Chairs** (2 products)
-  - Ergonomic Mesh Chair, Active Stool
+### Users (`usersSeed.json`)
+Sample user accounts with various roles (customer, agent, admin)
+
+### Orders (`ordersSeed.json`)
+Sample orders with line items, pricing, and shipping information
+
+### Discounts (`discountsSeed.json`)
+Promotional discount codes with various types and conditions
+
+### Support Tickets (`supportTicketsSeed.json`)
+**15 support tickets** covering various scenarios:
+- **Categories**: Shipping, Return, Payment, Account, Product, Order, Technical, General
+- **Statuses**: Open, In Progress, Resolved, Closed
+- **Priorities**: Low, Normal, High, Urgent
+- **Examples**:
+  - Order tracking inquiries
+  - Return policy questions
+  - Payment/discount code issues
+  - Account access problems
+  - Product recommendations
+  - Wrong/damaged items
+  - Bulk order inquiries
+  - Technical issues
+  - Refund status
+  - International shipping
+
+### Ticket Replies (`ticketRepliesSeed.json`)
+**29 ticket replies** showing conversations between customers and support agents/admins:
+- Agent responses with solutions and tracking information
+- Customer follow-up messages
+- Admin interventions for technical issues
+- Multi-turn conversations demonstrating ticket lifecycle
+- Various user roles: customer, agent, admin
 
 ---
 
@@ -246,13 +319,29 @@ Edit `productSeed.json` and add new product objects:
 
 ### Re-seeding the Database
 
-To update existing products or add new ones:
+To update existing data or add new items:
 
 ```bash
-node seed-products.mjs
+# Re-seed everything
+node seed-store.mjs
+
+# Re-seed specific collections
+node seed-store.mjs --products --tickets --replies
 ```
 
-Products with matching SKUs will have their data updated (merge mode).
+Documents with matching IDs will have their data updated (merge mode).
+
+### Clearing the Database
+
+To remove all data before re-seeding:
+
+```bash
+# Clear all collections
+node flush-firestore.mjs
+
+# Then re-seed
+node seed-store.mjs
+```
 
 ---
 

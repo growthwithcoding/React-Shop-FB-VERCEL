@@ -1,6 +1,6 @@
 // src/App.jsx
 import { Routes, Route, Navigate } from "react-router-dom"
-import { useEffect, useState } from "react"
+import { useEffect } from "react"
 import Home from "./pages/Home.jsx"
 import ProductPage from "./pages/ProductPage.jsx"
 import CartPage from "./pages/CartPage.jsx"
@@ -51,73 +51,36 @@ import AdminOrders from "./pages/AdminOrders.jsx"
 import { AdminUsers } from "./pages/AdminUsers.jsx"
 import { AdminDiscounts } from "./pages/AdminDiscounts.jsx"
 import { AdminSettings } from "./pages/AdminSettings.jsx"
+import AdminTickets from "./pages/AdminTickets.jsx"
 import AgentOrders from "./pages/AgentOrders.jsx"
 import AgentCustomers from "./pages/AgentCustomers.jsx"
 import { AgentUsers } from "./pages/AgentUsers.jsx"
+import AgentTickets from "./pages/AgentTickets.jsx"
+import AgentMyOrders from "./pages/AgentMyOrders.jsx"
+import CustomerTickets from "./pages/CustomerTickets.jsx"
 
 export default function App() {
   const navbarHeight = useNavbarHeight();
-  const [needsOnboarding, setNeedsOnboarding] = useState(false);
-  const [checkingOnboarding, setCheckingOnboarding] = useState(true);
 
-  // Check if onboarding is needed on mount
+  // Update CSS custom property with dynamic navbar height
   useEffect(() => {
-    let mounted = true;
-    
-    async function checkOnboarding() {
+    document.documentElement.style.setProperty('--nav-offset', `${navbarHeight}px`);
+  }, [navbarHeight]);
+
+  // Warn in console if setup might not be complete
+  useEffect(() => {
+    async function checkSetup() {
       try {
         const isComplete = await isOnboardingComplete();
-        if (mounted) {
-          setNeedsOnboarding(!isComplete);
+        if (!isComplete) {
+          console.warn('⚠️  Setup may not be complete. Run: npm run onboard');
         }
-      } catch (error) {
-        console.error("Error checking onboarding status:", error);
-        // On error, assume onboarding is needed
-        if (mounted) {
-          setNeedsOnboarding(true);
-        }
-      } finally {
-        if (mounted) {
-          setCheckingOnboarding(false);
-        }
+      } catch {
+        // Silently ignore errors - don't block app from loading
       }
     }
-    
-    checkOnboarding();
-    
-    return () => {
-      mounted = false;
-    };
+    checkSetup();
   }, []);
-
-  // Show loading while checking onboarding status
-  if (checkingOnboarding) {
-    return (
-      <div style={{ 
-        display: "flex", 
-        alignItems: "center", 
-        justifyContent: "center", 
-        minHeight: "100vh",
-        background: "var(--background)"
-      }}>
-        <div style={{ textAlign: "center" }}>
-          <div style={{ fontSize: 48, marginBottom: 16 }}>🏪</div>
-          <h2 style={{ marginBottom: 8 }}>Loading Store...</h2>
-          <p style={{ color: "var(--text-secondary)" }}>Please wait</p>
-        </div>
-      </div>
-    );
-  }
-
-  // If onboarding is needed, redirect all routes to onboarding
-  if (needsOnboarding) {
-    return (
-      <Routes>
-        <Route path="/onboarding" element={<Onboarding />} />
-        <Route path="*" element={<Navigate to="/onboarding" replace />} />
-      </Routes>
-    );
-  }
   
   // Use the calculated navbar height for proper spacing
   // This accounts for both the main navbar and any admin/agent panels
@@ -148,6 +111,7 @@ export default function App() {
             <Route path="/orders" element={<Orders />} />
             <Route path="/orders/:id" element={<OrderDetail />} />
             <Route path="/order-confirmation" element={<OrderConfirmation />} />
+            <Route path="/my-tickets" element={<CustomerTickets />} />
             <Route path="/tickets/:ticketId" element={<TicketDetail />} />
 
             {/* Admin-only nested under Protected */}
@@ -157,6 +121,7 @@ export default function App() {
               <Route path="/admin/orders" element={<AdminOrders />} />
               <Route path="/admin/users" element={<AdminUsers />} />
               <Route path="/admin/discounts" element={<AdminDiscounts />} />
+              <Route path="/admin/tickets" element={<AdminTickets />} />
               <Route path="/admin/settings" element={<AdminSettings />} />
             </Route>
 
@@ -164,8 +129,10 @@ export default function App() {
             <Route element={<AgentRoute />}>
               <Route path="/agent" element={<AgentDashboard />} />
               <Route path="/agent/orders" element={<AgentOrders />} />
+              <Route path="/agent/my-orders" element={<AgentMyOrders />} />
               <Route path="/agent/customers" element={<AgentCustomers />} />
               <Route path="/agent/users" element={<AgentUsers />} />
+              <Route path="/agent/tickets" element={<AgentTickets />} />
             </Route>
           </Route>
 

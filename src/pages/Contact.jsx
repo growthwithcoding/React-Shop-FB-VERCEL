@@ -1,18 +1,15 @@
 // src/pages/Contact.jsx - Now a comprehensive Help page
 import { useState, useRef, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import emailjs from "emailjs-com";
 import { useAuth } from "../auth/useAuth";
 import { collection, addDoc, serverTimestamp } from "firebase/firestore";
 import { db, firebaseInitialized } from "../lib/firebase";
-import BreadcrumbNav from '../components/BreadcrumbNav';
-import { useTotalHeaderHeight } from '../hooks/useTotalHeaderHeight';;
 import { watchSettings } from "../services/settingsService";
 import { getUserOpenTickets } from "../services/ticketService";
 import { useNavbarHeight } from "../hooks/useNavbarHeight";
 
 export default function Contact() {
-  const totalHeaderHeight = useTotalHeaderHeight();
   const { user } = useAuth();
   const navigate = useNavigate();
   const formRef = useRef();
@@ -210,20 +207,27 @@ export default function Contact() {
   };
 
   return (
-    <>
-      <BreadcrumbNav
-        currentPage="Help Center & Contact"
-        backButton={{ label: "Home", path: "/" }}
-      />
-      <div className="container-xl" style={{ paddingTop: 16, paddingBottom: 48 }}>
+    <div className="container-xl" style={{ paddingTop: 24, paddingBottom: 48 }}>
+      {/* Hero Headline */}
       <div className="hero-headline" style={{ marginBottom: 24 }}>
         <div>
           <div className="kicker">Customer Support</div>
-          <h1 style={{ margin: 0 }}>Help Center & Contact</h1>
+          <h1 style={{ margin: 0 }}>Help Center</h1>
           <div className="meta" style={{ marginTop: 8 }}>
             Find answers, submit support tickets, or get in touch with our team.
           </div>
         </div>
+        <Link 
+          to="/" 
+          className="btn btn-secondary"
+          style={{
+            fontSize: "13px",
+            padding: "8px 14px",
+            whiteSpace: "nowrap"
+          }}
+        >
+          ← Back to Home
+        </Link>
       </div>
 
       {/* Main Layout: Sidebar + Content */}
@@ -674,7 +678,6 @@ export default function Contact() {
           </div>
         </div>
       )}
-      </div>
-    </>
+    </div>
   );
 }

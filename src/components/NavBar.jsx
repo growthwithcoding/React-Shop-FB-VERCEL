@@ -4,10 +4,11 @@ import { useSelector } from 'react-redux';
 import { useEffect, useRef, useState } from 'react';
 import { selectTotalCount } from '../features/cart/selectors.js';
 import { useAuth } from '../auth/useAuth';
-import SearchBar from './SearchBar.jsx';
+import CategorySearchBar from './CategorySearchBar.jsx';
 import ZipModal from './ZipModal.jsx';
 import { getSettings, watchSettings } from '../services/settingsService';
-import { LayoutDashboard, ShoppingCart as ShoppingCartIcon, Users, Settings, Package, Percent, Calendar as CalendarIcon, Clock } from 'lucide-react';
+import { formatInTimeZone } from '../services/timezoneService';
+import { LayoutDashboard, ShoppingCart as ShoppingCartIcon, Users, Settings, Package, Percent, Calendar as CalendarIcon, Clock, MessageSquare } from 'lucide-react';
 import { GlobalFiltersBar } from './dashboard/GlobalFiltersBar';
 
 /**
@@ -22,6 +23,7 @@ export default function NavBar() {
 
   // store name state; default fallback is the original name
   const [storeName, setStoreName] = useState('Advanced React E-Commerce');
+  const [storeTimeZone, setStoreTimeZone] = useState('America/Denver');
   
   // Current time state
   const [currentTime, setCurrentTime] = useState(new Date());
@@ -43,7 +45,7 @@ export default function NavBar() {
 
   const [zipOpen, setZipOpen] = useState(false);
 
-  // Load store name from Firestore settings on mount, then keep it live
+  // Load store name and timezone from Firestore settings on mount, then keep it live
   useEffect(() => {
     let stop = null;
 
@@ -51,15 +53,19 @@ export default function NavBar() {
       try {
         const settings = await getSettings();
         const name = settings?.store?.name?.trim();
+        const tz = settings?.store?.serverTimeZone;
         if (name) setStoreName(name);
+        if (tz) setStoreTimeZone(tz);
       } catch {
         // ignore; keep fallback
       }
 
-      // Subscribe for live updates so the name changes immediately after Admin saves
+      // Subscribe for live updates so the name/timezone changes immediately after Admin saves
       stop = watchSettings((s) => {
         const liveName = s?.store?.name?.trim();
+        const liveTz = s?.store?.serverTimeZone;
         if (liveName) setStoreName(liveName);
+        if (liveTz) setStoreTimeZone(liveTz);
       });
     })();
 
@@ -112,11 +118,17 @@ export default function NavBar() {
 
   // --- Mini search across the top (Amazon vibe) ---
   const [navQuery, setNavQuery] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('all');
   const navigate = useNavigate();
   const onSubmitMini = (e) => {
     e.preventDefault();
     const q = navQuery.trim();
-    navigate(q ? `/?q=${encodeURIComponent(q)}` : '/');
+    const params = new URLSearchParams();
+    
+    if (q) params.append('q', q);
+    if (selectedCategory !== 'all') params.append('category', selectedCategory);
+    
+    navigate(params.toString() ? `/?${params.toString()}` : '/');
   };
 
   // Close account menu on outside click
@@ -177,22 +189,13 @@ export default function NavBar() {
 
         {/* MINI SEARCH */}
         <form className="nav-mini-search" onSubmit={onSubmitMini} role="search" aria-label="Header search">
-          <button type="button" className="mini-scope" aria-haspopup="listbox" aria-expanded="false" title="Search scope">
-            All <span className="caret" aria-hidden>▾</span>
-          </button>
-          <SearchBar
+          <CategorySearchBar
             value={navQuery}
             onChange={setNavQuery}
-            onDebouncedChange={setNavQuery}
-            debounceMs={250}
+            selectedCategory={selectedCategory}
+            onCategoryChange={setSelectedCategory}
             placeholder="Search products…"
-            ariaLabel="Search"
-            containerClassName="search search--mini"
-            inputClassName="search-input"
           />
-          <button type="submit" className="search-btn mini" aria-label="Search">
-            🔍
-          </button>
         </form>
 
         {/* Right side actions */}
@@ -201,6 +204,7 @@ export default function NavBar() {
           <NavLink className="nav-link" to="/about">About</NavLink>
           <NavLink className="nav-link" to="/contact">Contact</NavLink>
           {user && <NavLink className="nav-link" to="/orders">Orders</NavLink>}
+          {user && user.role === 'customer' && <NavLink className="nav-link" to="/my-tickets">My Tickets</NavLink>}
 
           {/* Cart with count */}
           <NavLink
@@ -254,15 +258,18 @@ export default function NavBar() {
                     ) : user.role === 'agent' ? (
                       <>
                         <Link to="/agent" onClick={() => setOpen(false)} role="menuitem" className="menu-item">Agent Dashboard</Link>
-                        <Link to="/orders" onClick={() => setOpen(false)} role="menuitem" className="menu-item">View Orders</Link>
+                        <Link to="/agent/orders" onClick={() => setOpen(false)} role="menuitem" className="menu-item">Manage Orders</Link>
+                        <Link to="/agent/tickets" onClick={() => setOpen(false)} role="menuitem" className="menu-item">Support Tickets</Link>
                         <Link to="/agent/users" onClick={() => setOpen(false)} role="menuitem" className="menu-item">Manage Customers</Link>
                         <div style={{ height: 1, background: "var(--border)", margin: "8px 0" }} />
+                        <Link to="/agent/my-orders" onClick={() => setOpen(false)} role="menuitem" className="menu-item">My Orders</Link>
                         <Link to="/profile" onClick={() => setOpen(false)} role="menuitem" className="menu-item">My Profile</Link>
                       </>
                     ) : (
                       <>
                         <Link to="/dashboard" onClick={() => setOpen(false)} role="menuitem" className="menu-item">Dashboard</Link>
                         <Link to="/orders" onClick={() => setOpen(false)} role="menuitem" className="menu-item">My Orders</Link>
+                        <Link to="/my-tickets" onClick={() => setOpen(false)} role="menuitem" className="menu-item">My Tickets</Link>
                         <Link to="/profile" onClick={() => setOpen(false)} role="menuitem" className="menu-item">My Profile</Link>
                       </>
                     )}
@@ -469,7 +476,7 @@ export default function NavBar() {
                 }}
               >
                 <Users size={16} />
-                Customers
+                Users
               </NavLink>
 
               <NavLink 
@@ -504,7 +511,38 @@ export default function NavBar() {
               </NavLink>
 
               <NavLink 
-                to="/admin/settings" 
+                to="/admin/tickets" 
+                style={({ isActive }) => ({
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  padding: '8px 16px',
+                  borderRadius: '6px',
+                  background: isActive ? '#FF9900' : 'transparent',
+                  color: isActive ? '#000' : '#fff',
+                  textDecoration: 'none',
+                  fontSize: '14px',
+                  fontWeight: 600,
+                  transition: 'all 0.2s ease',
+                  border: isActive ? 'none' : '1px solid rgba(255,255,255,0.3)',
+                })}
+                onMouseEnter={(e) => {
+                  if (!e.currentTarget.classList.contains('active')) {
+                    e.currentTarget.style.background = 'rgba(255,153,0,0.2)';
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (!e.currentTarget.classList.contains('active')) {
+                    e.currentTarget.style.background = 'transparent';
+                  }
+                }}
+              >
+                <MessageSquare size={16} />
+                Tickets
+              </NavLink>
+
+              <NavLink 
+                to="/admin/settings"
                 style={({ isActive }) => ({
                   display: 'flex',
                   alignItems: 'center',
@@ -564,11 +602,11 @@ export default function NavBar() {
               }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                   <CalendarIcon size={14} />
-                  <span>{currentTime.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}</span>
+                  <span>{formatInTimeZone(currentTime, storeTimeZone, { weekday: 'short', month: 'short', day: 'numeric' })}</span>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                   <Clock size={14} />
-                  <span>{currentTime.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', second: '2-digit', hour12: true })}</span>
+                  <span>{formatInTimeZone(currentTime, storeTimeZone, { hour: 'numeric', minute: '2-digit', second: '2-digit', hour12: true })}</span>
                 </div>
               </div>
               
@@ -669,7 +707,7 @@ export default function NavBar() {
               </NavLink>
 
               <NavLink 
-                to="/orders" 
+                to="/agent/orders" 
                 style={({ isActive }) => ({
                   display: 'flex',
                   alignItems: 'center',
@@ -700,7 +738,7 @@ export default function NavBar() {
               </NavLink>
 
               <NavLink 
-                to="/agent/users" 
+                to="/agent/users"
                 style={({ isActive }) => ({
                   display: 'flex',
                   alignItems: 'center',
@@ -728,6 +766,37 @@ export default function NavBar() {
               >
                 <Users size={16} />
                 Customers
+              </NavLink>
+
+              <NavLink 
+                to="/agent/tickets" 
+                style={({ isActive }) => ({
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  padding: '8px 16px',
+                  borderRadius: '6px',
+                  background: isActive ? '#60a5fa' : 'transparent',
+                  color: isActive ? '#000' : '#fff',
+                  textDecoration: 'none',
+                  fontSize: '14px',
+                  fontWeight: 600,
+                  transition: 'all 0.2s ease',
+                  border: isActive ? 'none' : '1px solid rgba(255,255,255,0.3)',
+                })}
+                onMouseEnter={(e) => {
+                  if (!e.currentTarget.classList.contains('active')) {
+                    e.currentTarget.style.background = 'rgba(96,165,250,0.2)';
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (!e.currentTarget.classList.contains('active')) {
+                    e.currentTarget.style.background = 'transparent';
+                  }
+                }}
+              >
+                <MessageSquare size={16} />
+                Tickets
               </NavLink>
             </nav>
 
@@ -760,11 +829,11 @@ export default function NavBar() {
               }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                   <CalendarIcon size={14} />
-                  <span>{currentTime.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}</span>
+                  <span>{formatInTimeZone(currentTime, storeTimeZone, { weekday: 'short', month: 'short', day: 'numeric' })}</span>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                   <Clock size={14} />
-                  <span>{currentTime.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', second: '2-digit', hour12: true })}</span>
+                  <span>{formatInTimeZone(currentTime, storeTimeZone, { hour: 'numeric', minute: '2-digit', second: '2-digit', hour12: true })}</span>
                 </div>
               </div>
               

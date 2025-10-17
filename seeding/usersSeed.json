@@ -1,8 +1,9 @@
 [
   {
-    "userId": "lhoijzfg2ya5Z7LzY2RBiWBI3sa2",
-    "email": "gm@eimutah.com",
-    "name": "GM Test User (TEST USER - REMOVE LATER)",
+    "userId": "USR-0001",
+    "email": "derek.jeter@yankees.mlb",
+    "firstName": "Derek",
+    "lastName": "Jeter",
     "phone": "+1-801-555-0101",
     "role": "customer",
     "marketingOptIn": true,
@@ -13,8 +14,9 @@
   },
   {
     "userId": "USR-0002",
-    "email": "b.lee@example.com",
-    "name": "Brianna Lee",
+    "email": "david.ortiz@redsox.mlb",
+    "firstName": "David",
+    "lastName": "Ortiz",
     "phone": "+1-617-555-0102",
     "role": "customer",
     "marketingOptIn": false,
@@ -24,8 +26,9 @@
   },
   {
     "userId": "USR-0003",
-    "email": "c.mendoza@example.com",
-    "name": "Carlos Mendoza",
+    "email": "clayton.kershaw@dodgers.mlb",
+    "firstName": "Clayton",
+    "lastName": "Kershaw",
     "phone": "+1-323-555-0103",
     "role": "customer",
     "marketingOptIn": true,
@@ -35,8 +38,9 @@
   },
   {
     "userId": "USR-0004",
-    "email": "dina.patel@example.com",
-    "name": "Dina Patel",
+    "email": "ichiro.suzuki@mariners.mlb",
+    "firstName": "Ichiro",
+    "lastName": "Suzuki",
     "phone": "+1-206-555-0104",
     "role": "customer",
     "marketingOptIn": true,
@@ -46,8 +50,9 @@
   },
   {
     "userId": "USR-0005",
-    "email": "evan.wright@example.com",
-    "name": "Evan Wright",
+    "email": "albert.pujols@cardinals.mlb",
+    "firstName": "Albert",
+    "lastName": "Pujols",
     "phone": "+1-352-555-0105",
     "role": "customer",
     "marketingOptIn": false,
@@ -57,8 +62,9 @@
   },
   {
     "userId": "USR-0006",
-    "email": "fatima.noor@example.com",
-    "name": "Fatima Noor",
+    "email": "dusty.baker@astros.mlb",
+    "firstName": "Dusty",
+    "lastName": "Baker",
     "phone": "+1-512-555-0106",
     "role": "customer",
     "marketingOptIn": true,
@@ -68,8 +74,9 @@
   },
   {
     "userId": "USR-0007",
-    "email": "grace.kim@example.com",
-    "name": "Grace Kim",
+    "email": "buster.posey@giants.mlb",
+    "firstName": "Buster",
+    "lastName": "Posey",
     "phone": "+1-415-555-0107",
     "role": "customer",
     "marketingOptIn": true,
@@ -79,8 +86,9 @@
   },
   {
     "userId": "USR-0008",
-    "email": "hiro.tanaka@example.com",
-    "name": "Hiro Tanaka",
+    "email": "kris.bryant@cubs.mlb",
+    "firstName": "Kris",
+    "lastName": "Bryant",
     "phone": "+1-312-555-0108",
     "role": "customer",
     "marketingOptIn": false,
@@ -90,8 +98,9 @@
   },
   {
     "userId": "USR-0009",
-    "email": "isabella.rossi@example.com",
-    "name": "Isabella Rossi",
+    "email": "joe.maddon@angels.mlb",
+    "firstName": "Joe",
+    "lastName": "Maddon",
     "phone": "+1-212-555-0109",
     "role": "customer",
     "marketingOptIn": false,
@@ -101,13 +110,62 @@
   },
   {
     "userId": "USR-0010",
-    "email": "jake.t@example.com",
-    "name": "Jake Thompson",
+    "email": "shohei.ohtani@dodgers.mlb",
+    "firstName": "Shohei",
+    "lastName": "Ohtani",
     "phone": "+1-303-555-0110",
     "role": "customer",
     "marketingOptIn": true,
     "addresses": [
       { "label": "default", "line1": "501 Pine St", "city": "Denver", "region": "CO", "postalCode": "80203", "country": "US" }
+    ]
+  },
+  {
+    "userId": "USR-0011",
+    "email": "terry.francona@guardians.mlb",
+    "firstName": "Terry",
+    "lastName": "Francona",
+    "phone": "+1-216-555-0111",
+    "role": "agent",
+    "marketingOptIn": true,
+    "addresses": [
+      { "label": "default", "line1": "2401 Ontario St", "city": "Cleveland", "region": "OH", "postalCode": "44115", "country": "US" }
+    ]
+  },
+  {
+    "userId": "USR-0012",
+    "email": "dave.roberts@dodgers.mlb",
+    "firstName": "Dave",
+    "lastName": "Roberts",
+    "phone": "+1-323-555-0112",
+    "role": "agent",
+    "marketingOptIn": false,
+    "addresses": [
+      { "label": "default", "line1": "1000 Vin Scully Ave", "city": "Los Angeles", "region": "CA", "postalCode": "90012", "country": "US" }
+    ]
+  },
+  {
+    "userId": "USR-0013",
+    "email": "bruce.bochy@rangers.mlb",
+    "firstName": "Bruce",
+    "lastName": "Bochy",
+    "phone": "+1-817-555-0113",
+    "role": "agent",
+    "marketingOptIn": true,
+    "addresses": [
+      { "label": "default", "line1": "734 Stadium Dr", "city": "Arlington", "region": "TX", "postalCode": "76011", "country": "US" }
+    ]
+  },
+  {
+    "userId": "USR-0014",
+    "email": "brian.cashman@yankees.mlb",
+    "firstName": "Brian",
+    "lastName": "Cashman",
+    "phone": "+1-212-555-0114",
+    "role": "admin",
+    "marketingOptIn": false,
+    "addresses": [
+      { "label": "default", "line1": "1 E 161st St", "city": "Bronx", "region": "NY", "postalCode": "10451", "country": "US" }
     ]
   }
 ]

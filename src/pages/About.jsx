@@ -1,10 +1,8 @@
 // About.jsx
 // Modern About page showcasing actual technologies and features
 
-import BreadcrumbNav from '../components/BreadcrumbNav';
-import { useTotalHeaderHeight } from '../hooks/useTotalHeaderHeight';
-
-const FALLBACK = "https://via.placeholder.com/960x540?text=Project+Overview"
+import { Link } from 'react-router-dom';
+import ImageWithFallback from '../components/ImageWithFallback.jsx';
 
 // Reusable inline icons
 function Icon({ name }) {
@@ -75,15 +73,9 @@ function Card({ title, icon, subtitle, children }) {
 }
 
 export default function About() {
-  const totalHeaderHeight = useTotalHeaderHeight();
   return (
-    <>
-      <BreadcrumbNav
-        currentPage="About"
-        backButton={{ label: "Home", path: "/" }}
-      />
-      <main className="container-xl" style={{ paddingTop: 16, paddingBottom: 48 }}>
-      {/* Page Title */}
+    <main className="container-xl" style={{ paddingTop: 24, paddingBottom: 48 }}>
+      {/* Hero Headline */}
       <div className="hero-headline" style={{ marginBottom: 24 }}>
         <div>
           <div className="kicker">Our Platform</div>
@@ -92,6 +84,17 @@ export default function About() {
             Built with enterprise-grade technologies for performance and scalability.
           </div>
         </div>
+        <Link 
+          to="/" 
+          className="btn btn-secondary"
+          style={{
+            fontSize: "13px",
+            padding: "8px 14px",
+            whiteSpace: "nowrap"
+          }}
+        >
+          ← Back to Home
+        </Link>
       </div>
       
       {/* HERO - 2 Column Layout */}
@@ -169,12 +172,14 @@ export default function About() {
           </div>
 
           {/* Image Column */}
-          <div className="hero-media" style={{ borderRadius: 16, overflow: "hidden", border: "1px solid #eee" }}>
-            <img
+          <div className="hero-media" style={{ borderRadius: 16, overflow: "hidden", border: "1px solid #eee", display: "flex", alignItems: "center", justifyContent: "center", minHeight: "300px" }}>
+            <ImageWithFallback
               src="/reactstore-hero.png"
-              onError={(e) => { e.currentTarget.src = FALLBACK }}
               alt="Project overview"
-              style={{ width: "100%", display: "block" }}
+              width={960}
+              height={540}
+              fallbackText="Project Overview"
+              style={{ width: "100%", height: "auto", display: "block", objectFit: "contain", maxHeight: "500px" }}
             />
           </div>
         </div>
@@ -383,7 +388,6 @@ export default function About() {
           }
         }
       `}</style>
-      </main>
-    </>
+    </main>
   )
 }

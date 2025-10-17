@@ -4,15 +4,14 @@ import { useQuery } from "@tanstack/react-query";
 import {
   listProducts,
   getProductsByCategory,
-  getCategories,
   categoryLabel,
 } from "../services/productService";
 import { getHeroContent, getPromos } from "../services/contentService";
 import { listDiscounts, saveDiscountForCheckout } from "../services/discountService";
 import { useAuth } from "../auth/useAuth";
 import { Link } from "react-router-dom";
-
-const FALLBACK = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="400" height="300"%3E%3Crect width="400" height="300" fill="%23f5f5f5"/%3E%3Ctext x="50%25" y="50%25" dominant-baseline="middle" text-anchor="middle" font-family="sans-serif" font-size="18" fill="%23999"%3EProduct%3C/text%3E%3C/svg%3E';
+import { getPlaceholderUrl } from "../utils/placeholder";
+import ImageWithFallback from "./ImageWithFallback";
 
 const truncate = (s, n = 40) =>
   !s ? "" : s.length > n ? s.slice(0, n - 1) + "…" : s;
@@ -31,27 +30,68 @@ export default function Hero({ activeCategory = "all" }) {
     queryKey: ["hero-products", normCat],
     queryFn: () =>
       viewingCategory ? getProductsByCategory(normCat) : listProducts(),
+    staleTime: 0, // Always refetch to ensure fresh category data
+    cacheTime: 5 * 60 * 1000, // Keep in cache for 5 minutes
   });
 
-  // Categories (labels for home mode)
-  const {
-    data: categories = [],
-    isLoading: loadingCats,
-  } = useQuery({
-    queryKey: ["hero-categories"],
-    queryFn: getCategories,
-  });
+  // Hero copy - category-aware
+  const heroCopy = useMemo(() => {
+    if (viewingCategory) {
+      // Category-specific headlines
+      const categoryHeadlines = {
+        'baseball-bats': {
+          kicker: 'Power at the Plate',
+          headline: 'Premium Baseball Bats',
+        },
+        'baseball-gloves': {
+          kicker: 'Catch Every Play',
+          headline: 'Professional Baseball Gloves',
+        },
+        'batting-gloves': {
+          kicker: 'Superior Grip & Control',
+          headline: 'Elite Batting Gloves',
+        },
+        'batting-helmets': {
+          kicker: 'Safety First',
+          headline: 'Protective Batting Helmets',
+        },
+        'catcher-equipment': {
+          kicker: 'Behind the Plate',
+          headline: "Catcher's Gear & Equipment",
+        },
+        'protective-gear': {
+          kicker: 'Stay Protected',
+          headline: 'Essential Protective Gear',
+        },
+        'training-equipment': {
+          kicker: 'Level Up Your Game',
+          headline: 'Training & Practice Equipment',
+        },
+        'accessories': {
+          kicker: 'Complete Your Kit',
+          headline: 'Baseball Accessories',
+        },
+      };
+      
+      return categoryHeadlines[normCat] || {
+        kicker: categoryLabel(normCat),
+        headline: `Shop ${categoryLabel(normCat)}`,
+      };
+    }
+    
+    // Default homepage copy
+    return {
+      kicker: "Step Up to the Plate",
+      headline: "Gear Up. Play Hard. Win Big.",
+    };
+  }, [viewingCategory, normCat]);
 
-  // Hero copy
   const {
-    data: heroCopy = {
-      homeKicker: "Today's Picks",
-      homeHeadline: "Add It. Love It. Keep It Simple.",
-    },
     isLoading: loadingCopy,
   } = useQuery({
     queryKey: ["hero-content"],
     queryFn: getHeroContent,
+    enabled: false, // Disable since we're using static copy above
   });
 
   // Promos
@@ -88,34 +128,45 @@ export default function Hero({ activeCategory = "all" }) {
     return availableDiscounts[randomIndex];
   }, [discounts, viewingCategory, normCat]);
 
-  // Build tiles - need 4 product cards for the layout
+  // Build tiles - show actual products from current category/context
   const productTiles = useMemo(() => {
-    const first4 = (products || [])
+    // Shuffle products to show different ones each time
+    const shuffledProducts = (products || [])
       .slice()
-      .sort(
-        (a, b) =>
-          (b?.rating?.rate ?? 0) - (a?.rating?.rate ?? 0) ||
-          (Number(b?.price ?? 0) - Number(a?.price ?? 0))
-      )
-      .slice(0, 4);
+      .sort(() => Math.random() - 0.5);
 
-    return Array.from({ length: 4 }).map((_, i) => {
-      const p = first4[i];
-      const catLabels = (categories || []).map((c) => categoryLabel(c));
-      const maybeLabel = catLabels[i % Math.max(catLabels.length, 1)] || "Product";
+    // Get up to 4 products, or whatever is available
+    const availableProducts = shuffledProducts.slice(0, 4);
+    
+    // If we have fewer than 4 products, cycle through available ones to fill slots
+    const tiles = Array.from({ length: 4 }).map((_, i) => {
+      const p = availableProducts[i % Math.max(availableProducts.length, 1)];
+      
+      if (!p) {
+        // Fallback for completely empty state
+        return {
+          img: getPlaceholderUrl(400, 300, 'Product', 'f5f5f5', '999999'),
+          label: 'Product',
+          href: "/#hero-start",
+        };
+      }
 
-      // Use fallback for missing images or fakestoreapi (which often 404s)
-      const imageUrl = p?.image && p.image.trim() && !p.image.includes('fakestoreapi') ? p.image : FALLBACK;
+      // Use product image, falling back to placeholder
+      const imageUrl = p.image && p.image.trim() && !p.image.includes('fakestoreapi') 
+        ? p.image 
+        : getPlaceholderUrl(400, 300, truncate(p.title || 'Product', 20), 'f5f5f5', '999999');
 
       return {
         img: imageUrl,
-        label: p?.title ? truncate(p.title, 30) : maybeLabel,
-        href: p?.id ? `/product/${p.id}` : "/#hero-start",
+        label: truncate(p.title, 30),
+        href: `/product/${p.id}`,
       };
     });
-  }, [products, categories]);
 
-  const showSkeleton = loadingProducts || loadingCats || loadingCopy;
+    return tiles;
+  }, [products]);
+
+  const showSkeleton = loadingProducts || loadingCopy;
   const promo = (promos && promos[0]) || null;
   
   // Format discount display text
@@ -169,31 +220,17 @@ export default function Hero({ activeCategory = "all" }) {
   };
 
   return (
-    <section id="hero-start" className="hero-v2">
+    <section id="hero-start" className="hero-v2" style={{ margin: '0 0 16px' }}>
       {/* Header */}
-      <div className="hero-headline">
+      <div className="hero-headline" style={{ marginBottom: '12px' }}>
         <div className="hero-title-wrap">
-          <div className="kicker">
-            {heroCopy.homeKicker || "Today's Picks"}
+          <div className="kicker" style={{ marginBottom: '4px' }}>
+            {heroCopy.kicker}
           </div>
           <h1 className="hero-title" style={{ margin: 0 }}>
-            {heroCopy.homeHeadline || "Add It. Love It. Keep It Simple."}
+            {heroCopy.headline}
           </h1>
         </div>
-        <a
-          href="#products-start"
-          className="btn btn-primary"
-          style={{ 
-            backgroundColor: "#febd69", 
-            color: "#111", 
-            fontWeight: 700,
-            padding: "12px 24px",
-            borderRadius: 8,
-            border: "none"
-          }}
-        >
-          Shop Now
-        </a>
       </div>
 
       {/* Hero Grid - 5 cards layout */}
@@ -210,15 +247,17 @@ export default function Hero({ activeCategory = "all" }) {
           <>
             {/* Large card - first product */}
             <Link 
+              key={`${normCat}-large-${productTiles[0].label}`}
               to={productTiles[0].href} 
               className="hero-card hero-card-large"
-              style={{ 
-                backgroundImage: `url(${productTiles[0].img})`,
-                backgroundSize: 'cover',
-                backgroundPosition: 'center',
-                backgroundRepeat: 'no-repeat'
-              }}
             >
+              <ImageWithFallback
+                src={productTiles[0].img}
+                alt={productTiles[0].label}
+                className="hero-card-image"
+                fallbackText="Product"
+                style={{ width: '100%', height: '100%', maxWidth: 'none', maxHeight: 'none' }}
+              />
               <div className="hero-card-overlay">
                 <h3>{productTiles[0].label}</h3>
               </div>
@@ -265,16 +304,17 @@ export default function Hero({ activeCategory = "all" }) {
             {/* Remaining product cards */}
             {productTiles.slice(1).map((tile, idx) => (
               <Link 
-                key={idx}
+                key={`${normCat}-${idx}-${tile.label}`}
                 to={tile.href} 
                 className="hero-card"
-                style={{ 
-                  backgroundImage: `url(${tile.img})`,
-                  backgroundSize: 'cover',
-                  backgroundPosition: 'center',
-                  backgroundRepeat: 'no-repeat'
-                }}
               >
+                <ImageWithFallback
+                  src={tile.img}
+                  alt={tile.label}
+                  className="hero-card-image"
+                  fallbackText="Product"
+                  style={{ width: '100%', height: '100%', maxWidth: 'none', maxHeight: 'none' }}
+                />
                 <div className="hero-card-overlay">
                   <h3>{tile.label}</h3>
                 </div>

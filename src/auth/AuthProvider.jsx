@@ -26,8 +26,15 @@ export default function AuthProvider({ children }) {
     const unsub = onAuthStateChanged(auth, async (u) => {
       try {
         if (u) {
-          // Ensure Firestore user doc exists
-          await createUserDocIfMissing(u);
+          // Check if we're in the middle of onboarding admin creation
+          const isOnboardingAdmin = sessionStorage.getItem('onboarding_admin_creation') === 'true';
+          
+          // Only auto-create user doc if NOT during onboarding admin creation
+          if (!isOnboardingAdmin) {
+            // Ensure Firestore user doc exists
+            await createUserDocIfMissing(u);
+          }
+          
           // Always read the latest user doc (so role changes are reflected)
           const profile = await getUser(u.uid);
           let role = profile?.role === "admin" ? "admin" : profile?.role === "agent" ? "agent" : "customer";

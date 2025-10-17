@@ -34,11 +34,14 @@ export async function listProducts({ take } = {}) {
   const snap = await getDocs(q);
   return snap.docs.map(d => {
     const data = d.data();
-    // Map priceUSD to price for frontend compatibility
+    // Map priceUSD to price, imageUrl to image, and handle inventory/stock field naming
     return { 
       id: d.id, 
       ...data,
-      price: data.priceUSD ?? data.price ?? 0
+      price: data.priceUSD ?? data.price ?? 0,
+      image: data.imageUrl ?? '',
+      inventory: data.inventory ?? data.stock ?? 0,
+      status: data.status ?? (data.inventory > 0 || data.stock > 0 ? 'active' : 'inactive')
     };
   });
 }
@@ -51,11 +54,14 @@ export async function getProductById(id) {
   const snap = await getDoc(ref)
   if (!snap.exists()) throw new Error('Product not found')
   const data = snap.data();
-  // Map priceUSD to price for frontend compatibility
+  // Map priceUSD to price, imageUrl to image, and handle inventory/stock field naming
   return { 
     id: snap.id, 
     ...data,
-    price: data.priceUSD ?? data.price ?? 0
+    price: data.priceUSD ?? data.price ?? 0,
+    image: data.imageUrl ?? '',
+    inventory: data.inventory ?? data.stock ?? 0,
+    status: data.status ?? (data.inventory > 0 || data.stock > 0 ? 'active' : 'inactive')
   };
 }
 
@@ -116,7 +122,11 @@ export async function deleteProduct(id) {
  */
 export async function getProductsByCategory(category) {
   const all = await listProducts()
-  return all.filter(p => (p.category || 'general') === category)
+  const normalizedCategory = (category || 'general').toLowerCase()
+  return all.filter(p => {
+    const productCategory = (p.category || 'general').toLowerCase()
+    return productCategory === normalizedCategory
+  })
 }
 
 /**

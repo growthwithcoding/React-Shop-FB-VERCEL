@@ -146,6 +146,23 @@ export async function markOnboardingComplete() {
     completedAt: new Date().toISOString(),
     version: "1.0.0",
   }, { merge: true });
+  
+  // Create local flag file to indicate setup is complete
+  try {
+    const response = await fetch('http://localhost:3001/api/create-setup-flag', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+    
+    if (!response.ok) {
+      console.warn('Failed to create setup flag file (non-critical)');
+    }
+  } catch (error) {
+    console.warn('Could not create setup flag file:', error.message);
+    // Non-critical error - setup can still be considered complete
+  }
 }
 
 /**
@@ -159,111 +176,108 @@ export async function createAdminUser({ email, password, firstName, lastName }) 
   if (!email || !password) {
     throw new Error("Email and password are required");
   }
-
-  let userCredential = null;
-  let wasPermissionError = false;
   
   try {
-    // Create Firebase Auth account
-    userCredential = await createUserWithEmailAndPassword(auth, email, password);
+    // Step 1: Set flag to prevent AuthProvider from auto-creating customer document
+    console.log("Setting onboarding flag...");
+    sessionStorage.setItem('onboarding_admin_creation', 'true');
+    
+    // Step 2: Create Firebase Auth account
+    console.log("Creating Firebase Auth account...");
+    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
     const user = userCredential.user;
+    
+    console.log("✓ User created in Firebase Auth:", user.uid);
 
-    // Create Firestore user document with admin role
-    const userRef = doc(db, "users", user.uid);
+    // Step 3: Prepare Firestore user document data
     const userData = {
       firstName: firstName || "",
       lastName: lastName || "",
       email: email,
       role: "admin",
       createdAt: new Date().toISOString(),
-      isInitialAdmin: true, // Flag to identify the first admin
+      isInitialAdmin: true, // Flag to identify the first admin - helps with security rules
     };
 
+    // Step 4: Wait for auth state to propagate and get fresh ID token
+    console.log("Waiting for auth state to propagate...");
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    
+    // Force token refresh to ensure auth state is fully synced
+    await user.getIdToken(true);
+    console.log("✓ Auth token refreshed");
+
+    // Step 5: Create Firestore user document with admin role
+    console.log("Creating Firestore user document...");
+    const userRef = doc(db, "users", user.uid);
+    
     try {
       await setDoc(userRef, userData);
+      console.log("✓ User document created in Firestore:", user.uid);
+    } catch (firestoreError) {
+      console.error("Firestore write error:", firestoreError);
       
-      // Wait for auth state and security rules to fully propagate
-      await new Promise(resolve => setTimeout(resolve, 1500));
-
-      return {
-        uid: user.uid,
-        email: user.email,
-        ...userData,
-      };
-    } catch (setDocError) {
-      // If we get a permission error, it might still have succeeded
-      // This can happen during onboarding due to security rule timing
-      if (setDocError.code === 'permission-denied') {
-        console.log("Permission error on setDoc, but will verify if write succeeded");
-        wasPermissionError = true;
+      // If permission denied during onboarding, provide detailed guidance
+      if (firestoreError.code === 'permission-denied') {
+        throw new Error(
+          "Permission denied while creating admin user in Firestore.\n\n" +
+          "Please ensure:\n" +
+          "1. Your Firestore security rules have been deployed\n" +
+          "2. The system/setup document doesn't exist or is not marked as completed\n" +
+          "3. You've completed the 'Deploy Rules' step in the onboarding wizard\n\n" +
+          "If you've already deployed the rules, try waiting a few moments for them to propagate, then try again."
+        );
+      }
+      throw firestoreError;
+    } finally {
+      // Clear the onboarding flag
+      sessionStorage.removeItem('onboarding_admin_creation');
+    }
+    
+    // Step 5: Verify the document was actually created by reading it back
+    console.log("Verifying user document creation...");
+    await new Promise(resolve => setTimeout(resolve, 500));
+    
+    try {
+      const verifySnap = await getDoc(userRef);
+      
+      if (!verifySnap.exists()) {
+        console.error("✗ User document not found after creation");
+        throw new Error("Failed to verify user document creation in Firestore");
+      }
+      
+      console.log("✓ User document verified in Firestore");
+    } catch (verifyError) {
+      // If we can't read it back due to permissions, that's okay - it was likely created
+      if (verifyError.code === 'permission-denied') {
+        console.log("⚠ Cannot verify document due to read permissions, but creation likely succeeded");
       } else {
-        throw setDocError;
+        throw verifyError;
       }
     }
+    
+    return {
+      uid: user.uid,
+      email: user.email,
+      ...userData,
+    };
   } catch (error) {
     console.error("Error creating admin user:", error);
     
-    // Only proceed with verification if we got a permission error or have a user credential
-    if (!userCredential?.user && !wasPermissionError) {
-      throw new Error(error.message || "Failed to create admin user");
+    // Provide helpful error messages
+    if (error.code === 'auth/email-already-in-use') {
+      throw new Error("This email is already registered. Please use a different email or sign in.");
+    } else if (error.code === 'auth/weak-password') {
+      throw new Error("Password is too weak. Please use at least 6 characters.");
+    } else if (error.code === 'auth/invalid-email') {
+      throw new Error("Invalid email address format.");
+    } else if (error.code === 'permission-denied') {
+      // Already handled above with detailed message
+      throw error;
     }
+    
+    throw new Error(error.message || "Failed to create admin user");
   }
-  
-  // If we reach here, either we got a permission error or another error after user creation
-  // Verify if the user document was actually created
-  if (userCredential?.user) {
-    try {
-      console.log("Verifying user document creation for:", userCredential.user.uid);
-      
-      // Wait for Firestore to propagate the write
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
-      const userRef = doc(db, "users", userCredential.user.uid);
-      const userSnap = await getDoc(userRef);
-      
-      if (userSnap.exists()) {
-        console.log("✓ User document verified in Firestore - operation was successful");
-        const userData = userSnap.data();
-        return {
-          uid: userCredential.user.uid,
-          email: userCredential.user.email,
-          ...userData,
-        };
-      }
-      
-      // Document doesn't exist yet, but if we had a permission error, it might still be propagating
-      if (wasPermissionError) {
-        console.log("✓ Permission error occurred but user created in Auth - assuming success");
-        return {
-          uid: userCredential.user.uid,
-          email: userCredential.user.email,
-          firstName: firstName || "",
-          lastName: lastName || "",
-          role: "admin",
-          createdAt: new Date().toISOString(),
-          isInitialAdmin: true,
-        };
-      }
-    } catch (verifyError) {
-      console.error("Error during verification:", verifyError);
-      
-      // If verification fails with permission error, assume the write succeeded
-      if (verifyError.code === 'permission-denied' && userCredential?.user) {
-        console.log("✓ Verification permission error - assuming user document was created");
-        return {
-          uid: userCredential.user.uid,
-          email: userCredential.user.email,
-          firstName: firstName || "",
-          lastName: lastName || "",
-          role: "admin",
-          createdAt: new Date().toISOString(),
-          isInitialAdmin: true,
-        };
-      }
-    }
-  }
-  
-  throw new Error("Failed to create admin user");
 }
 
 /**
@@ -276,13 +290,14 @@ export async function initializeStoreSettings(settings) {
 
   const settingsRef = doc(db, "system", "settings");
   
-  const defaultSettings = {
+  // Build the settings object using provided values or defaults
+  const storeSettings = {
     store: {
       name: settings.storeName || "My Store",
       email: settings.storeEmail || "",
       logo: settings.storeLogo || "",
       supportPhone: settings.supportPhone || "",
-      supportHours: {
+      supportHours: settings.supportHours || {
         monday: { isOpen: true, open: "09:00", close: "17:00" },
         tuesday: { isOpen: true, open: "09:00", close: "17:00" },
         wednesday: { isOpen: true, open: "09:00", close: "17:00" },
@@ -292,18 +307,19 @@ export async function initializeStoreSettings(settings) {
         sunday: { isOpen: false, open: "10:00", close: "14:00" },
       },
     },
-    payments: {
+    payments: settings.payments || {
       enableCards: true,
       cod: false,
       pk: "",
       connected: false,
       acceptedMethods: ["card", "paypal", "apple_pay", "google_pay"],
     },
-    shipping: {
+    shipping: settings.shipping || {
       base: 5,
+      enableFreeShipping: false,
       freeAt: 50,
     },
-    taxes: {
+    taxes: settings.taxes || {
       rate: 7.5,
       origin: "UT",
     },
@@ -311,8 +327,8 @@ export async function initializeStoreSettings(settings) {
   };
 
   try {
-    await setDoc(settingsRef, defaultSettings, { merge: true });
-    return defaultSettings;
+    await setDoc(settingsRef, storeSettings, { merge: true });
+    return storeSettings;
   } catch (error) {
     console.error("Error initializing store settings:", error);
     
@@ -335,7 +351,7 @@ export async function initializeStoreSettings(settings) {
         // If verification also fails with permission error, assume it succeeded
         if (verifyError.code === 'permission-denied') {
           console.log("✓ Verification permission error - assuming settings were created");
-          return defaultSettings;
+          return storeSettings;
         }
       }
     }
@@ -375,9 +391,9 @@ export async function getOnboardingStatus() {
     const adminQuery = query(usersRef, where("role", "==", "admin"), limit(1));
     const adminSnap = await getDocs(adminQuery);
     
-    // Check for settings
-    const settingsRef = doc(db, "system", "settings");
-    const settingsSnap = await getDoc(settingsRef);
+  // Check for settings
+  const settingsRef = doc(db, "system", "settings");
+  const settingsSnap = await getDoc(settingsRef);
     
     return {
       isComplete: data?.completed === true,

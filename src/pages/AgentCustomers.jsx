@@ -1,15 +1,13 @@
 // AgentCustomers.jsx - Agent view of all customers
 import { useState, useEffect, useMemo } from "react";
+import { Link } from "react-router-dom";
 import { useAuth } from "../auth/useAuth";
 import { collection, query, orderBy, getDocs, where } from "firebase/firestore";
 import { db, firebaseInitialized } from "../lib/firebase";
 import { useNavigate } from "react-router-dom";
 import { RefreshCw, AlertTriangle, Mail, Calendar, User } from "lucide-react";
-import BreadcrumbNav from '../components/BreadcrumbNav';
-import { useTotalHeaderHeight } from '../hooks/useTotalHeaderHeight';;
 
 export default function AgentCustomers() {
-  const totalHeaderHeight = useTotalHeaderHeight();
   const { user } = useAuth();
   const navigate = useNavigate();
   
@@ -101,19 +99,28 @@ export default function AgentCustomers() {
   }
   
   return (
-    <>
-      <BreadcrumbNav
-        currentPage="All Customers"
-        backButton={{ label: "Back to Dashboard", path: "/agent" }}
-      />
-      
-      <div className="container-xl" style={{ paddingTop: totalHeaderHeight + 24, paddingBottom: 48 }}>
-        {/* Page Title */}
-        <div className="hero-headline" style={{ marginBottom: 8 }}>
+    <div className="min-h-screen" style={{ background: "linear-gradient(135deg, #e0f2fe 0%, #bfdbfe 100%)" }}>
+      <div className="container-xl" style={{ paddingTop: 24, paddingBottom: 48 }}>
+        {/* Hero Headline */}
+        <div className="hero-headline" style={{ marginBottom: 16 }}>
           <div>
             <div className="kicker">Agent</div>
             <h1 style={{ margin: 0 }}>All Customers</h1>
+            <div className="meta" style={{ marginTop: 8 }}>
+              View all registered customer accounts
+            </div>
           </div>
+          <Link 
+            to="/agent" 
+            className="btn btn-secondary"
+            style={{
+              fontSize: "13px",
+              padding: "8px 14px",
+              whiteSpace: "nowrap"
+            }}
+          >
+            ← Back to Dashboard
+          </Link>
         </div>
       
       {/* Search Bar */}
@@ -250,6 +257,6 @@ export default function AgentCustomers() {
         </div>
       </div>
       </div>
-    </>
+    </div>
   );
 }

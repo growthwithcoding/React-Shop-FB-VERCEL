@@ -12,7 +12,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 // --- Init Admin SDK
-const SERVICE_JSON = path.join(__dirname, "firebase-admin.json");
+const SERVICE_JSON = path.join(__dirname, "..", "firebase-admin.json");
 const serviceAccount = JSON.parse(fs.readFileSync(SERVICE_JSON, "utf8"));
 initializeApp({ credential: cert(serviceAccount), projectId: serviceAccount.project_id });
 const db = getFirestore();

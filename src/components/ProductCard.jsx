@@ -10,9 +10,7 @@ import { Link } from 'react-router-dom'
 import { addItem } from '../features/cart/cartSlice.js'
 import { showAddModal } from '../features/ui/uiSlice.js'
 import { formatPrice } from '../utils/money.js'
-
-// Image safety net: Use a solid color placeholder to prevent flickering
-const FALLBACK = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="300" height="300"%3E%3Crect width="300" height="300" fill="%23f5f5f5"/%3E%3Ctext x="50%25" y="50%25" dominant-baseline="middle" text-anchor="middle" font-family="sans-serif" font-size="18" fill="%23999"%3ENo Image%3C/text%3E%3C/svg%3E'
+import ImageWithFallback from './ImageWithFallback.jsx'
 
 export default function ProductCard({ product }) {
   // ------------------------------------------------------------
@@ -22,7 +20,7 @@ export default function ProductCard({ product }) {
   const [qty, setQty] = useState(1)
 
   // The essentials for the card. If rating ghosts us, I'm not showing NaN stares.
-  const { id, title, price, category, description, image, rating, inventory = 0 } = product
+  const { id, title, price, category, shortDescription, image, rating, inventory = 0 } = product
   const rate = rating?.rate ?? 'N/A'
   const isOutOfStock = inventory === 0
 
@@ -63,27 +61,36 @@ export default function ProductCard({ product }) {
           borderRadius: '4px',
           fontWeight: 'bold',
           fontSize: '12px',
-          zIndex: 1
+          zIndex: 10,
+          pointerEvents: 'none'
         }}>
           OUT OF STOCK
         </div>
       )}
       {/* ----------------------------------------------------------
-         IMAGE (with placeholder + onError fallback)
-         If the product image is missing or 404s mid-flight, we instantly swap to FALLBACK.
-         Translation: no broken-image icons photobombing your grade.
+         IMAGE (with placeholder API fallback)
+         Uses ImageWithFallback component that automatically falls back to 
+         placeholder API when images fail to load.
+         Wrapped in Link to navigate to product detail page.
       ----------------------------------------------------------- */}
-      <img
-        src={image && image.trim() && !image.includes('fakestoreapi') ? image : FALLBACK}
-        alt={title}
-        onError={(e) => { 
-          if (e.currentTarget.src !== FALLBACK) {
-            e.currentTarget.src = FALLBACK;
-          }
-        }}
-        loading="lazy"
-        style={{ backgroundColor: '#f5f5f5', minHeight: '200px' }}
-      />
+      <Link to={`/product/${id}`} style={{ display: 'block', overflow: 'hidden', borderRadius: '12px' }}>
+        <ImageWithFallback
+          src={image}
+          alt={title}
+          width={300}
+          height={300}
+          fallbackText="Product"
+          loading="lazy"
+          style={{ 
+            width: '100%',
+            height: '220px',
+            objectFit: 'contain',
+            cursor: 'pointer',
+            background: '#fff',
+            border: '1px solid #e5e7eb'
+          }}
+        />
+      </Link>
 
       {/* ------------------------------------------------------------
          TITLE → DETAILS LINK
@@ -106,7 +113,7 @@ export default function ProductCard({ product }) {
          SHORT DESCRIPTION
       ------------------------------------------------------------- */}
       <p className="meta" style={{ marginTop: 6, minHeight: 40 }}>
-        {description}
+        {shortDescription}
       </p>
 
       {/* ------------------------------------------------------------
@@ -144,7 +151,7 @@ export default function ProductCard({ product }) {
           className="btn btn-primary" 
           onClick={add}
           disabled={isOutOfStock}
-          style={isOutOfStock ? { opacity: 0.5, cursor: 'not-allowed', fontSize: '14px' } : { fontSize: '14px' }}
+          style={isOutOfStock ? { opacity: 0.5, cursor: 'not-allowed', fontSize: '14px', whiteSpace: 'nowrap' } : { fontSize: '14px', whiteSpace: 'nowrap' }}
         >
           {isOutOfStock ? 'Out of Stock' : 'Add to Cart'}
         </button>

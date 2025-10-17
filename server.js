@@ -3,12 +3,48 @@ import cors from 'cors';
 import fs from 'fs-extra';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import admin from 'firebase-admin';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
 const PORT = 3001;
+
+// Firebase Admin initialization state
+let adminInitialized = false;
+
+// Initialize Firebase Admin SDK
+function initializeFirebaseAdmin() {
+  try {
+    const adminPath = path.join(__dirname, 'firebase-admin.json');
+    
+    if (!fs.existsSync(adminPath)) {
+      console.warn('⚠️  firebase-admin.json not found. Admin SDK features will be unavailable.');
+      return false;
+    }
+
+    const serviceAccount = JSON.parse(fs.readFileSync(adminPath, 'utf8'));
+    
+    if (!admin.apps.length) {
+      admin.initializeApp({
+        credential: admin.credential.cert(serviceAccount)
+      });
+      console.log('✅ Firebase Admin SDK initialized successfully');
+      adminInitialized = true;
+      return true;
+    }
+    
+    adminInitialized = true;
+    return true;
+  } catch (error) {
+    console.error('❌ Error initializing Firebase Admin SDK:', error.message);
+    return false;
+  }
+}
+
+// Try to initialize on startup
+initializeFirebaseAdmin();
 
 // Middleware
 app.use(cors());
@@ -94,9 +130,249 @@ app.get('/api/check-env', async (req, res) => {
   }
 });
 
-// Endpoint to shut down the server
+// Endpoint to create firebase-admin.json file
+app.post('/api/create-firebase-admin', async (req, res) => {
+  try {
+    const {
+      type,
+      project_id,
+      private_key_id,
+      private_key,
+      client_email,
+      client_id,
+      auth_uri,
+      token_uri,
+      auth_provider_x509_cert_url,
+      client_x509_cert_url
+    } = req.body;
+
+    // Validate required fields
+    if (!type || !project_id || !private_key_id || !private_key || !client_email) {
+      return res.status(400).json({
+        success: false,
+        error: 'Missing required Firebase Admin SDK fields'
+      });
+    }
+
+    // Generate firebase-admin.json content
+    const adminConfig = {
+      type: type || "service_account",
+      project_id,
+      private_key_id,
+      private_key,
+      client_email,
+      client_id: client_id || "",
+      auth_uri: auth_uri || "https://accounts.google.com/o/oauth2/auth",
+      token_uri: token_uri || "https://oauth2.googleapis.com/token",
+      auth_provider_x509_cert_url: auth_provider_x509_cert_url || "https://www.googleapis.com/oauth2/v1/certs",
+      client_x509_cert_url: client_x509_cert_url || `https://www.googleapis.com/robot/v1/metadata/x509/${encodeURIComponent(client_email)}`
+    };
+
+    // Write firebase-admin.json file to project root
+    const adminPath = path.join(__dirname, 'firebase-admin.json');
+    await fs.writeFile(adminPath, JSON.stringify(adminConfig, null, 2), 'utf8');
+
+    console.log('✅ firebase-admin.json file created successfully at:', adminPath);
+    
+    res.json({
+      success: true,
+      message: 'firebase-admin.json file created successfully',
+      path: adminPath,
+      shouldRestart: true
+    });
+
+    // Give time for response to be sent, then restart the server
+    setTimeout(() => {
+      console.log('🔄 Restarting server to initialize Firebase Admin SDK...');
+      // eslint-disable-next-line no-undef
+      process.exit(0); // Exit with 0 (success) - npm/nodemon will restart automatically
+    }, 500);
+
+  } catch (error) {
+    console.error('Error creating firebase-admin.json file:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to create firebase-admin.json file',
+      details: error.message
+    });
+  }
+});
+
+// Endpoint to check if firebase-admin.json exists
+app.get('/api/check-firebase-admin', async (req, res) => {
+  try {
+    const adminPath = path.join(__dirname, 'firebase-admin.json');
+    const exists = await fs.pathExists(adminPath);
+    
+    res.json({
+      exists,
+      path: adminPath
+    });
+  } catch (error) {
+    console.error('Error checking firebase-admin.json file:', error);
+    res.status(500).json({
+      error: 'Failed to check firebase-admin.json file',
+      details: error.message
+    });
+  }
+});
+
+// Endpoint to deploy Firestore rules
+app.post('/api/deploy-rules', async (req, res) => {
+  try {
+    // Ensure Firebase Admin is initialized
+    if (!adminInitialized) {
+      const initialized = initializeFirebaseAdmin();
+      if (!initialized) {
+        return res.status(500).json({
+          success: false,
+          error: 'Firebase Admin SDK not initialized. Please ensure firebase-admin.json exists.'
+        });
+      }
+    }
+
+    // Read the firestore.rules file
+    const rulesPath = path.join(__dirname, 'firestore.rules');
+    
+    if (!fs.existsSync(rulesPath)) {
+      return res.status(404).json({
+        success: false,
+        error: 'firestore.rules file not found'
+      });
+    }
+
+    const rulesContent = await fs.readFile(rulesPath, 'utf8');
+    
+    // Get the project ID from the service account
+    const adminPath = path.join(__dirname, 'firebase-admin.json');
+    const serviceAccount = JSON.parse(await fs.readFile(adminPath, 'utf8'));
+    const projectId = serviceAccount.project_id;
+
+    console.log(`📤 Deploying Firestore rules to project: ${projectId}`);
+
+    // Deploy rules using Firebase Admin SDK
+    const rulesFile = admin.securityRules().createRulesFileFromSource(
+      'firestore.rules',
+      rulesContent
+    );
+
+    const ruleset = await admin.securityRules().createRuleset(rulesFile);
+    
+    // Release the ruleset to Cloud Firestore
+    await admin.securityRules().releaseFirestoreRuleset(ruleset.name);
+
+    console.log('✅ Firestore rules deployed successfully');
+    console.log(`   Ruleset name: ${ruleset.name}`);
+    console.log(`   Create time: ${ruleset.createTime}`);
+
+    res.json({
+      success: true,
+      message: 'Firestore rules deployed successfully',
+      rulesetName: ruleset.name,
+      createTime: ruleset.createTime,
+      projectId: projectId
+    });
+
+  } catch (error) {
+    console.error('❌ Error deploying Firestore rules:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to deploy Firestore rules',
+      details: error.message,
+      code: error.code
+    });
+  }
+});
+
+// Endpoint to check if rules can be deployed (check prerequisites)
+app.get('/api/check-rules-deployment', async (req, res) => {
+  try {
+    const rulesPath = path.join(__dirname, 'firestore.rules');
+    const adminPath = path.join(__dirname, 'firebase-admin.json');
+    
+    const rulesExists = await fs.pathExists(rulesPath);
+    const adminExists = await fs.pathExists(adminPath);
+    
+    let projectId = null;
+    let rulesDeployed = false;
+    let currentRuleset = null;
+    
+    if (adminExists) {
+      try {
+        const serviceAccount = JSON.parse(await fs.readFile(adminPath, 'utf8'));
+        projectId = serviceAccount.project_id;
+      } catch {
+        // Ignore parsing errors
+      }
+    }
+
+    // Check if rules are currently deployed
+    if (adminInitialized && projectId) {
+      try {
+        const release = await admin.securityRules().getFirestoreRuleset();
+        if (release && release.name) {
+          rulesDeployed = true;
+          currentRuleset = {
+            name: release.name,
+            createTime: release.createTime
+          };
+        }
+      } catch (error) {
+        // Rules might not be deployed yet, or permission issue
+        console.log('Note: Could not check current ruleset status:', error.message);
+      }
+    }
+
+    const canDeploy = rulesExists && adminExists && adminInitialized;
+
+    res.json({
+      canDeploy,
+      rulesExists,
+      adminExists,
+      adminInitialized,
+      rulesDeployed,
+      currentRuleset,
+      projectId,
+      rulesPath,
+      adminPath
+    });
+  } catch (error) {
+    console.error('Error checking rules deployment:', error);
+    res.status(500).json({
+      error: 'Failed to check rules deployment status',
+      details: error.message
+    });
+  }
+});
+
+// Endpoint to create setup completion flag file
+app.post('/api/create-setup-flag', async (req, res) => {
+  try {
+    const flagPath = path.join(__dirname, '.onboarding-complete');
+    const timestamp = new Date().toISOString();
+    await fs.writeFile(flagPath, timestamp, 'utf8');
+    
+    console.log('✅ Setup flag file created:', flagPath);
+    
+    res.json({
+      success: true,
+      message: 'Setup flag file created successfully',
+      path: flagPath,
+      timestamp: timestamp
+    });
+  } catch (error) {
+    console.error('Error creating setup flag file:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to create setup flag file',
+      details: error.message
+    });
+  }
+});
+
+// Endpoint to shut down the server (removed auto-shutdown, now manual)
 app.post('/api/shutdown', (req, res) => {
-  console.log('\n✅ .env file created successfully!');
+  console.log('\n✅ Onboarding complete!');
   console.log('👋 Shutting down onboarding server...');
   console.log('💡 The Vite dev server will continue running.\n');
   

@@ -11,9 +11,47 @@
 [![Redux](https://img.shields.io/badge/Redux-2.9.0-764ABC?logo=redux)](https://redux-toolkit.js.org/)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
+[![CI/CD Pipeline](https://github.com/growthwithcoding/React-Shop-FB-VERCEL/actions/workflows/main.yml/badge.svg)](https://github.com/growthwithcoding/React-Shop-FB-VERCEL/actions/workflows/main.yml)
+[![codecov](https://codecov.io/gh/growthwithcoding/React-Shop-FB-VERCEL/branch/main/graph/badge.svg)](https://codecov.io/gh/growthwithcoding/React-Shop-FB-VERCEL)
+[![Tests](https://img.shields.io/badge/tests-passing-brightgreen.svg)](./TESTING.md)
+
 A modern, feature-rich e-commerce platform built with React 19 and Firebase. Features comprehensive admin dashboard, real-time analytics, support ticket system, and seamless checkout experience.
 
 **🎉 Version 1.0.0 Release** - This is the first official production-ready version. See [CHANGELOG.md](CHANGELOG.md) for details.
+
+## 🚀 Live Demo
+
+**🌐 Live Application:** [https://react-shop-fb-vercel.vercel.app/](https://react-shop-fb-vercel.vercel.app/)
+
+**🎮 Demo Mode Available:** Experience the app from different user perspectives without authentication!
+
+> **Tip:** Try the demo mode toggle to explore admin, agent, and customer views
+
+---
+
+## 🧪 Testing & Quality
+
+This project includes comprehensive test coverage with **Test-Driven Development (TDD)**:
+
+- ✅ **7 Unit Tests** - Components tested in isolation
+- ✅ **1 Integration Test** - Cart functionality end-to-end
+- ✅ **CI/CD Pipeline** - Automated testing on every commit
+- ✅ **Code Coverage** - Reports generated and tracked
+
+**📖 For detailed testing information, see [TESTING.md](TESTING.md)**
+
+### Running Tests Locally
+
+```bash
+# Run all tests
+npm run test
+
+# Run tests with coverage
+npm run test:coverage
+
+# Run tests in CI mode
+npm run test:ci
+```
 
 ---
 
@@ -55,7 +93,8 @@ A modern, feature-rich e-commerce platform built with React 19 and Firebase. Fea
 - **Order Management** - Process orders, update fulfillment status ([`src/pages/AdminOrders.jsx`](src/pages/AdminOrders.jsx))
 - **User Management** - View and manage customer accounts ([`src/pages/AdminUsers.jsx`](src/pages/AdminUsers.jsx))
 - **Discount Administration** - Create and manage promotional campaigns ([`src/pages/AdminDiscounts.jsx`](src/pages/AdminDiscounts.jsx))
-- **Store Settings** - Configure store details, support hours, and contact information ([`src/pages/AdminSettings.jsx`](src/pages/AdminSettings.jsx))
+- **Store Settings** - Configure store details, support hours, timezone, and contact information ([`src/pages/AdminSettings.jsx`](src/pages/AdminSettings.jsx))
+- **Timezone Management** - Configurable store timezone with accurate time tracking for orders and tickets ([`src/services/timezoneService.js`](src/services/timezoneService.js))
 - **Support Ticket System** - Track and respond to customer inquiries ([`src/components/CreateSupportTicketModal.jsx`](src/components/CreateSupportTicketModal.jsx))
 
 ### 📊 Analytics & Insights
@@ -70,6 +109,8 @@ A modern, feature-rich e-commerce platform built with React 19 and Firebase. Fea
 ### 🎯 Additional Features
 - **First-Run Onboarding** - WordPress-style setup wizard for initial configuration ([`src/pages/Onboarding.jsx`](src/pages/Onboarding.jsx))
 - **Email Notifications** - Order confirmations and support updates via EmailJS ([`src/pages/Contact.jsx`](src/pages/Contact.jsx))
+- **Image Fallback System** - Automatic placeholder API integration for broken/missing images ([`src/components/ImageWithFallback.jsx`](src/components/ImageWithFallback.jsx), [`src/utils/placeholder.js`](src/utils/placeholder.js))
+- **Demo Mode** - Preview application from different role perspectives without authentication ([`src/demo/`](src/demo/)) - [📖 Details](src/demo/README.md)
 - **Responsive Design** - Mobile-first UI with Tailwind CSS
 - **Dark Mode Support** - Theme switching capabilities
 - **Real-time Updates** - Live data synchronization with Firestore
@@ -230,9 +271,13 @@ advanced-shop-FB-Edition/
 ## 🚀 Quick Start
 
 ### Prerequisites
-- Node.js 18+ and npm
-- Firebase account ([Create one here](https://console.firebase.google.com))
-- Git
+- **Node.js 18+** and npm
+- **Firebase account** ([Create one free here](https://console.firebase.com))
+- **Git** (for cloning the repository)
+
+⏱️ **Total setup time:** ~5-10 minutes with the guided wizard
+
+---
 
 ### Installation
 
@@ -243,95 +288,190 @@ cd React-Shop-FB
 
 # 2. Install dependencies
 npm install
+
+# 3. Run initial setup (FIRST TIME ONLY)
+npm run onboard
 ```
 
-### Firebase Setup
+---
 
-1. **Create a Firebase Project**
-   - Go to [Firebase Console](https://console.firebase.google.com)
-   - Click "Add Project" and follow the setup wizard
-   - Enable Google Analytics (optional)
+### 🎯 Initial Setup with Onboarding Wizard
 
-2. **Enable Authentication**
-   - Navigate to Authentication > Sign-in method
-   - Enable "Email/Password" provider
-   - Enable "Google" provider (add your support email)
+**For first-time setup only:**
 
-3. **Create Firestore Database**
-   - Navigate to Firestore Database
-   - Click "Create Database"
-   - Start in **production mode**
-   - Choose a location close to your users
-
-4. **Configure Environment Variables**
-   
-   Create a `.env` file in the project root (this file is gitignored):
-   
-   ```env
-   VITE_FIREBASE_API_KEY=your_api_key_here
-   VITE_FIREBASE_AUTH_DOMAIN=your_project.firebaseapp.com
-   VITE_FIREBASE_PROJECT_ID=your_project_id
-   VITE_FIREBASE_STORAGE_BUCKET=your_project.appspot.com
-   VITE_FIREBASE_MESSAGING_SENDER_ID=your_sender_id
-   VITE_FIREBASE_APP_ID=your_app_id
-   VITE_FIREBASE_MEASUREMENT_ID=your_measurement_id
-   ```
-   
-   Find these values in Firebase Console > Project Settings > Your apps > SDK setup and configuration
-
-5. **Deploy Firestore Security Rules**
-   
-   ```bash
-   npm install -g firebase-tools
-   firebase login
-   firebase init firestore  # Select existing project
-   firebase deploy --only firestore:rules
-   ```
-
-### Running the Application
-
-**🎯 Easiest Way - Automatic Detection:**
 ```bash
-npm run setup
+npm run onboard
 ```
-This smart command:
-- ✅ Checks if your .env file exists
-- ✅ Automatically starts the correct server(s)
-- ✅ If no .env: Starts both servers for onboarding
-- ✅ If .env exists: Starts only Vite dev server
 
-**Manual Options:**
+This one-time setup command:
+- ✅ Guides you through Firebase configuration
+- ✅ Creates your .env file automatically
+- ✅ Deploys Firestore security rules
+- ✅ Creates your admin account
+- ✅ Configures store settings
 
-**First Time Setup (No .env file yet):**
-```bash
-npm run dev:full
-```
-Starts both:
-- Vite dev server (port 5173)
-- Express onboarding server (port 3001)
-- Allows automatic .env file creation through the UI
+#### What the Onboarding Wizard Does
 
-**After Setup (.env file exists):**
+The interactive wizard walks you through:
+
+1. **🔥 Firebase Setup** (~2 min)
+   - Step-by-step Firebase project creation
+   - Automatic .env file generation
+   - Credential validation
+
+2. **🔐 Security Rules** (~1 min)
+   - Automatic Firestore rules deployment
+   - Or manual deployment instructions
+
+3. **🔑 Admin SDK** (optional, ~1 min)
+   - Service account setup for admin features
+   - Helps you configure firebase-admin.json
+
+4. **👤 Admin Account** (~1 min)
+   - Create your administrator credentials
+   - Secure authentication setup
+
+5. **🏪 Store Settings** (~2 min)
+   - Configure store name, email, and logo
+   - Set support hours
+   - Configure payment and shipping options
+
+#### Setup Process
+
+When you run `npm run onboard`:
+1. Script checks if setup is already complete
+2. Starts both Vite dev server (port 5173) and onboarding API (port 3001)
+3. Opens browser to http://localhost:5173/onboarding
+4. Wizard guides you through configuration
+5. Creates `.onboarding-complete` flag file when finished
+
+#### After Initial Setup
+
+Once setup is complete, the onboarding will not run again. Simply use:
+
 ```bash
 npm run dev
 ```
-Starts only Vite - that's all you need once configured!
 
-App opens at http://localhost:5173
+The app runs on http://localhost:5173 without needing the onboarding server.
 
-### First-Run Setup
+#### Verify Your Setup
 
-On first launch (when no `.env` file exists), you'll be redirected to the **onboarding wizard** (`/onboarding`):
+Confirm everything is configured correctly:
 
-1. **Firebase Configuration** - Validates or helps create your .env file
-2. **Admin Account** - Create your administrator account
-3. **Store Settings** - Configure store name, email, support hours
-4. **Database Seeding** - Optionally populate with sample data
-5. **Complete** - Finish setup and start using the store
+```bash
+npm run verify-setup
+```
 
-**Important:** Make sure you started with `npm run dev:full` for the first run so the Express server can help create your .env file automatically.
+This checks:
+- ✅ Setup completion status
+- ✅ .env file exists and is valid
+- ✅ Firebase Admin credentials (optional)
+- ✅ Security configuration
 
-For detailed onboarding instructions, see [`ONBOARDING.md`](ONBOARDING.md) and [`ONBOARDING_SERVER.md`](ONBOARDING_SERVER.md).
+**📖 For detailed setup documentation, see [SETUP_GUIDE.md](SETUP_GUIDE.md)**
+
+---
+
+### 🛠️ Alternative: Manual Setup
+
+<details>
+<summary><strong>Click to expand manual setup instructions</strong></summary>
+
+If you prefer to set up Firebase manually or need more control:
+
+#### 1. Create Firebase Project
+
+- Go to [Firebase Console](https://console.firebase.google.com)
+- Click **"Add Project"** and follow the wizard
+- Enable Google Analytics (optional)
+
+#### 2. Enable Authentication
+
+- Navigate to **Authentication > Sign-in method**
+- Enable **"Email/Password"** provider
+- Enable **"Google"** provider (add your support email)
+
+#### 3. Create Firestore Database
+
+- Navigate to **Firestore Database**
+- Click **"Create Database"**
+- Start in **production mode**
+- Choose a location close to your users
+
+#### 4. Configure Environment Variables
+
+Create a `.env` file in the project root:
+
+```env
+VITE_FIREBASE_API_KEY=your_api_key_here
+VITE_FIREBASE_AUTH_DOMAIN=your_project.firebaseapp.com
+VITE_FIREBASE_PROJECT_ID=your_project_id
+VITE_FIREBASE_STORAGE_BUCKET=your_project.appspot.com
+VITE_FIREBASE_MESSAGING_SENDER_ID=your_sender_id
+VITE_FIREBASE_APP_ID=your_app_id
+VITE_FIREBASE_MEASUREMENT_ID=your_measurement_id
+```
+
+Find these values in: **Firebase Console > Project Settings > Your apps > SDK setup**
+
+#### 5. Deploy Firestore Security Rules
+
+```bash
+npm install -g firebase-tools
+firebase login
+firebase init firestore
+firebase deploy --only firestore:rules
+```
+
+#### 6. Create Admin Account
+
+You'll need to create your first admin account manually through Firebase Console or using the onboarding wizard.
+
+</details>
+
+---
+
+### 📝 Next Steps After Setup
+
+Once your store is configured:
+
+1. **Log in with your admin credentials**
+2. **Customize your store branding** (logo, colors, theme)
+3. **Add your products** (or keep the sample data)
+4. **Configure payment settings** (add Stripe keys when ready)
+5. **Adjust tax and shipping rates** for your region
+6. **Set up your domain** and deploy to production
+
+---
+
+### 🆘 Troubleshooting
+
+**Onboarding wizard not loading?**
+- Ensure you ran `npm run setup` or `npm run dev:full`
+- Check that both servers are running (ports 5173 and 3001)
+- Clear browser cache and try again
+
+**.env file not working?**
+- Restart the dev server after creating .env
+- Verify all required variables are present
+- Check for typos in variable names (must start with VITE_)
+
+**Firebase connection errors?**
+- Verify your Firebase project is active
+- Check that Authentication and Firestore are enabled
+- Ensure security rules are deployed
+
+**Admin account creation fails?**
+- Verify Firestore rules are deployed
+- Check Firebase Console for error logs
+- Ensure email/password authentication is enabled
+
+Need more help? Check the detailed documentation:
+- [Onboarding Guide](ONBOARDING.md) (if exists)
+- [Seeding Guide](seeding/SEEDING_GUIDE.md)
+- [Firebase Setup](https://firebase.google.com/docs/web/setup)
+
 
 ### Database Seeding (Optional but Recommended)
 
@@ -586,14 +726,79 @@ VITE_EMAILJS_PUBLIC_KEY=your_public_key
 
 | Script | Description |
 |--------|-------------|
-| `npm run setup` | **🎯 Recommended!** Auto-detects .env and starts the right server(s) |
-| `npm run dev` | Start Vite development server (use after .env is created) |
-| `npm run dev:full` | Start both Vite and Express servers (for first-time setup) |
-| `npm run server` | Start only the Express onboarding server |
+| `npm run onboard` | **🎯 First-time setup!** Run the interactive onboarding wizard (one-time only) |
+| `npm run verify-setup` | Verify that initial setup has been completed successfully |
+| `npm run dev` | Start Vite development server (use after onboarding is complete) |
+| `npm run dev:full` | Start both Vite and Express servers simultaneously |
+| `npm run server` | Start only the Express onboarding API server (port 3001) |
 | `npm start` | Alias for `npm run server` |
-| `npm run build` | Build production-ready bundle |
+| `npm run build` | Build production-ready bundle for deployment |
 | `npm run preview` | Preview production build locally |
 | `npm run lint` | Run ESLint to check code quality |
+| `npm run test` | Run test suite with Vitest |
+| `npm run test:coverage` | Run tests with coverage report |
+
+---
+
+## 🔧 Key Technical Features
+
+### Timezone Management
+
+The platform includes comprehensive timezone support for accurate time tracking across geographic locations:
+
+**Location:** [`src/services/timezoneService.js`](src/services/timezoneService.js)
+
+**Capabilities:**
+- Automatic user timezone detection using `Intl.DateTimeFormat`
+- Store timezone configuration in admin settings
+- 50+ IANA timezones with searchable picker
+- Dual timezone display (store time + user time)
+- Automatic DST (daylight saving time) handling
+- Timezone context saved with orders and tickets
+
+**Key Functions:**
+```javascript
+getUserTimeZone()              // Detect user's timezone
+formatInTimeZone(timestamp, tz) // Format time for specific timezone
+createTimeZoneContext(storeTz)  // Create timezone metadata for records
+```
+
+**Use Cases:**
+- Order timestamps show accurate local time
+- Support tickets track creation/response times correctly
+- Admin analytics work across time zones
+- Store hours display correctly for all users
+
+---
+
+### Image Fallback System
+
+Automatic fallback system for handling broken or missing product images:
+
+**Location:** [`src/components/ImageWithFallback.jsx`](src/components/ImageWithFallback.jsx), [`src/utils/placeholder.js`](src/utils/placeholder.js)
+
+**How It Works:**
+1. Component attempts to load the provided image URL
+2. If image fails to load (404, network error, etc.), automatically switches to placeholder
+3. Uses `placehold.co` API for consistent placeholder generation
+4. Prevents infinite loops with error state tracking
+
+**Features:**
+- Customizable placeholder text, colors, and dimensions
+- Lazy loading support for performance
+- Consistent fallback across the entire application
+- No external dependencies beyond the placeholder API
+
+**Usage:**
+```javascript
+<ImageWithFallback
+  src={product.imageUrl}
+  alt={product.name}
+  width={400}
+  height={300}
+  fallbackText="Product Image Unavailable"
+/>
+```
 
 ---
 
@@ -622,17 +827,74 @@ VITE_EMAILJS_PUBLIC_KEY=your_public_key
 
 ## 🔮 Future Enhancements
 
-Advanced Shop has an extensive roadmap of planned features and enhancements. For a comprehensive list of upcoming features across all categories including:
+Advanced Shop has an extensive roadmap of planned features:
 
-- **Customer Experience** - Product variations, reviews, wishlists, recommendations
-- **Order & Fulfillment** - Advanced shipping, returns, subscriptions
-- **Payment & Pricing** - Gateway integration, dynamic pricing
-- **User & Marketing** - Loyalty programs, email marketing, social integration
-- **Admin & Analytics** - Advanced reporting, CMS, inventory management
-- **Security & Performance** - 2FA, caching, PWA capabilities
-- **AI & Automation** - Chatbots, ML recommendations, fraud detection
+### Customer Experience
+- **Product Variations** - Size, color, and style options
+- **Product Reviews** - Customer ratings and reviews with moderation
+- **Wishlist System** - Save items for later
+- **Product Recommendations** - "Customers also bought" suggestions
+- **Advanced Filtering** - Filter by price range, ratings, availability
+- **Product Comparison** - Side-by-side product comparisons
+- **Recently Viewed** - Track and display browsing history
 
-**📋 See the complete roadmap:** [FUTURE_ENHANCEMENTS.md](FUTURE_ENHANCEMENTS.md)
+### Order & Fulfillment
+- **Advanced Shipping** - Real-time carrier rates, multi-carrier support
+- **Order Tracking** - Live shipment tracking with carrier APIs
+- **Returns Management** - RMA system with return authorization
+- **Subscriptions** - Recurring orders and subscription products
+- **Gift Cards** - Digital and physical gift card support
+- **Order Notes** - Custom instructions for orders
+
+### Payment & Pricing
+- **Stripe Integration** - Full payment processing integration
+- **PayPal Commerce** - PayPal checkout support
+- **Dynamic Pricing** - Tier pricing, bulk discounts, customer-specific pricing
+- **Tax Automation** - Integration with tax services (Avalara, TaxJar)
+- **Multi-Currency** - International currency support
+- **Split Payments** - Multiple payment methods per order
+
+### User & Marketing
+- **Loyalty Program** - Points, rewards, tier levels
+- **Email Marketing** - Automated campaigns, newsletters
+- **Social Login** - Facebook, Twitter, Apple ID
+- **Referral System** - Customer referral tracking and rewards
+- **Abandoned Cart Recovery** - Email reminders for incomplete purchases
+- **Customer Segmentation** - Group customers for targeted marketing
+
+### Admin & Analytics
+- **Advanced Reporting** - Custom reports, scheduled exports
+- **CMS Integration** - Blog, landing pages, content management
+- **Inventory Forecasting** - AI-powered stock predictions
+- **Multi-Store Support** - Manage multiple storefronts
+- **Bulk Operations** - Mass product updates, bulk imports/exports
+- **Audit Logging** - Complete action history and compliance tracking
+
+### Security & Performance
+- **Two-Factor Authentication** - Enhanced account security
+- **Rate Limiting** - API and request throttling
+- **CDN Integration** - CloudFlare, AWS CloudFront
+- **Redis Caching** - Server-side caching layer
+- **PWA Support** - Progressive Web App capabilities
+- **Image Optimization** - Automatic WebP conversion, lazy loading
+
+### AI & Automation
+- **AI Chatbot** - Customer service automation
+- **Smart Search** - Natural language product search
+- **ML Recommendations** - Machine learning-based suggestions
+- **Fraud Detection** - AI-powered fraud prevention
+- **Inventory Optimization** - Automated reorder points
+- **Price Optimization** - Dynamic pricing based on demand
+
+### Integration & API
+- **REST API** - Full API for third-party integrations
+- **Webhooks** - Event-driven integrations
+- **ERP Integration** - Connect with enterprise systems
+- **Marketplace Integration** - Amazon, eBay, Etsy sync
+- **Shipping APIs** - FedEx, UPS, USPS integration
+- **Analytics Integration** - Google Analytics 4, Facebook Pixel
+
+**Current Status:** v1.0.0 includes core e-commerce functionality. Future enhancements will be added based on user feedback and business needs.
 
 ---
 
@@ -766,3 +1028,4 @@ SOFTWARE.
 ⭐ Star this repo if you find it helpful!
 
 </div>
+# React-Shop-FB-VERCEL

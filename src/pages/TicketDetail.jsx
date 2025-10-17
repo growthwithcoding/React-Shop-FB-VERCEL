@@ -6,7 +6,8 @@ import { useNavbarHeight } from "../hooks/useNavbarHeight";
 import { doc, getDoc, updateDoc, arrayUnion, serverTimestamp, addDoc, collection, query, where, orderBy, getDocs } from "firebase/firestore";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { db, storage, firebaseInitialized } from "../lib/firebase";
-import { Clock, User, AlertCircle, ArrowLeft, Send, Paperclip, X, Download, CheckCircle, MessageSquare, Shield, Package, Info } from "lucide-react";
+import { Clock, User, AlertCircle, ArrowLeft, Send, Paperclip, X, Download, CheckCircle, MessageSquare, Shield, Package, Info, StickyNote, Users } from "lucide-react";
+import ActionModal from "../components/ActionModal";
 
 export default function TicketDetail() {
   const { ticketId } = useParams();
@@ -23,6 +24,27 @@ export default function TicketDetail() {
   const [replyMessage, setReplyMessage] = useState("");
   const [replyFiles, setReplyFiles] = useState([]);
   const [submitting, setSubmitting] = useState(false);
+  
+  // Modal state
+  const [modalState, setModalState] = useState({
+    isOpen: false,
+    type: "confirm",
+    variant: "default",
+    title: "",
+    message: "",
+    confirmText: "Confirm",
+    showInput: false,
+    inputValue: "",
+    onConfirm: null,
+  });
+  
+  const openModal = (config) => {
+    setModalState({ ...modalState, isOpen: true, ...config });
+  };
+  
+  const closeModal = () => {
+    setModalState({ ...modalState, isOpen: false, inputValue: "" });
+  };
   
   const isAdmin = user?.role === "admin";
   const isAgent = user?.role === "agent";
@@ -632,7 +654,7 @@ export default function TicketDetail() {
                     gap: 8
                   }}>
                     <AlertCircle style={{ width: 16, height: 16, flexShrink: 0, marginTop: 2 }} />
-                    <span>{error}</span>
+                    <span style={{ wordBreak: "break-word", overflowWrap: "break-word" }}>{error}</span>
                   </div>
                 )}
                 
@@ -812,6 +834,373 @@ export default function TicketDetail() {
               </div>
             )}
             
+            {/* Quick Actions */}
+            {isStaff && (
+              <div style={{ 
+                background: "#fff", 
+                border: "1px solid #D5D9D9", 
+                borderRadius: 8,
+                padding: 20,
+                marginBottom: 16
+              }}>
+                <h3 style={{ fontSize: 16, fontWeight: 600, color: "#0F1111", marginTop: 0, marginBottom: 16 }}>
+                  Quick Actions
+                </h3>
+                
+                <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                  {ticket.category === "order" && (
+                    <>
+                      <button
+                        onClick={() => {
+                          openModal({
+                            type: "confirm",
+                            variant: "danger",
+                            title: "Cancel Order",
+                            message: "Are you sure you want to cancel this order? This action cannot be undone.",
+                            confirmText: "Cancel Order",
+                            onConfirm: () => {
+                              closeModal();
+                              openModal({
+                                type: "alert",
+                                variant: "success",
+                                title: "Order Cancelled",
+                                message: "Order cancellation initiated. (Demo mode - no actual changes made)",
+                                confirmText: "OK"
+                              });
+                            }
+                          });
+                        }}
+                        style={{
+                          width: "100%",
+                          padding: "10px 16px",
+                          fontSize: 13,
+                          fontWeight: 600,
+                          background: "#fff",
+                          border: "1px solid #D5D9D9",
+                          borderRadius: 8,
+                          color: "#c7511f",
+                          cursor: "pointer",
+                          textAlign: "left",
+                          transition: "all 0.2s ease"
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.background = "#FCE9E6";
+                          e.currentTarget.style.borderColor = "#c7511f";
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.background = "#fff";
+                          e.currentTarget.style.borderColor = "#D5D9D9";
+                        }}
+                      >
+                        🚫 Cancel Order
+                      </button>
+                      
+                      <button
+                        onClick={() => {
+                          openModal({
+                            type: "confirm",
+                            variant: "warning",
+                            title: "Process Refund",
+                            message: "Process a refund for this order?",
+                            confirmText: "Process Refund",
+                            onConfirm: () => {
+                              closeModal();
+                              openModal({
+                                type: "alert",
+                                variant: "success",
+                                title: "Refund Processed",
+                                message: "Refund processing initiated. (Demo mode - no actual changes made)",
+                                confirmText: "OK"
+                              });
+                            }
+                          });
+                        }}
+                        style={{
+                          width: "100%",
+                          padding: "10px 16px",
+                          fontSize: 13,
+                          fontWeight: 600,
+                          background: "#fff",
+                          border: "1px solid #D5D9D9",
+                          borderRadius: 8,
+                          color: "#0F1111",
+                          cursor: "pointer",
+                          textAlign: "left",
+                          transition: "all 0.2s ease"
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.background = "#F7F8F8";
+                          e.currentTarget.style.borderColor = "#888C8C";
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.background = "#fff";
+                          e.currentTarget.style.borderColor = "#D5D9D9";
+                        }}
+                      >
+                        💰 Process Refund
+                      </button>
+                      
+                      <button
+                        onClick={() => {
+                          openModal({
+                            type: "alert",
+                            variant: "success",
+                            title: "Replace Item",
+                            message: "Replacement order initiated. (Demo mode - no actual changes made)",
+                            confirmText: "OK"
+                          });
+                        }}
+                        style={{
+                          width: "100%",
+                          padding: "10px 16px",
+                          fontSize: 13,
+                          fontWeight: 600,
+                          background: "#fff",
+                          border: "1px solid #D5D9D9",
+                          borderRadius: 8,
+                          color: "#0F1111",
+                          cursor: "pointer",
+                          textAlign: "left",
+                          transition: "all 0.2s ease"
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.background = "#F7F8F8";
+                          e.currentTarget.style.borderColor = "#888C8C";
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.background = "#fff";
+                          e.currentTarget.style.borderColor = "#D5D9D9";
+                        }}
+                      >
+                        🔄 Replace Item
+                      </button>
+                      
+                      <button
+                        onClick={() => {
+                          openModal({
+                            type: "prompt",
+                            variant: "default",
+                            title: "Issue Store Credit",
+                            message: "Enter the store credit amount to issue:",
+                            confirmText: "Issue Credit",
+                            showInput: true,
+                            inputPlaceholder: "Enter amount (e.g., 50.00)",
+                            onConfirm: () => {
+                              const amount = modalState.inputValue;
+                              closeModal();
+                              openModal({
+                                type: "alert",
+                                variant: "success",
+                                title: "Store Credit Issued",
+                                message: `Store credit of $${amount} issued. (Demo mode - no actual changes made)`,
+                                confirmText: "OK"
+                              });
+                            }
+                          });
+                        }}
+                        style={{
+                          width: "100%",
+                          padding: "10px 16px",
+                          fontSize: 13,
+                          fontWeight: 600,
+                          background: "#fff",
+                          border: "1px solid #D5D9D9",
+                          borderRadius: 8,
+                          color: "#0F1111",
+                          cursor: "pointer",
+                          textAlign: "left",
+                          transition: "all 0.2s ease"
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.background = "#F7F8F8";
+                          e.currentTarget.style.borderColor = "#888C8C";
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.background = "#fff";
+                          e.currentTarget.style.borderColor = "#D5D9D9";
+                        }}
+                      >
+                        🎁 Issue Store Credit
+                      </button>
+                    </>
+                  )}
+                  
+                  <button
+                    onClick={() => {
+                      if (ticket.priority === "urgent") {
+                        openModal({
+                          type: "alert",
+                          variant: "info",
+                          title: "Already Urgent",
+                          message: "This ticket is already at the highest priority level.",
+                          confirmText: "OK"
+                        });
+                      } else {
+                        openModal({
+                          type: "confirm",
+                          variant: "warning",
+                          title: "Escalate Ticket",
+                          message: "Escalate this ticket to urgent priority? The support team will be immediately notified.",
+                          confirmText: "Escalate",
+                          onConfirm: () => {
+                            handleStatusChange(ticket.status);
+                            closeModal();
+                            openModal({
+                              type: "alert",
+                              variant: "success",
+                              title: "Ticket Escalated",
+                              message: "Ticket escalated to urgent priority. (Demo mode - priority not actually changed)",
+                              confirmText: "OK"
+                            });
+                          }
+                        });
+                      }
+                    }}
+                    style={{
+                      width: "100%",
+                      padding: "10px 16px",
+                      fontSize: 13,
+                      fontWeight: 600,
+                      background: "#fff",
+                      border: "1px solid #D5D9D9",
+                      borderRadius: 8,
+                      color: "#F08804",
+                      cursor: "pointer",
+                      textAlign: "left",
+                      transition: "all 0.2s ease"
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.background = "#FEF5E7";
+                      e.currentTarget.style.borderColor = "#F08804";
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.background = "#fff";
+                      e.currentTarget.style.borderColor = "#D5D9D9";
+                    }}
+                  >
+                    ⚠️ Escalate Ticket
+                  </button>
+                  
+                  {ticket.status !== "closed" && (
+                    <button
+                      onClick={() => {
+                        openModal({
+                          type: "confirm",
+                          variant: "success",
+                          title: "Close Ticket",
+                          message: "Close this ticket? The customer will be notified that their issue has been resolved.",
+                          confirmText: "Close Ticket",
+                          onConfirm: () => {
+                            handleStatusChange("closed");
+                            closeModal();
+                          }
+                        });
+                      }}
+                      style={{
+                        width: "100%",
+                        padding: "10px 16px",
+                        fontSize: 13,
+                        fontWeight: 600,
+                        background: "#fff",
+                        border: "1px solid #D5D9D9",
+                        borderRadius: 8,
+                        color: "#067D62",
+                        cursor: "pointer",
+                        textAlign: "left",
+                        transition: "all 0.2s ease"
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.background = "#E8F5F2";
+                        e.currentTarget.style.borderColor = "#067D62";
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.background = "#fff";
+                        e.currentTarget.style.borderColor = "#D5D9D9";
+                      }}
+                    >
+                      ✅ Close Ticket
+                    </button>
+                  )}
+                  
+                  {/* Divider */}
+                  <div style={{ height: 1, background: "#D5D9D9", margin: "8px 0" }} />
+                  
+                  {/* Add Account Note */}
+                  <button
+                    onClick={() => {
+                      const note = prompt("Add internal note about this customer's account:");
+                      if (note && note.trim()) {
+                        alert(`Note saved: "${note}"\n(Demo mode - note not actually saved)`);
+                      }
+                    }}
+                    style={{
+                      width: "100%",
+                      padding: "10px 16px",
+                      fontSize: 13,
+                      fontWeight: 600,
+                      background: "#fff",
+                      border: "1px solid #D5D9D9",
+                      borderRadius: 8,
+                      color: "#0F1111",
+                      cursor: "pointer",
+                      textAlign: "left",
+                      transition: "all 0.2s ease",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 8
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.background = "#F7F8F8";
+                      e.currentTarget.style.borderColor = "#888C8C";
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.background = "#fff";
+                      e.currentTarget.style.borderColor = "#D5D9D9";
+                    }}
+                  >
+                    <StickyNote style={{ width: 14, height: 14 }} />
+                    Add Account Note
+                  </button>
+                  
+                  {/* View Customer Profile */}
+                  <button
+                    onClick={() => {
+                      const route = isAdmin ? '/admin/users' : '/agent/users';
+                      navigate(route);
+                    }}
+                    style={{
+                      width: "100%",
+                      padding: "10px 16px",
+                      fontSize: 13,
+                      fontWeight: 600,
+                      background: "#fff",
+                      border: "1px solid #D5D9D9",
+                      borderRadius: 8,
+                      color: "#0F1111",
+                      cursor: "pointer",
+                      textAlign: "left",
+                      transition: "all 0.2s ease",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 8
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.background = "#F7F8F8";
+                      e.currentTarget.style.borderColor = "#888C8C";
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.background = "#fff";
+                      e.currentTarget.style.borderColor = "#D5D9D9";
+                    }}
+                  >
+                    <Users style={{ width: 14, height: 14 }} />
+                    View Customer Profile
+                  </button>
+                  
+                </div>
+              </div>
+            )}
+            
             {/* Ticket Details */}
             <div style={{ 
               background: "#fff", 
@@ -892,6 +1281,22 @@ export default function TicketDetail() {
         </div>
         </div>
       </div>
+      
+      {/* Action Modal */}
+      <ActionModal
+        isOpen={modalState.isOpen}
+        onClose={closeModal}
+        onConfirm={modalState.onConfirm}
+        title={modalState.title}
+        message={modalState.message}
+        type={modalState.type}
+        variant={modalState.variant}
+        confirmText={modalState.confirmText}
+        showInput={modalState.showInput}
+        inputValue={modalState.inputValue}
+        onInputChange={(value) => setModalState({ ...modalState, inputValue: value })}
+        inputPlaceholder={modalState.inputPlaceholder}
+      />
     </>
   );
 }

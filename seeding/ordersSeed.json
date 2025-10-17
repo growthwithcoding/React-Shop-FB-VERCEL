@@ -5,8 +5,8 @@
     "placedAt": "2025-10-04T15:22:00Z",
     "status": "paid",
     "items": [
-      { "sku": "KB-KCR-K2V3", "qty": 1 },
-      { "sku": "AC-LOGI-MX3S", "qty": 1 }
+      { "sku": "GR-WIL-A2000-11.5", "qty": 1 },
+      { "sku": "AC-FRANK-BAT-GLOVES", "qty": 1 }
     ],
     "shippingUSD": 12.95,
     "taxRate": 0.07,
@@ -19,9 +19,9 @@
     "placedAt": "2025-10-02T10:05:00Z",
     "status": "shipped",
     "items": [
-      { "sku": "SW-JB-IDEA-ULT", "qty": 1 },
-      { "sku": "SW-DOCKER-DESKTOP-PRO", "qty": 1 },
-      { "sku": "SW-POSTMAN-TEAM", "qty": 3 }
+      { "sku": "AP-NIKE-VAPOR-ELITE-JER", "qty": 1 },
+      { "sku": "AP-UA-LEADOFF-PANTS", "qty": 1 },
+      { "sku": "AP-NE-59FIFTY-CAP", "qty": 3 }
     ],
     "shippingUSD": 0,
     "taxRate": 0.065,
@@ -34,8 +34,8 @@
     "placedAt": "2025-09-29T18:41:00Z",
     "status": "paid",
     "items": [
-      { "sku": "DEV-RPI-5-4GB", "qty": 2 },
-      { "sku": "DEV-ADA-4884", "qty": 2 }
+      { "sku": "SH-NIKE-HUARACHE-MID", "qty": 2 },
+      { "sku": "SH-NB-4040V7-METAL", "qty": 2 }
     ],
     "shippingUSD": 9.99,
     "taxRate": 0.0825,
@@ -48,8 +48,8 @@
     "placedAt": "2025-10-01T08:12:00Z",
     "status": "processing",
     "items": [
-      { "sku": "KB-KCR-Q1PRO", "qty": 1 },
-      { "sku": "AC-ELG-STREAMDECK-MK2", "qty": 1 }
+      { "sku": "GR-EAST-GHOST-BBCOR", "qty": 1 },
+      { "sku": "AC-EVO-LEG-GUARD", "qty": 1 }
     ],
     "shippingUSD": 14.5,
     "taxRate": 0.07,
@@ -62,9 +62,9 @@
     "placedAt": "2025-09-25T13:30:00Z",
     "status": "paid",
     "items": [
-      { "sku": "BK-DDIA-1E", "qty": 1 },
-      { "sku": "BK-CLRS-4E", "qty": 1 },
-      { "sku": "BK-PRAG-20", "qty": 1 }
+      { "sku": "GR-DIA-IX3-DOZ", "qty": 1 },
+      { "sku": "GR-RAW-OL-REC-DOZ", "qty": 1 },
+      { "sku": "GR-LS-MAPLE-C271", "qty": 1 }
     ],
     "shippingUSD": 6.99,
     "taxRate": 0.06,
@@ -77,8 +77,8 @@
     "placedAt": "2025-10-03T21:02:00Z",
     "status": "paid",
     "items": [
-      { "sku": "DEV-NV-JETSON-NANO", "qty": 1 },
-      { "sku": "DEV-ADA-3382", "qty": 1 }
+      { "sku": "SH-UA-YARD-LOW-MT", "qty": 1 },
+      { "sku": "SH-ADI-ICON7-BOUNCE", "qty": 1 }
     ],
     "shippingUSD": 15,
     "taxRate": 0.075,
@@ -91,8 +91,8 @@
     "placedAt": "2025-09-27T12:15:00Z",
     "status": "shipped",
     "items": [
-      { "sku": "KB-LOGI-MXMECH-FULL", "qty": 1 },
-      { "sku": "AC-LOGI-MX3S", "qty": 1 }
+      { "sku": "GR-MIZ-CLASSIC-12", "qty": 1 },
+      { "sku": "AC-FRANK-BAT-GLOVES", "qty": 1 }
     ],
     "shippingUSD": 0,
     "taxRate": 0.095,
@@ -105,7 +105,7 @@
     "placedAt": "2025-10-04T02:44:00Z",
     "status": "paid",
     "items": [
-      { "sku": "SW-TABLEPLUS-PL", "qty": 5 }
+      { "sku": "AP-MAJ-COOLBASE-REP", "qty": 5 }
     ],
     "shippingUSD": 0,
     "taxRate": 0.08,
@@ -118,7 +118,7 @@
     "placedAt": "2025-09-20T09:10:00Z",
     "status": "cancelled",
     "items": [
-      { "sku": "CH-HM-AERON-B", "qty": 1 }
+      { "sku": "GR-RAW-PROPREF-1275", "qty": 1 }
     ],
     "shippingUSD": 0,
     "taxRate": 0.07,
@@ -131,9 +131,9 @@
     "placedAt": "2025-10-03T14:18:00Z",
     "status": "paid",
     "items": [
-      { "sku": "KB-KCR-K8PRO", "qty": 1 },
-      { "sku": "BK-YDKJSY-2E", "qty": 1 },
-      { "sku": "SW-POSTMAN-TEAM", "qty": 2 }
+      { "sku": "GR-DEMA-CF-ZEN-BBCOR", "qty": 1 },
+      { "sku": "GR-AKA-PROSOFT-1125", "qty": 1 },
+      { "sku": "AP-NE-59FIFTY-CAP", "qty": 2 }
     ],
     "shippingUSD": 8.5,
     "taxRate": 0.07,
@@ -146,8 +146,8 @@
     "placedAt": "2025-10-05T09:15:00Z",
     "status": "processing",
     "items": [
-      { "sku": "KB-KCR-K2V3", "qty": 1 },
-      { "sku": "AC-LOGI-MX3S", "qty": 2 }
+      { "sku": "GR-WIL-A2000-11.5", "qty": 1 },
+      { "sku": "AC-FRANK-BAT-GLOVES", "qty": 2 }
     ],
     "shippingUSD": 11.99,
     "taxRate": 0.07,
@@ -160,8 +160,8 @@
     "placedAt": "2025-10-05T14:30:00Z",
     "status": "paid",
     "items": [
-      { "sku": "BK-DDIA-1E", "qty": 2 },
-      { "sku": "BK-CLRS-4E", "qty": 1 }
+      { "sku": "GR-DIA-IX3-DOZ", "qty": 2 },
+      { "sku": "GR-RAW-OL-REC-DOZ", "qty": 1 }
     ],
     "shippingUSD": 7.99,
     "taxRate": 0.065,
@@ -174,8 +174,8 @@
     "placedAt": "2025-10-04T11:20:00Z",
     "status": "shipped",
     "items": [
-      { "sku": "DEV-RPI-5-4GB", "qty": 1 },
-      { "sku": "DEV-ADA-4884", "qty": 1 }
+      { "sku": "SH-NIKE-HUARACHE-MID", "qty": 1 },
+      { "sku": "SH-NB-4040V7-METAL", "qty": 1 }
     ],
     "shippingUSD": 10.50,
     "taxRate": 0.08,
@@ -188,8 +188,8 @@
     "placedAt": "2025-10-03T16:45:00Z",
     "status": "paid",
     "items": [
-      { "sku": "SW-JB-IDEA-ULT", "qty": 1 },
-      { "sku": "SW-DOCKER-DESKTOP-PRO", "qty": 1 }
+      { "sku": "AP-NIKE-VAPOR-ELITE-JER", "qty": 1 },
+      { "sku": "AP-UA-LEADOFF-PANTS", "qty": 1 }
     ],
     "shippingUSD": 0,
     "taxRate": 0.075,
@@ -202,7 +202,7 @@
     "placedAt": "2025-10-02T08:30:00Z",
     "status": "paid",
     "items": [
-      { "sku": "KB-LOGI-MXMECH-FULL", "qty": 1 }
+      { "sku": "GR-MIZ-CLASSIC-12", "qty": 1 }
     ],
     "shippingUSD": 13.25,
     "taxRate": 0.09,
@@ -215,8 +215,8 @@
     "placedAt": "2025-10-01T19:10:00Z",
     "status": "shipped",
     "items": [
-      { "sku": "CH-HM-AERON-B", "qty": 1 },
-      { "sku": "AC-ELG-STREAMDECK-MK2", "qty": 1 }
+      { "sku": "GR-RAW-PROPREF-1275", "qty": 1 },
+      { "sku": "AC-EVO-LEG-GUARD", "qty": 1 }
     ],
     "shippingUSD": 0,
     "taxRate": 0.0825,
@@ -229,8 +229,8 @@
     "placedAt": "2025-09-30T12:50:00Z",
     "status": "paid",
     "items": [
-      { "sku": "BK-PRAG-20", "qty": 2 },
-      { "sku": "BK-YDKJSY-2E", "qty": 1 }
+      { "sku": "GR-LS-MAPLE-C271", "qty": 2 },
+      { "sku": "GR-AKA-PROSOFT-1125", "qty": 1 }
     ],
     "shippingUSD": 6.50,
     "taxRate": 0.07,
@@ -243,8 +243,8 @@
     "placedAt": "2025-09-29T07:25:00Z",
     "status": "paid",
     "items": [
-      { "sku": "SW-POSTMAN-TEAM", "qty": 5 },
-      { "sku": "SW-TABLEPLUS-PL", "qty": 2 }
+      { "sku": "AP-NE-59FIFTY-CAP", "qty": 5 },
+      { "sku": "AP-MAJ-COOLBASE-REP", "qty": 2 }
     ],
     "shippingUSD": 0,
     "taxRate": 0.065,
@@ -257,7 +257,7 @@
     "placedAt": "2025-10-04T20:15:00Z",
     "status": "processing",
     "items": [
-      { "sku": "DEV-NV-JETSON-NANO", "qty": 2 }
+      { "sku": "SH-UA-YARD-LOW-MT", "qty": 2 }
     ],
     "shippingUSD": 18.00,
     "taxRate": 0.08,
@@ -270,8 +270,8 @@
     "placedAt": "2025-10-05T06:40:00Z",
     "status": "paid",
     "items": [
-      { "sku": "KB-KCR-Q1PRO", "qty": 1 },
-      { "sku": "AC-LOGI-MX3S", "qty": 1 }
+      { "sku": "GR-EAST-GHOST-BBCOR", "qty": 1 },
+      { "sku": "AC-FRANK-BAT-GLOVES", "qty": 1 }
     ],
     "shippingUSD": 12.75,
     "taxRate": 0.07,
@@ -284,9 +284,9 @@
     "placedAt": "2025-10-02T15:55:00Z",
     "status": "shipped",
     "items": [
-      { "sku": "BK-DDIA-1E", "qty": 1 },
-      { "sku": "BK-CLRS-4E", "qty": 1 },
-      { "sku": "BK-PRAG-20", "qty": 1 }
+      { "sku": "GR-DIA-IX3-DOZ", "qty": 1 },
+      { "sku": "GR-RAW-OL-REC-DOZ", "qty": 1 },
+      { "sku": "GR-LS-MAPLE-C271", "qty": 1 }
     ],
     "shippingUSD": 8.99,
     "taxRate": 0.06,
@@ -299,8 +299,8 @@
     "placedAt": "2025-10-01T11:30:00Z",
     "status": "paid",
     "items": [
-      { "sku": "DEV-ADA-3382", "qty": 3 },
-      { "sku": "DEV-RPI-5-4GB", "qty": 1 }
+      { "sku": "SH-ADI-ICON7-BOUNCE", "qty": 3 },
+      { "sku": "SH-NIKE-HUARACHE-MID", "qty": 1 }
     ],
     "shippingUSD": 14.25,
     "taxRate": 0.075,
@@ -313,8 +313,8 @@
     "placedAt": "2025-09-30T18:20:00Z",
     "status": "paid",
     "items": [
-      { "sku": "KB-KCR-K8PRO", "qty": 1 },
-      { "sku": "KB-KCR-K2V3", "qty": 1 }
+      { "sku": "GR-DEMA-CF-ZEN-BBCOR", "qty": 1 },
+      { "sku": "GR-WIL-A2000-11.5", "qty": 1 }
     ],
     "shippingUSD": 15.50,
     "taxRate": 0.085,
@@ -327,7 +327,7 @@
     "placedAt": "2025-09-29T14:05:00Z",
     "status": "shipped",
     "items": [
-      { "sku": "SW-JB-IDEA-ULT", "qty": 2 }
+      { "sku": "AP-NIKE-VAPOR-ELITE-JER", "qty": 2 }
     ],
     "shippingUSD": 0,
     "taxRate": 0.07,
@@ -340,7 +340,7 @@
     "placedAt": "2025-10-03T09:35:00Z",
     "status": "paid",
     "items": [
-      { "sku": "AC-ELG-STREAMDECK-MK2", "qty": 2 }
+      { "sku": "AC-EVO-LEG-GUARD", "qty": 2 }
     ],
     "shippingUSD": 12.00,
     "taxRate": 0.08,
@@ -353,7 +353,7 @@
     "placedAt": "2025-10-05T17:50:00Z",
     "status": "processing",
     "items": [
-      { "sku": "CH-HM-AERON-B", "qty": 1 }
+      { "sku": "GR-RAW-PROPREF-1275", "qty": 1 }
     ],
     "shippingUSD": 0,
     "taxRate": 0.09,
@@ -366,7 +366,7 @@
     "placedAt": "2025-10-04T13:40:00Z",
     "status": "paid",
     "items": [
-      { "sku": "BK-YDKJSY-2E", "qty": 3 }
+      { "sku": "GR-AKA-PROSOFT-1125", "qty": 3 }
     ],
     "shippingUSD": 9.25,
     "taxRate": 0.07,
@@ -379,8 +379,8 @@
     "placedAt": "2025-10-02T21:25:00Z",
     "status": "shipped",
     "items": [
-      { "sku": "KB-LOGI-MXMECH-FULL", "qty": 1 },
-      { "sku": "AC-LOGI-MX3S", "qty": 2 }
+      { "sku": "GR-MIZ-CLASSIC-12", "qty": 1 },
+      { "sku": "AC-FRANK-BAT-GLOVES", "qty": 2 }
     ],
     "shippingUSD": 13.75,
     "taxRate": 0.075,
@@ -393,8 +393,8 @@
     "placedAt": "2025-10-01T05:10:00Z",
     "status": "paid",
     "items": [
-      { "sku": "SW-DOCKER-DESKTOP-PRO", "qty": 3 },
-      { "sku": "SW-POSTMAN-TEAM", "qty": 2 }
+      { "sku": "AP-UA-LEADOFF-PANTS", "qty": 3 },
+      { "sku": "AP-NE-59FIFTY-CAP", "qty": 2 }
     ],
     "shippingUSD": 0,
     "taxRate": 0.06,
@@ -407,9 +407,9 @@
     "placedAt": "2025-09-30T22:45:00Z",
     "status": "paid",
     "items": [
-      { "sku": "DEV-NV-JETSON-NANO", "qty": 1 },
-      { "sku": "DEV-ADA-4884", "qty": 2 },
-      { "sku": "DEV-ADA-3382", "qty": 1 }
+      { "sku": "SH-UA-YARD-LOW-MT", "qty": 1 },
+      { "sku": "SH-NB-4040V7-METAL", "qty": 2 },
+      { "sku": "SH-ADI-ICON7-BOUNCE", "qty": 1 }
     ],
     "shippingUSD": 16.99,
     "taxRate": 0.08,

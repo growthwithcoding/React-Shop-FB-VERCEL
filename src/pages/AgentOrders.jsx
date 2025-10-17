@@ -1,4 +1,4 @@
-// AgentOrders.jsx - Agent view of all orders with table styling like AdminOrders
+// AgentOrders.jsx - Agent view of all customer orders with admin-style layout
 import { useState, useEffect, useMemo } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { useAuth } from "../auth/useAuth";
@@ -8,13 +8,10 @@ import { useDashboard } from "../hooks/useDashboard";
 import { Pagination } from "../components/Pagination";
 import { FilteredResultsFeedback } from "../components/dashboard/FilteredResultsFeedback";
 import { getDateFromTimestamp, toISODate } from "../lib/utils";
-import BreadcrumbNav from '../components/BreadcrumbNav';
-import { useTotalHeaderHeight } from '../hooks/useTotalHeaderHeight';;
 
 const USD = new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" });
 
 export default function AgentOrders() {
-  const totalHeaderHeight = useTotalHeaderHeight();
   const { user } = useAuth();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -24,6 +21,8 @@ export default function AgentOrders() {
   const [loading, setLoading] = useState(true);
   const [q, setQ] = useState("");
   const [status, setStatus] = useState(searchParams.get("status") || "all");
+  const [from, setFrom] = useState("");
+  const [to, setTo] = useState("");
   
   // Pagination state
   const [page, setPage] = useState(1);
@@ -73,9 +72,17 @@ export default function AgentOrders() {
       if (status === "fulfilled" && o.fulfillmentStatus !== "fulfilled") return false;
       if (status === "unfulfilled" && o.fulfillmentStatus !== "unfulfilled") return false;
       
-      // Date range filter from global dashboard
-      const orderDate = toISODate(getDateFromTimestamp(o.createdAt));
-      if (orderDate < dateRange.from || orderDate > dateRange.to) return false;
+      // Local date filters (take precedence if set)
+      const orderDate = o.createdAt?.toDate?.()?.toISOString().split('T')[0] || 
+                        new Date(o.createdAt?.seconds * 1000).toISOString().split('T')[0];
+      if (from && orderDate < from) return false;
+      if (to && orderDate > to) return false;
+      
+      // If no local date filters, use global date range
+      if (!from && !to) {
+        const globalOrderDate = toISODate(getDateFromTimestamp(o.createdAt));
+        if (globalOrderDate < dateRange.from || globalOrderDate > dateRange.to) return false;
+      }
       
       // Global fulfillment status filter (if no local status is set)
       if (status === "all" && filters.fulfillmentStatus !== "all") {
@@ -113,7 +120,25 @@ export default function AgentOrders() {
       
       return true;
     });
-  }, [orders, dateRange, filters, searchQuery, q, status]);
+  }, [orders, dateRange, filters, searchQuery, q, status, from, to]);
+  
+  // Calculate attention metrics for inline stats
+  const attentionMetrics = useMemo(() => {
+    const unpaid = filteredOrders.filter(o => 
+      o.paymentStatus === "unpaid" || o.paymentStatus === "pending" || o.status === "unpaid"
+    ).length;
+    
+    const unfulfilled = filteredOrders.filter(o => {
+      const paymentStatus = o.paymentStatus || o.status || "pending";
+      const fulfillmentStatus = o.fulfillmentStatus || o.fulfillment || "unfulfilled";
+      return (paymentStatus === "paid" || paymentStatus === "completed") && 
+        fulfillmentStatus === "unfulfilled";
+    }).length;
+    
+    const flagged = filteredOrders.filter(o => o.flagged === true).length;
+    
+    return { unpaid, unfulfilled, flagged };
+  }, [filteredOrders]);
   
   // Paginated orders
   const paginatedOrders = useMemo(() => {
@@ -143,6 +168,26 @@ export default function AgentOrders() {
            "Unknown";
   };
   
+  // Agent color palette - Light Blue Theme
+  const agentColors = {
+    primary: "#3b82f6",
+    lightBlue: "#60a5fa",
+    darkBlue: "#1e3a8a",
+    skyBlue: "#0ea5e9",
+    textLight: "#FFFFFF",
+    textDark: "#0F1111",
+    borderLight: "#DDD",
+    success: "#067D62",
+    warning: "#F9C74F",
+    danger: "#E53E3E",
+  };
+  
+  // Enhanced box shadow styles
+  const cardShadow = {
+    boxShadow: "0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24)",
+    transition: "all 0.3s cubic-bezier(.25,.8,.25,1)",
+  };
+  
   if (!user || user.role !== "agent") {
     return (
       <div className="container" style={{ padding: 24 }}>Access denied.</div>
@@ -150,132 +195,190 @@ export default function AgentOrders() {
   }
   
   return (
-    <>
-      <BreadcrumbNav
-        currentPage="All Orders"
-        backButton={{ label: "Back to Dashboard", path: "/agent" }}
-      />
-      
-      <div className="container-xl" style={{ paddingTop: totalHeaderHeight + 24, paddingBottom: 24 }}>
-        <div className="hero-headline" style={{ marginBottom: 8 }}>
+    <div className="min-h-screen" style={{ background: "linear-gradient(135deg, #e0f2fe 0%, #bfdbfe 100%)" }}>
+      <div className="container-xl" style={{ paddingTop: 24, paddingBottom: 24 }}>
+        {/* Hero Headline */}
+        <div className="hero-headline" style={{ marginBottom: 16 }}>
           <div>
             <div className="kicker">Agent</div>
             <h1 style={{ margin: 0 }}>All Orders</h1>
+            <div className="meta" style={{ marginTop: 8 }}>
+              View and manage all customer orders
+            </div>
           </div>
-        </div>
-        
-        {/* Filtered Results Feedback */}
-        <FilteredResultsFeedback 
-          resultCount={filteredOrders.length} 
-          totalCount={orders.length} 
-          entityName="orders" 
-        />
-        
-        {/* Filters */}
-        <div
-          className="grid"
-          style={{ gridTemplateColumns: "2fr 1fr", gap: 8, marginBottom: 10 }}
-        >
-          <input
-            className="input"
-            placeholder="Search ID, customer…"
-            value={q}
-            onChange={(e) => setQ(e.target.value)}
-          />
-          <select
-            className="select"
-            value={status}
-            onChange={(e) => setStatus(e.target.value)}
+          <Link 
+            to="/agent" 
+            className="btn btn-secondary"
+            style={{
+              fontSize: "13px",
+              padding: "8px 14px",
+              whiteSpace: "nowrap"
+            }}
           >
-            <option value="all">All statuses</option>
-            <option value="paid">Paid</option>
-            <option value="unpaid">Unpaid</option>
-            <option value="fulfilled">Fulfilled</option>
-            <option value="unfulfilled">Unfulfilled</option>
-          </select>
+            ← Back to Dashboard
+          </Link>
         </div>
-        
-        <div className="card" style={{ padding: 0 }}>
-          {loading ? (
-            <div style={{ padding: 20, textAlign: 'center' }}>Loading orders...</div>
-          ) : (
-            <>
-              <div style={{ overflowX: "auto", borderRadius: 12 }}>
-                <table style={{ width: "100%", borderCollapse: "separate", borderSpacing: 0 }}>
-                  <thead style={{ background: "#f9fafb" }}>
-                    <tr>
-                      <Th>ID</Th>
-                      <Th>Date</Th>
-                      <Th>Customer</Th>
-                      <Th>Status</Th>
-                      <Th align="right">Total</Th>
-                      <Th align="center">Actions</Th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {paginatedOrders.map((o) => (
-                      <tr key={o.id} style={{ borderBottom: "1px solid var(--border)" }}>
-                        <Td>{o.id.slice(0, 8)}...</Td>
-                        <Td>{formatDate(o.createdAt)}</Td>
-                        <Td>
-                          <div style={{ fontWeight: 700 }}>{getCustomerName(o)}</div>
-                          <div className="meta" style={{ whiteSpace: "nowrap" }}>{o.userId?.slice(0, 12)}...</div>
-                        </Td>
-                        <Td>
-                          <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
-                            <span
-                              className="pill"
-                              style={badgeTone(
-                                o.paymentStatus === "paid" || o.paymentStatus === "completed" ? "success" : 
-                                o.paymentStatus === "unpaid" || o.paymentStatus === "pending" ? "warn" : "muted"
-                              )}
-                            >
-                              {o.paymentStatus || o.status || "pending"}
-                            </span>
-                            <span
-                              className="pill"
-                              style={badgeTone(o.fulfillmentStatus === "fulfilled" ? "info" : "muted")}
-                            >
-                              {o.fulfillmentStatus || "unfulfilled"}
-                            </span>
-                          </div>
-                        </Td>
-                        <Td align="right">{USD.format(o.total || 0)}</Td>
-                        <Td align="center">
-                          <Link to={`/orders/${o.id}`} className="btn btn-secondary btn-slim">View</Link>
-                        </Td>
-                      </tr>
-                    ))}
-                    {!paginatedOrders.length && (
-                      <tr>
-                        <Td colSpan={6} align="center" style={{ padding: 20, color: "var(--muted)" }}>
-                          {loading ? "Loading..." : "No orders found"}
-                        </Td>
-                      </tr>
-                    )}
-                  </tbody>
-                </table>
+          
+          {/* Filtered Results Feedback */}
+          <FilteredResultsFeedback 
+            resultCount={filteredOrders.length} 
+            totalCount={orders.length} 
+            entityName="orders" 
+          />
+          
+          <div className="card" style={{ 
+            padding: 20,
+            background: "#fff",
+            borderRadius: "12px",
+            ...cardShadow
+          }}>
+            {/* Single Row: Title - Filters - Stats */}
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 24, marginBottom: 16 }}>
+              {/* Title */}
+              <h2 style={{ margin: 0, fontSize: 20, fontWeight: 800, color: agentColors.darkBlue, minWidth: "120px" }}>Orders List</h2>
+              
+              {/* Filters - Centered */}
+              <div
+                className="grid"
+                style={{ gridTemplateColumns: "1.5fr 1fr 1fr 1fr", gap: 6, flex: 1, maxWidth: "700px" }}
+              >
+                <input
+                  className="input"
+                  placeholder="Search ID, customer…"
+                  value={q}
+                  onChange={(e) => setQ(e.target.value)}
+                  style={{ fontSize: "13px", padding: "6px 10px" }}
+                />
+                <select
+                  className="select"
+                  value={status}
+                  onChange={(e) => setStatus(e.target.value)}
+                  style={{ fontSize: "13px", padding: "6px 10px" }}
+                >
+                  <option value="all">All statuses</option>
+                  <option value="paid">Paid</option>
+                  <option value="unpaid">Unpaid</option>
+                  <option value="fulfilled">Fulfilled</option>
+                  <option value="unfulfilled">Unfulfilled</option>
+                </select>
+                <input className="input" type="date" value={from} onChange={(e) => setFrom(e.target.value)} style={{ fontSize: "13px", padding: "6px 10px" }} />
+                <input className="input" type="date" value={to} onChange={(e) => setTo(e.target.value)} style={{ fontSize: "13px", padding: "6px 10px" }} />
               </div>
               
-              {/* Pagination */}
-              {totalPages > 1 && (
-                <Pagination
-                  currentPage={page}
-                  totalPages={totalPages}
-                  onPageChange={setPage}
-                  totalItems={filteredOrders.length}
-                  itemsPerPage={perPage}
-                  onItemsPerPageChange={(newPerPage) => {
-                    setPerPage(newPerPage);
-                    setPage(1);
-                  }}
-                />
-              )}
-            </>
-          )}
+              {/* Order Status Mini Stats */}
+              <div style={{ display: "flex", gap: "16px", alignItems: "center", minWidth: "250px" }}>
+                <div style={{ textAlign: "center" }}>
+                  <div style={{ fontSize: "10px", color: "#718096", fontWeight: 600, marginBottom: "2px" }}>UNPAID</div>
+                  <div style={{ fontSize: "16px", fontWeight: 700, color: "#F9C74F" }}>{attentionMetrics.unpaid}</div>
+                </div>
+                <div style={{ textAlign: "center" }}>
+                  <div style={{ fontSize: "10px", color: "#718096", fontWeight: 600, marginBottom: "2px" }}>UNFULFILLED</div>
+                  <div style={{ fontSize: "16px", fontWeight: 700, color: "#3b82f6" }}>{attentionMetrics.unfulfilled}</div>
+                </div>
+                <div style={{ textAlign: "center" }}>
+                  <div style={{ fontSize: "10px", color: "#718096", fontWeight: 600, marginBottom: "2px" }}>FLAGGED</div>
+                  <div style={{ fontSize: "16px", fontWeight: 700, color: "#E53E3E" }}>{attentionMetrics.flagged}</div>
+                </div>
+              </div>
+            </div>
+            
+            {loading ? (
+              <div style={{ padding: 20, paddingTop: 0, textAlign: 'center' }}>Loading orders...</div>
+            ) : (
+              <>
+                <div style={{ overflowX: "auto", borderRadius: 12 }}>
+                  <table style={{ width: "100%", borderCollapse: "separate", borderSpacing: 0 }}>
+                    <thead style={{ background: "#f9fafb" }}>
+                      <tr>
+                        <Th>ID</Th>
+                        <Th>Date</Th>
+                        <Th>Customer</Th>
+                        <Th>Status</Th>
+                        <Th align="right">Total</Th>
+                        <Th align="center">Actions</Th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {paginatedOrders.map((o, index) => (
+                        <tr key={o.id} style={{ 
+                          borderBottom: "1px solid var(--border)",
+                          background: index % 2 === 0 ? "#fff" : "#f9fafb"
+                        }}>
+                          <Td>{o.id.slice(0, 8)}...</Td>
+                          <Td>{formatDate(o.createdAt)}</Td>
+                          <Td>
+                            <div style={{ fontWeight: 700 }}>{getCustomerName(o)}</div>
+                            <div className="meta" style={{ whiteSpace: "nowrap" }}>{o.userId?.slice(0, 12)}...</div>
+                          </Td>
+                          <Td>
+                            <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+                              <span
+                                className="pill"
+                                style={badgeTone(
+                                  o.paymentStatus === "paid" || o.paymentStatus === "completed" ? "success" : 
+                                  o.paymentStatus === "unpaid" || o.paymentStatus === "pending" ? "warn" : "muted"
+                                )}
+                              >
+                                {o.paymentStatus || o.status || "pending"}
+                              </span>
+                              <span
+                                className="pill"
+                                style={badgeTone(o.fulfillmentStatus === "fulfilled" ? "info" : "muted")}
+                              >
+                                {o.fulfillmentStatus || "unfulfilled"}
+                              </span>
+                              {o.flagged && <span className="pill" style={badgeTone("danger")}>flagged</span>}
+                            </div>
+                          </Td>
+                          <Td align="right">{USD.format(o.total || 0)}</Td>
+                          <Td align="center" style={{ whiteSpace: "nowrap" }}>
+                            <Link to={`/orders/${o.id}`} style={{
+                              padding: "6px 12px",
+                              fontSize: "12px",
+                              fontWeight: 600,
+                              background: "#f3f4f6",
+                              border: "1px solid #d1d5db",
+                              borderRadius: "6px",
+                              textDecoration: "none",
+                              color: "#374151",
+                              transition: "all 0.2s ease"
+                            }}
+                            onMouseEnter={(e) => e.currentTarget.style.background = "#e5e7eb"}
+                            onMouseLeave={(e) => e.currentTarget.style.background = "#f3f4f6"}
+                            >View</Link>
+                          </Td>
+                        </tr>
+                      ))}
+                      {!paginatedOrders.length && (
+                        <tr>
+                          <Td colSpan={6} align="center" style={{ padding: 20, color: "var(--muted)" }}>
+                            {loading ? "Loading..." : "No orders found"}
+                          </Td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+                
+                {/* Pagination */}
+                {totalPages > 1 && (
+                  <Pagination
+                    currentPage={page}
+                    totalPages={totalPages}
+                    onPageChange={setPage}
+                    totalItems={filteredOrders.length}
+                    itemsPerPage={perPage}
+                    onItemsPerPageChange={(newPerPage) => {
+                      setPerPage(newPerPage);
+                      setPage(1);
+                    }}
+                  />
+                )}
+              </>
+            )}
         </div>
       </div>
-    </>
+    </div>
   );
 }
 

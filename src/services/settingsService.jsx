@@ -2,7 +2,7 @@
 import { doc, getDoc, setDoc, updateDoc, onSnapshot } from "firebase/firestore";
 import { db, firebaseInitialized } from "../lib/firebase";
 
-const SETTINGS_PATH = ["settings", "default"];
+const SETTINGS_PATH = ["system", "settings"];
 const getRef = () => {
   if (!firebaseInitialized || !db) {
     throw new Error("Firebase is not initialized");
@@ -16,6 +16,7 @@ const DEFAULTS = {
     email: "", 
     logo: "",
     supportPhone: "",
+    serverTimeZone: "America/Denver", // Default to Mountain Time
     supportHours: {
       monday: { isOpen: true, open: "09:00", close: "17:00" },
       tuesday: { isOpen: true, open: "09:00", close: "17:00" },
@@ -40,9 +41,16 @@ const DEFAULTS = {
 export async function getSettings() {
   const ref = getRef();
   const snap = await getDoc(ref);
-  if (!snap.exists()) return { ...DEFAULTS };
+  
+  if (!snap.exists()) {
+    console.log('Settings document does not exist, returning defaults');
+    return { ...DEFAULTS };
+  }
+  
   const data = snap.data() || {};
-  return {
+  console.log('Raw settings data from Firestore:', data);
+  
+  const result = {
     store:    { ...DEFAULTS.store,    ...(data.store    || {}) },
     payments: { ...DEFAULTS.payments, ...(data.payments || {}) },
     shipping: { ...DEFAULTS.shipping, ...(data.shipping || {}) },
@@ -50,6 +58,9 @@ export async function getSettings() {
     updatedAt: data.updatedAt || null,
     updatedBy: data.updatedBy || null,
   };
+  
+  console.log('Processed settings result:', result);
+  return result;
 }
 
 /**
@@ -67,6 +78,7 @@ export async function saveSettings(fullSettings, { uid = null } = {}) {
     "store.email": store.email ?? "",
     "store.logo": store.logo ?? "",
     "store.supportPhone": store.supportPhone ?? "",
+    "store.serverTimeZone": store.serverTimeZone ?? DEFAULTS.store.serverTimeZone,
     "store.supportHours": store.supportHours ?? DEFAULTS.store.supportHours,
 
     "payments.enableCards": !!payments.enableCards,
@@ -109,6 +121,7 @@ export async function updateSettingsSection(section, patch, { uid = null } = {})
     toMerge["store.email"] = patch.email ?? null;
     toMerge["store.logo"] = patch.logo ?? null;
     if ("supportPhone" in patch) toMerge["store.supportPhone"] = patch.supportPhone ?? "";
+    if ("serverTimeZone" in patch) toMerge["store.serverTimeZone"] = patch.serverTimeZone ?? DEFAULTS.store.serverTimeZone;
     if ("supportHours" in patch) toMerge["store.supportHours"] = patch.supportHours ?? DEFAULTS.store.supportHours;
   } else if (section === "payments") {
     if ("enableCards" in patch) toMerge["payments.enableCards"] = !!patch.enableCards;

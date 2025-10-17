@@ -1,15 +1,13 @@
 // src/pages/OrderDetail.jsx
 import { useEffect, useState } from 'react'
-import { useParams, useNavigate } from 'react-router-dom'
+import { useParams, useNavigate, Link } from 'react-router-dom'
 import { getOrderById } from '../services/orderService'
-import BreadcrumbNav from '../components/BreadcrumbNav';
-import { useTotalHeaderHeight } from '../hooks/useTotalHeaderHeight';
 import { LayoutDashboard } from 'lucide-react'
 
 const fmt = (v) => '$' + Number(v || 0).toFixed(2)
+const FALLBACK_IMAGE = 'https://via.placeholder.com/400x400?text=Product+Image'
 
 export default function OrderDetail() {
-  const totalHeaderHeight = useTotalHeaderHeight();
   const { id } = useParams()
   const navigate = useNavigate()
   const [order, setOrder] = useState(null)
@@ -28,17 +26,6 @@ export default function OrderDetail() {
     run()
     return () => { active = false }
   }, [id])
-
-  const getStatusColor = (status) => {
-    const colors = {
-      pending: '#fbbf24',
-      processing: '#3b82f6',
-      shipped: '#8b5cf6',
-      delivered: '#10b981',
-      cancelled: '#ef4444'
-    }
-    return colors[status?.toLowerCase()] || '#6b7280'
-  }
 
   const formatDate = (timestamp) => {
     if (!timestamp?.toDate) return 'Pending'
@@ -85,88 +72,45 @@ export default function OrderDetail() {
   const subtotal = order.items?.reduce((sum, i) => sum + ((i.price || 0) * (i.quantity || 0)), 0) || 0
 
   return (
-    <>
-      <BreadcrumbNav
-        currentPage={`Order #${order.id.slice(-6).toUpperCase()}`}
-        backButton={{ label: "Back to Orders", path: "/orders" }}
-        rightActions={
-          <div style={{
-            display: "flex",
-            gap: 8,
-            alignItems: "center",
-            background: "linear-gradient(135deg, #e0f2f1 0%, #b2dfdb 100%)",
-            padding: "6px 10px",
-            borderRadius: 8,
-            boxShadow: "0 2px 8px rgba(0, 113, 133, 0.15)"
-          }}>
-            <button 
-              onClick={() => navigate('/dashboard')} 
-              type="button"
-              style={{
-                background: "none",
-                border: "none",
-                color: "#00695c",
-                fontSize: 13,
-                cursor: "pointer",
-                display: "flex",
-                alignItems: "center",
-                gap: 6,
-                padding: "6px 12px",
-                fontWeight: 600,
-                whiteSpace: "nowrap",
-                borderRadius: 6,
-                transition: "background 0.2s"
-              }}
-              onMouseEnter={(e) => e.target.style.background = "rgba(255, 255, 255, 0.4)"}
-              onMouseLeave={(e) => e.target.style.background = "none"}
-            >
-              <LayoutDashboard style={{ width: 16, height: 16 }} />
-              Dashboard
-            </button>
+    <div className="container" style={{ paddingTop: 24, paddingBottom: 60 }}>
+      {/* Hero Headline */}
+      <div className="hero-headline" style={{ marginBottom: 24 }}>
+        <div>
+          <div className="kicker">Order Details</div>
+          <h1 style={{ margin: 0 }}>Order #{order.id.slice(-6).toUpperCase()}</h1>
+          <div className="meta" style={{ marginTop: 8 }}>
+            Placed on {formatDate(order.createdAt)} • Status: {status}
           </div>
-        }
-      />
-      
-      <div className="container" style={{ paddingTop: 40, paddingBottom: 60 }}>
-        {/* Header */}
-        <div style={{ 
-          display: 'flex', 
-          justifyContent: 'space-between', 
-          alignItems: 'flex-start',
-          flexWrap: 'wrap',
-          gap: 16
-        }}>
-          <div>
-            <h1 style={{ 
-              margin: '0 0 8px', 
-              fontSize: 32, 
-              fontWeight: 800,
-              display: 'flex',
-              alignItems: 'center',
-              gap: 12
-            }}>
-              <span style={{ fontSize: 40 }}>📦</span>
-              Order #{order.id.slice(-6).toUpperCase()}
-            </h1>
-            <div style={{ color: 'var(--muted)', fontSize: 15 }}>
-              Placed on {formatDate(order.createdAt)}
-            </div>
-          </div>
-          
-          <span style={{ 
-            padding: '8px 20px',
-            borderRadius: 999,
-            fontSize: 14,
-            fontWeight: 700,
-            textTransform: 'capitalize',
-            backgroundColor: getStatusColor(status) + '20',
-            color: getStatusColor(status),
-            border: `2px solid ${getStatusColor(status)}`,
-            whiteSpace: 'nowrap'
-          }}>
-            {status}
-          </span>
         </div>
+        <div style={{ display: "flex", gap: 8 }}>
+          <Link 
+            to="/orders" 
+            className="btn btn-secondary"
+            style={{
+              fontSize: "13px",
+              padding: "8px 14px",
+              whiteSpace: "nowrap"
+            }}
+          >
+            ← Back to Orders
+          </Link>
+          <Link 
+            to="/dashboard" 
+            className="btn btn-secondary"
+            style={{
+              fontSize: "13px",
+              padding: "8px 14px",
+              whiteSpace: "nowrap",
+              display: "flex",
+              alignItems: "center",
+              gap: 6
+            }}
+          >
+            <LayoutDashboard style={{ width: 16, height: 16 }} />
+            Dashboard
+          </Link>
+        </div>
+      </div>
 
         <div className="order-detail-grid">
         {/* Left Column - Items */}
@@ -190,7 +134,7 @@ export default function OrderDetail() {
                     alignItems: 'center'
                   }}
                 >
-                  <div style={{
+                  <Link to={`/product/${item.id}`} style={{
                     width: 80,
                     height: 80,
                     flexShrink: 0,
@@ -200,18 +144,24 @@ export default function OrderDetail() {
                     overflow: 'hidden',
                     display: 'flex',
                     alignItems: 'center',
-                    justifyContent: 'center'
+                    justifyContent: 'center',
+                    cursor: 'pointer'
                   }}>
                     <img 
-                      src={item.image || 'https://via.placeholder.com/80'} 
+                      src={item.image || FALLBACK_IMAGE} 
                       alt={item.title}
                       style={{ 
                         width: '100%',
                         height: '100%',
                         objectFit: 'contain'
-                      }} 
+                      }}
+                      onError={(e) => {
+                        if (e.currentTarget.src !== FALLBACK_IMAGE) {
+                          e.currentTarget.src = FALLBACK_IMAGE
+                        }
+                      }}
                     />
-                  </div>
+                  </Link>
                   
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ 
@@ -367,6 +317,5 @@ export default function OrderDetail() {
         </div>
       </div>
     </div>
-    </>
   )
 }

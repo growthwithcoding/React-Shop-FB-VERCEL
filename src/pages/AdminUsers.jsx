@@ -1,12 +1,11 @@
 // src/pages/AdminUsers.jsx
 import { useState, useMemo, useEffect } from "react";
+import { Link } from "react-router-dom";
 import { useAuth } from "../auth/useAuth";
 import AdminUserModal from "../components/AdminUserModal.jsx";
 import { getUsers, createUser, updateUser, deleteUser } from "../services/userService";
 import { Pagination } from "../components/Pagination";
-import BreadcrumbNav from "../components/BreadcrumbNav";
 import { UserPlus } from "lucide-react";
-import { useTotalHeaderHeight } from "../hooks/useTotalHeaderHeight";
 
 function fullName(u) {
   return [u?.firstName, u?.lastName].filter(Boolean).join(" ").trim();
@@ -24,7 +23,6 @@ function normalizeUser(u, i) {
 
 export function AdminUsers() {
   const { user } = useAuth();
-  const { totalHeaderHeight } = useTotalHeaderHeight();
 
   const [q, setQ] = useState("");
   const [role, setRole] = useState("all");
@@ -73,6 +71,15 @@ export function AdminUsers() {
       return true;
     });
   }, [users, q, role]);
+
+  // Calculate user metrics
+  const userMetrics = useMemo(() => {
+    const totalUsers = filtered.length;
+    const totalAdmins = filtered.filter(u => u.role === "admin").length;
+    const totalCustomers = filtered.filter(u => u.role === "customer").length;
+    
+    return { totalUsers, totalAdmins, totalCustomers };
+  }, [filtered]);
 
   // Paginated users
   const paginatedUsers = useMemo(() => {
@@ -155,75 +162,114 @@ export function AdminUsers() {
     setModalOpen(true);
   }
 
+  // Amazon color palette
+  const amazonColors = {
+    orange: "#FF9900",
+    darkOrange: "#FF6600",
+    darkBg: "#232F3E",
+    lightBg: "#37475A",
+    accentBlue: "#146EB4",
+    textLight: "#FFFFFF",
+    textDark: "#0F1111",
+    borderLight: "#DDD",
+    success: "#067D62",
+    warning: "#F9C74F",
+    danger: "#E53E3E",
+  };
+  
+  // Enhanced box shadow styles
+  const cardShadow = {
+    boxShadow: "0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24)",
+    transition: "all 0.3s cubic-bezier(.25,.8,.25,1)",
+  };
+
   return !isAdmin ? (
     <div className="container" style={{ padding: 24 }}>Access denied.</div>
   ) : (
-    <>
-      <BreadcrumbNav
-        currentPage="Customers"
-        backButton={{ label: "Back to Dashboard", path: "/admin" }}
-        rightActions={
-          <div style={{
-            display: "flex",
-            gap: 8,
-            alignItems: "center",
-            background: "linear-gradient(135deg, #e0f2f1 0%, #b2dfdb 100%)",
-            padding: "6px 10px",
-            borderRadius: 8,
-            boxShadow: "0 2px 8px rgba(0, 113, 133, 0.15)"
-          }}>
-            <button 
-              onClick={openCreate} 
-              type="button"
+    <div className="min-h-screen" style={{ background: "linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%)" }}>
+      <div className="container-xl" style={{ paddingTop: 24, paddingBottom: 24 }}>
+        {/* Hero Headline with Title, Description, and Actions */}
+        <div className="hero-headline" style={{ marginBottom: 16 }}>
+          <div>
+            <div className="kicker">Admin</div>
+            <h1 style={{ margin: 0 }}>Users</h1>
+            <div className="meta" style={{ marginTop: 8 }}>
+              Manage user accounts and permissions
+            </div>
+          </div>
+          <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+            <Link 
+              to="/admin" 
+              className="btn btn-secondary"
               style={{
-                background: "none",
-                border: "none",
-                color: "#00695c",
-                fontSize: 13,
-                cursor: "pointer",
+                fontSize: "13px",
+                padding: "8px 14px",
+                whiteSpace: "nowrap"
+              }}
+            >
+              ← Back
+            </Link>
+            <button
+              onClick={openCreate}
+              className="btn btn-primary"
+              style={{
                 display: "flex",
                 alignItems: "center",
-                gap: 6,
-                padding: "6px 12px",
-                fontWeight: 600,
-                whiteSpace: "nowrap",
-                borderRadius: 6,
-                transition: "background 0.2s"
+                gap: "8px",
+                fontSize: "13px",
+                padding: "8px 14px",
+                whiteSpace: "nowrap"
               }}
-              onMouseEnter={(e) => e.target.style.background = "rgba(255, 255, 255, 0.4)"}
-              onMouseLeave={(e) => e.target.style.background = "none"}
             >
-              <UserPlus style={{ width: 16, height: 16 }} />
+              <UserPlus size={14} />
               Add User
             </button>
           </div>
-        }
-      />
-      
-      <div className="container-xl" style={{ paddingTop: totalHeaderHeight, paddingBottom: 24 }}>
-        <div className="hero-headline" style={{ marginBottom: 8, marginTop: -8 }}>
-          <div>
-            <div className="kicker" style={{ marginBottom: 0 }}>Admin</div>
-            <h1 style={{ margin: 0 }}>Customers</h1>
-          </div>
         </div>
 
-      <div className="grid" style={{ gridTemplateColumns: "2fr 1fr", gap: 8, marginBottom: 10 }}>
-        <input className="input" placeholder="Search name or email" value={q} onChange={(e) => setQ(e.target.value)} />
-        <select className="select" value={role} onChange={(e) => setRole(e.target.value)}>
-          <option value="all">All roles</option>
-          <option value="customer">Customer</option>
-          <option value="admin">Admin</option>
-        </select>
-      </div>
+          {status === "loading" && <div className="card" style={{ padding: 16, background: "#fff", borderRadius: "12px", ...cardShadow }}>Loading users…</div>}
+          {status === "error" && <div className="card" style={{ padding: 16, color: "var(--danger, #991b1b)", background: "#fff", borderRadius: "12px", ...cardShadow }}>Failed to load users: {error}</div>}
 
-      {status === "loading" && <div className="card" style={{ padding: 16 }}>Loading users…</div>}
-      {status === "error" && <div className="card" style={{ padding: 16, color: "var(--danger, #991b1b)" }}>Failed to load users: {error}</div>}
-
-      {status === "ready" && (
-        <div className="card" style={{ padding: 0 }}>
-          <>
-            <table style={{ width: "100%", borderCollapse: "separate", borderSpacing: 0 }}>
+          {status === "ready" && (
+            <div className="card" style={{ 
+              padding: 20,
+              background: "#fff",
+              borderRadius: "12px",
+              ...cardShadow
+            }}>
+              <>
+                {/* Single Row: Title - Filters - Stats */}
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 24, marginBottom: 16 }}>
+                  {/* Title */}
+                  <h2 style={{ margin: 0, fontSize: 20, fontWeight: 800, color: amazonColors.darkBg, minWidth: "100px" }}>Users List</h2>
+                  
+                  {/* Filters - Centered */}
+                  <div className="grid" style={{ gridTemplateColumns: "2fr 1fr", gap: 6, flex: 1, maxWidth: "500px" }}>
+                    <input className="input" placeholder="Search name or email" value={q} onChange={(e) => setQ(e.target.value)} style={{ fontSize: "13px", padding: "6px 10px" }} />
+                    <select className="select" value={role} onChange={(e) => setRole(e.target.value)} style={{ fontSize: "13px", padding: "6px 10px" }}>
+                      <option value="all">All roles</option>
+                      <option value="customer">Customer</option>
+                      <option value="admin">Admin</option>
+                    </select>
+                  </div>
+                  
+                  {/* User Stats - By Role */}
+                  <div style={{ display: "flex", gap: "16px", alignItems: "center", minWidth: "280px" }}>
+                    <div style={{ textAlign: "center" }}>
+                      <div style={{ fontSize: "10px", color: "#718096", fontWeight: 600, marginBottom: "2px" }}>TOTAL</div>
+                      <div style={{ fontSize: "16px", fontWeight: 700, color: amazonColors.darkBg }}>{userMetrics.totalUsers}</div>
+                    </div>
+                    <div style={{ textAlign: "center" }}>
+                      <div style={{ fontSize: "10px", color: "#718096", fontWeight: 600, marginBottom: "2px" }}>ADMINS</div>
+                      <div style={{ fontSize: "16px", fontWeight: 700, color: amazonColors.danger }}>{userMetrics.totalAdmins}</div>
+                    </div>
+                    <div style={{ textAlign: "center" }}>
+                      <div style={{ fontSize: "10px", color: "#718096", fontWeight: 600, marginBottom: "2px" }}>CUSTOMERS</div>
+                      <div style={{ fontSize: "16px", fontWeight: 700, color: amazonColors.accentBlue }}>{userMetrics.totalCustomers}</div>
+                    </div>
+                  </div>
+                </div>
+                <table style={{ width: "100%", borderCollapse: "separate", borderSpacing: 0 }}>
             <thead style={{ background: "#f9fafb" }}>
               <tr>
                 <Th>Name</Th>
@@ -234,16 +280,45 @@ export function AdminUsers() {
               </tr>
             </thead>
             <tbody>
-              {paginatedUsers.map((p) => (
-                <tr key={p.id} style={{ borderBottom: "1px solid var(--border)" }}>
+              {paginatedUsers.map((p, index) => (
+                <tr key={p.id} style={{ 
+                  borderBottom: "1px solid var(--border)",
+                  background: index % 2 === 0 ? "#fff" : "#f9fafb"
+                }}>
                   <Td>{fullName(p) || "—"}</Td>
                   <Td>{p.email}</Td>
                   <Td><span className="pill">{p.role}</span></Td>
                   <Td align="right">{p.orders}</Td>
-                  <Td align="center">
-                    <div style={{ display: "flex", gap: 8, justifyContent: "center", flexWrap: "wrap" }}>
-                      <button className="btn btn-secondary btn-slim" onClick={() => openEdit(p)}>Edit</button>
-                      <button className="btn btn-secondary btn-slim" onClick={() => openDelete(p)}>Delete</button>
+                  <Td align="center" style={{ whiteSpace: "nowrap" }}>
+                    <div style={{ display: "flex", gap: 6, justifyContent: "center" }}>
+                      <button style={{
+                        padding: "6px 12px",
+                        fontSize: "12px",
+                        fontWeight: 600,
+                        background: "#f3f4f6",
+                        border: "1px solid #d1d5db",
+                        borderRadius: "6px",
+                        color: "#374151",
+                        cursor: "pointer",
+                        transition: "all 0.2s ease"
+                      }}
+                      onMouseEnter={(e) => e.currentTarget.style.background = "#e5e7eb"}
+                      onMouseLeave={(e) => e.currentTarget.style.background = "#f3f4f6"}
+                      onClick={() => openEdit(p)}>Edit</button>
+                      <button style={{
+                        padding: "6px 12px",
+                        fontSize: "12px",
+                        fontWeight: 600,
+                        background: "#fef2f2",
+                        border: "1px solid #fecaca",
+                        borderRadius: "6px",
+                        color: "#991b1b",
+                        cursor: "pointer",
+                        transition: "all 0.2s ease"
+                      }}
+                      onMouseEnter={(e) => e.currentTarget.style.background = "#fee2e2"}
+                      onMouseLeave={(e) => e.currentTarget.style.background = "#fef2f2"}
+                      onClick={() => openDelete(p)}>Delete</button>
                     </div>
                   </Td>
                 </tr>
@@ -251,41 +326,41 @@ export function AdminUsers() {
               {!paginatedUsers.length && (
                 <tr>
                   <Td colSpan={5} align="center" style={{ padding: 20, color: "var(--muted)" }}>
-                    No customers found
+                    No users found
                   </Td>
                 </tr>
               )}
             </tbody>
-            </table>
+                </table>
 
-            {/* Pagination */}
-            {totalPages > 1 && (
-              <Pagination
-                currentPage={page}
-                totalPages={totalPages}
-                onPageChange={setPage}
-                totalItems={filtered.length}
-                itemsPerPage={perPage}
-                onItemsPerPageChange={(newPerPage) => {
-                  setPerPage(newPerPage);
-                  setPage(1);
-                }}
-              />
-            )}
-          </>
-        </div>
-      )}
+                {/* Pagination */}
+                {totalPages > 1 && (
+                  <Pagination
+                    currentPage={page}
+                    totalPages={totalPages}
+                    onPageChange={setPage}
+                    totalItems={filtered.length}
+                    itemsPerPage={perPage}
+                    onItemsPerPageChange={(newPerPage) => {
+                      setPerPage(newPerPage);
+                      setPage(1);
+                    }}
+                  />
+                )}
+              </>
+            </div>
+          )}
 
-      <AdminUserModal
-        open={modalOpen}
-        mode={modalMode}
-        initialUser={activeUser}
-        onClose={() => setModalOpen(false)}
-        onSave={modalMode === "create" ? handleCreate : handleEdit}
-        onDelete={handleDelete}
-      />
+        <AdminUserModal
+          open={modalOpen}
+          mode={modalMode}
+          initialUser={activeUser}
+          onClose={() => setModalOpen(false)}
+          onSave={modalMode === "create" ? handleCreate : handleEdit}
+          onDelete={handleDelete}
+        />
       </div>
-    </>
+    </div>
   );
 }
 

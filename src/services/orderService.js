@@ -198,3 +198,43 @@ export async function deleteOrder(id) {
   await deleteDoc(ref);
   return { id };
 }
+
+/**
+ * Create a new order from admin panel (without requiring address IDs).
+ * This is used when admins manually create orders.
+ */
+export async function createOrderFromAdmin({
+  userId,
+  items,
+  subtotal,
+  shipping,
+  total,
+  paymentStatus = "pending",
+  fulfillmentStatus = "unfulfilled",
+  shippingMethod = "standard",
+  notes = "",
+}) {
+  const payload = {
+    userId,
+    items,
+    subtotal,
+    delivery: shipping,
+    discount: 0,
+    total,
+    paymentStatus,
+    fulfillmentStatus,
+    shippingMethod,
+    notes,
+    createdAt: serverTimestamp(),
+    updatedAt: serverTimestamp(),
+    status: paymentStatus, // For backward compatibility
+    // Leave address fields null since this is an admin-created order
+    shippingAddressId: null,
+    billingAddressId: null,
+    shippingAddressSnapshot: null,
+    billingAddressSnapshot: null,
+  };
+
+  const ref = await addDoc(getOrdersCol(), payload);
+  return { id: ref.id, ...payload };
+}

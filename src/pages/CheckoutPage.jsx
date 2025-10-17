@@ -8,9 +8,7 @@ import { useAuth } from "../auth/useAuth";
 import { createOrder } from "../services/orderService";
 import { getAddresses, createAddress } from "../services/addressService";
 import { getSettings } from "../services/settingsService";
-import BreadcrumbNav from '../components/BreadcrumbNav';
-import { useTotalHeaderHeight } from '../hooks/useTotalHeaderHeight';;
-import { 
+import {
   getDiscountByCode, 
   getSavedDiscountCodes, 
   clearSavedDiscountCodes,
@@ -28,7 +26,7 @@ const FALLBACK = "https://via.placeholder.com/80?text=No+Image";
  * and supports discount codes stored in Firestore.
  */
 export default function CheckoutPage() {
-  const totalHeaderHeight = useTotalHeaderHeight();
+  // const totalHeaderHeight = useTotalHeaderHeight(); // Not used in this component
   const items = useSelector(selectCartItems);
   const subtotal = useSelector(selectTotalPrice);
 
@@ -358,21 +356,27 @@ export default function CheckoutPage() {
   // ---------- Empty state ----------
   if (items.length === 0) {
     return (
-      <>
-        <BreadcrumbNav
-          currentPage="Checkout"
-          backButton={{ label: "Back to Cart", path: "/cart" }}
-        />
-        <main className="container" style={{ paddingTop: 16, paddingBottom: 24 }}>
-          <div className="hero-headline" style={{ marginBottom: 16 }}>
-            <div>
-              <div className="kicker">Complete Your Order</div>
-              <h1 style={{ margin: 0 }}>Secure Checkout</h1>
-              <div className="meta" style={{ marginTop: 8 }}>
-                Your cart is empty. Add items to proceed with checkout.
-              </div>
+      <main className="container" style={{ paddingTop: 24, paddingBottom: 24 }}>
+        <div className="hero-headline" style={{ marginBottom: 16 }}>
+          <div>
+            <div className="kicker">Complete Your Order</div>
+            <h1 style={{ margin: 0 }}>Secure Checkout</h1>
+            <div className="meta" style={{ marginTop: 8 }}>
+              Your cart is empty. Add items to proceed with checkout.
             </div>
           </div>
+          <Link 
+            to="/cart" 
+            className="btn btn-secondary"
+            style={{
+              fontSize: "13px",
+              padding: "8px 14px",
+              whiteSpace: "nowrap"
+            }}
+          >
+            ← Back to Cart
+          </Link>
+        </div>
           <section className="card" style={{ textAlign: "center", padding: "28px 24px", borderRadius: 12, boxShadow: "0 6px 24px rgba(0,0,0,0.06)" }}>
             <p style={{ marginBottom: 16 }}>
               Trying to check out with <strong>zero</strong> items? That's a bold new budgeting strategy. 😄
@@ -382,7 +386,6 @@ export default function CheckoutPage() {
             </Link>
           </section>
         </main>
-      </>
     );
   }
 
@@ -474,13 +477,8 @@ export default function CheckoutPage() {
   }
 
   return (
-    <>
-      <BreadcrumbNav
-        currentPage="Checkout"
-        backButton={{ label: "Back to Cart", path: "/cart" }}
-      />
-      <div className="container grid" style={{ gridTemplateColumns: "1fr 1fr", gap: 16, paddingTop: 16, paddingBottom: 24 }}>
-        <div className="hero-headline" style={{ marginBottom: 16, gridColumn: "1 / -1" }}>
+    <div className="container grid" style={{ gridTemplateColumns: "1fr 1fr", gap: 16, paddingTop: 24, paddingBottom: 24 }}>
+      <div className="hero-headline" style={{ marginBottom: 16, gridColumn: "1 / -1" }}>
         <div>
           <div className="kicker">Complete Your Order</div>
           <h1 style={{ margin: 0 }}>Secure Checkout</h1>
@@ -488,28 +486,131 @@ export default function CheckoutPage() {
             Review your order details and complete your purchase securely.
           </div>
         </div>
+        <Link 
+          to="/cart" 
+          className="btn btn-secondary"
+          style={{
+            fontSize: "13px",
+            padding: "8px 14px",
+            whiteSpace: "nowrap"
+          }}
+        >
+          ← Back to Cart
+        </Link>
       </div>
       <form className="grid" onSubmit={placeOrder}>
         <div className="card grid">
           <h3 style={{ margin: "0 0 6px" }}>Addresses</h3>
 
           {/* Shipping */}
-          <label className="field">
+          <div className="field">
             <div className="meta">Shipping Address</div>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr auto", gap: 8 }}>
-              <select className="select" value={shippingId} onChange={(e) => setShippingId(e.target.value)}>
-                <option value="">Select shipping address</option>
-                {addresses.filter((a) => a.type === "shipping").map((a) => (
-                  <option key={a.id} value={a.id}>
-                    {a.line1}, {a.city} {a.state} {a.postalCode} {a.isDefault ? "(Default)" : ""}
-                  </option>
-                ))}
-              </select>
-              <button type="button" className="btn btn-secondary btn-slim" onClick={() => openQuickAdd("shipping")}>
-                New
-              </button>
-            </div>
-          </label>
+            {addresses.filter((a) => a.type === "shipping").length > 0 ? (
+              <div style={{ display: "grid", gridTemplateColumns: "1fr auto", gap: 8 }}>
+                <select className="select" value={shippingId} onChange={(e) => setShippingId(e.target.value)}>
+                  <option value="">Select shipping address</option>
+                  {addresses.filter((a) => a.type === "shipping").map((a) => (
+                    <option key={a.id} value={a.id}>
+                      {a.line1}, {a.city} {a.state} {a.postalCode} {a.isDefault ? "(Default)" : ""}
+                    </option>
+                  ))}
+                </select>
+                <button type="button" className="btn btn-secondary btn-slim" onClick={() => openQuickAdd("shipping")}>
+                  New
+                </button>
+              </div>
+            ) : (
+              <div style={{ background: "#f9fafb", padding: 12, borderRadius: 8, border: "1px solid #e5e7eb" }}>
+                <div className="grid" style={{ gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+                  <label className="field">
+                    <div className="meta" style={{ fontSize: 12 }}>Line 1 *</div>
+                    <input 
+                      className="input" 
+                      value={addrDraft.line1} 
+                      onChange={(e) => setAddrDraft((d) => ({ ...d, line1: e.target.value, type: "shipping" }))}
+                      placeholder="123 Main St"
+                    />
+                  </label>
+                  <label className="field">
+                    <div className="meta" style={{ fontSize: 12 }}>Line 2</div>
+                    <input 
+                      className="input" 
+                      value={addrDraft.line2} 
+                      onChange={(e) => setAddrDraft((d) => ({ ...d, line2: e.target.value, type: "shipping" }))}
+                      placeholder="Apt 4B"
+                    />
+                  </label>
+                  <label className="field">
+                    <div className="meta" style={{ fontSize: 12 }}>City *</div>
+                    <input 
+                      className="input" 
+                      value={addrDraft.city} 
+                      onChange={(e) => setAddrDraft((d) => ({ ...d, city: e.target.value, type: "shipping" }))}
+                      placeholder="New York"
+                    />
+                  </label>
+                  <label className="field">
+                    <div className="meta" style={{ fontSize: 12 }}>State *</div>
+                    <input 
+                      className="input" 
+                      value={addrDraft.state} 
+                      onChange={(e) => setAddrDraft((d) => ({ ...d, state: e.target.value, type: "shipping" }))}
+                      placeholder="NY"
+                    />
+                  </label>
+                  <label className="field">
+                    <div className="meta" style={{ fontSize: 12 }}>Postal Code *</div>
+                    <input 
+                      className="input" 
+                      value={addrDraft.postalCode} 
+                      onChange={(e) => setAddrDraft((d) => ({ ...d, postalCode: e.target.value, type: "shipping" }))}
+                      placeholder="10001"
+                    />
+                  </label>
+                  <label className="field">
+                    <div className="meta" style={{ fontSize: 12 }}>Country *</div>
+                    <input 
+                      className="input" 
+                      value={addrDraft.country} 
+                      onChange={(e) => setAddrDraft((d) => ({ ...d, country: e.target.value, type: "shipping" }))}
+                      placeholder="US"
+                    />
+                  </label>
+                </div>
+                {user?.uid && (
+                  <div style={{ marginTop: 8, display: "flex", justifyContent: "flex-end" }}>
+                    <button 
+                      type="button" 
+                      className="btn btn-primary btn-slim"
+                      onClick={async () => {
+                        try {
+                          const created = await createAddress(user.uid, { ...addrDraft, type: "shipping" });
+                          const rows = await getAddresses(user.uid);
+                          setAddresses(rows);
+                          setShippingId(created.id);
+                          setAddrDraft({
+                            type: "shipping",
+                            line1: "",
+                            line2: "",
+                            city: "",
+                            state: "",
+                            postalCode: "",
+                            country: "US",
+                            isDefault: false,
+                          });
+                        } catch (e) {
+                          alert(e.message || String(e));
+                        }
+                      }}
+                      style={{ fontSize: 12 }}
+                    >
+                      Save Address
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
 
           {/* Same as Shipping Checkbox */}
           <label style={{ display: "flex", gap: 8, alignItems: "center", margin: "8px 0" }}>
@@ -528,22 +629,114 @@ export default function CheckoutPage() {
 
           {/* Billing */}
           {!sameAsShipping && (
-            <label className="field">
+            <div className="field">
               <div className="meta">Billing Address</div>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr auto", gap: 8 }}>
-                <select className="select" value={billingId} onChange={(e) => setBillingId(e.target.value)}>
-                  <option value="">Select billing address</option>
-                  {addresses.filter((a) => a.type === "billing").map((a) => (
-                    <option key={a.id} value={a.id}>
-                      {a.line1}, {a.city} {a.state} {a.postalCode} {a.isDefault ? "(Default)" : ""}
-                    </option>
-                  ))}
-                </select>
-                <button type="button" className="btn btn-secondary btn-slim" onClick={() => openQuickAdd("billing")}>
-                  New
-                </button>
-              </div>
-            </label>
+              {addresses.filter((a) => a.type === "billing").length > 0 ? (
+                <div style={{ display: "grid", gridTemplateColumns: "1fr auto", gap: 8 }}>
+                  <select className="select" value={billingId} onChange={(e) => setBillingId(e.target.value)}>
+                    <option value="">Select billing address</option>
+                    {addresses.filter((a) => a.type === "billing").map((a) => (
+                      <option key={a.id} value={a.id}>
+                        {a.line1}, {a.city} {a.state} {a.postalCode} {a.isDefault ? "(Default)" : ""}
+                      </option>
+                    ))}
+                  </select>
+                  <button type="button" className="btn btn-secondary btn-slim" onClick={() => openQuickAdd("billing")}>
+                    New
+                  </button>
+                </div>
+              ) : (
+                <div style={{ background: "#f9fafb", padding: 12, borderRadius: 8, border: "1px solid #e5e7eb" }}>
+                  <div className="grid" style={{ gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+                    <label className="field">
+                      <div className="meta" style={{ fontSize: 12 }}>Line 1 *</div>
+                      <input 
+                        className="input" 
+                        value={addrDraft.line1} 
+                        onChange={(e) => setAddrDraft((d) => ({ ...d, line1: e.target.value, type: "billing" }))}
+                        placeholder="123 Main St"
+                      />
+                    </label>
+                    <label className="field">
+                      <div className="meta" style={{ fontSize: 12 }}>Line 2</div>
+                      <input 
+                        className="input" 
+                        value={addrDraft.line2} 
+                        onChange={(e) => setAddrDraft((d) => ({ ...d, line2: e.target.value, type: "billing" }))}
+                        placeholder="Apt 4B"
+                      />
+                    </label>
+                    <label className="field">
+                      <div className="meta" style={{ fontSize: 12 }}>City *</div>
+                      <input 
+                        className="input" 
+                        value={addrDraft.city} 
+                        onChange={(e) => setAddrDraft((d) => ({ ...d, city: e.target.value, type: "billing" }))}
+                        placeholder="New York"
+                      />
+                    </label>
+                    <label className="field">
+                      <div className="meta" style={{ fontSize: 12 }}>State *</div>
+                      <input 
+                        className="input" 
+                        value={addrDraft.state} 
+                        onChange={(e) => setAddrDraft((d) => ({ ...d, state: e.target.value, type: "billing" }))}
+                        placeholder="NY"
+                      />
+                    </label>
+                    <label className="field">
+                      <div className="meta" style={{ fontSize: 12 }}>Postal Code *</div>
+                      <input 
+                        className="input" 
+                        value={addrDraft.postalCode} 
+                        onChange={(e) => setAddrDraft((d) => ({ ...d, postalCode: e.target.value, type: "billing" }))}
+                        placeholder="10001"
+                      />
+                    </label>
+                    <label className="field">
+                      <div className="meta" style={{ fontSize: 12 }}>Country *</div>
+                      <input 
+                        className="input" 
+                        value={addrDraft.country} 
+                        onChange={(e) => setAddrDraft((d) => ({ ...d, country: e.target.value, type: "billing" }))}
+                        placeholder="US"
+                      />
+                    </label>
+                  </div>
+                  {user?.uid && (
+                    <div style={{ marginTop: 8, display: "flex", justifyContent: "flex-end" }}>
+                      <button 
+                        type="button" 
+                        className="btn btn-primary btn-slim"
+                        onClick={async () => {
+                          try {
+                            const created = await createAddress(user.uid, { ...addrDraft, type: "billing" });
+                            const rows = await getAddresses(user.uid);
+                            setAddresses(rows);
+                            setBillingId(created.id);
+                            setAddrDraft({
+                              type: "billing",
+                              line1: "",
+                              line2: "",
+                              city: "",
+                              state: "",
+                              postalCode: "",
+                              country: "US",
+                              isDefault: false,
+                            });
+                          } catch (e) {
+                            alert(e.message || String(e));
+                          }
+                        }}
+                        style={{ fontSize: 12 }}
+                      >
+                        Save Address
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
           )}
         </div>
 
@@ -639,14 +832,36 @@ export default function CheckoutPage() {
           <h3 style={{ margin: "0 0 6px" }}>Your Order</h3>
           {items.map((i) => (
             <div key={i.id} className="card" style={{ display: "flex", gap: 12, alignItems: "center" }}>
-              <img
-                src={i.image || FALLBACK}
-                alt={i.title}
-                width={80}
-                height={80}
-                style={{ objectFit: "contain", background: "#fff", border: "1px solid #eee", borderRadius: 8 }}
-                onError={(e) => { e.currentTarget.src = FALLBACK; }}
-              />
+              <Link to={`/product/${i.id}`} style={{ position: 'relative', display: 'block' }}>
+                <img
+                  src={i.image || FALLBACK}
+                  alt={i.title}
+                  width={80}
+                  height={80}
+                  style={{ objectFit: "contain", background: "#fff", border: "1px solid #eee", borderRadius: 8, cursor: "pointer" }}
+                  onError={(e) => { e.currentTarget.src = FALLBACK; }}
+                />
+                {/* Quantity Badge */}
+                <div style={{
+                  position: 'absolute',
+                  top: -8,
+                  right: -8,
+                  background: 'var(--primary)',
+                  color: '#111',
+                  borderRadius: '50%',
+                  width: 28,
+                  height: 28,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: 13,
+                  fontWeight: 800,
+                  border: '2px solid white',
+                  boxShadow: '0 2px 8px rgba(0,0,0,0.15)'
+                }}>
+                  {i.quantity}
+                </div>
+              </Link>
               <div style={{ flex: 1 }}>
                 <div style={{ fontWeight: 700 }}>{i.title}</div>
                 <div className="meta">Qty: {i.quantity}</div>
@@ -754,16 +969,20 @@ export default function CheckoutPage() {
           </div>
 
           {/* Place Order Button - moved here */}
-          <div style={{ display: "flex", justifyContent: "flex-end" }}>
-            <button 
-              className="btn btn-primary" 
-              type="submit" 
-              onClick={placeOrder}
-              style={{ fontSize: 14, padding: "10px 24px" }}
-            >
-              Place Order
-            </button>
-          </div>
+          <button 
+            className="btn btn-primary" 
+            type="submit" 
+            onClick={placeOrder}
+            style={{ 
+              fontSize: 18, 
+              padding: "16px 32px",
+              width: "100%",
+              fontWeight: 700,
+              borderRadius: 12
+            }}
+          >
+            Place Order
+          </button>
         </div>
       </section>
 
@@ -874,7 +1093,6 @@ export default function CheckoutPage() {
           </div>
         </div>
       )}
-      </div>
-    </>
+    </div>
   );
 }

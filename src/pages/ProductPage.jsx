@@ -8,7 +8,8 @@ import { showAddModal } from '../features/ui/uiSlice.js'
 import { useState } from 'react'
 import { formatPrice } from '../utils/money.js'
 import ProductCard from '../components/ProductCard.jsx'
-import BreadcrumbNav from '../components/BreadcrumbNav'
+import CategoryBreadcrumbs from '../components/CategoryBreadcrumbs'
+import CategorySidebar from '../components/CategorySidebar'
 
 const FALLBACK = 'https://via.placeholder.com/400x400?text=Product'
 
@@ -55,10 +56,9 @@ export default function ProductPage() {
   if (isLoading) {
     return (
       <>
-        <BreadcrumbNav
-          currentPage="Product"
-          backButton={{ label: "Back to Shop", path: "/" }}
-        />
+        <div className="container-xl">
+          <CategoryBreadcrumbs />
+        </div>
         <div className="container-xl" style={{ paddingTop: 16, paddingBottom: 24 }}>
           <div className="card">
             <div style={{ padding: '40px', textAlign: 'center' }}>
@@ -74,10 +74,9 @@ export default function ProductPage() {
   if (isError || !p) {
     return (
       <>
-        <BreadcrumbNav
-          currentPage="Product Not Found"
-          backButton={{ label: "Back to Shop", path: "/" }}
-        />
+        <div className="container-xl">
+          <CategoryBreadcrumbs />
+        </div>
         <div className="container-xl" style={{ paddingTop: 16, paddingBottom: 24 }}>
           <div className="card">
             <h3 style={{ marginTop: 0 }}>Product not found</h3>
@@ -136,19 +135,16 @@ export default function ProductPage() {
   }
 
   return (
-    <>
-      <BreadcrumbNav
-        currentPage={p.title}
-        backButton={{ label: "Back to Shop", path: "/" }}
-      />
+    <div className="home-page-wrapper">
+      <CategorySidebar />
       
-      <main className="container-xl" style={{ paddingTop: 16, paddingBottom: 24 }}>
+      <div className="home-main-content">
+        <main className="container-xl" style={{ paddingTop: 16, paddingBottom: 24 }}>
+        <CategoryBreadcrumbs category={p.category} productName={p.title} />
+        
         {/* Product Header */}
         <div className="hero-headline" style={{ marginBottom: 16 }}>
           <div>
-            <div className="kicker" style={{ fontSize: '14px', textTransform: 'uppercase', color: '#666', marginBottom: '8px' }}>
-              {p.category || 'General'}
-            </div>
             <h1 style={{ margin: 0, fontSize: '32px', lineHeight: 1.2 }}>
               {p.title}
             </h1>
@@ -183,7 +179,7 @@ export default function ProductPage() {
                 padding: 20,
                 position: 'relative',
                 cursor: 'zoom-in',
-                overflow: 'hidden'
+                overflow: isZoomed ? 'auto' : 'hidden'
               }}
               onClick={handleImageZoom}
               role="button"
@@ -218,11 +214,14 @@ export default function ProductPage() {
                 src={productImages[selectedImage]}
                 alt={`${p.title} - View ${selectedImage + 1}`}
                 style={{ 
-                  width: '100%', 
+                  width: '100%',
+                  maxWidth: '100%',
                   height: isZoomed ? 'auto' : '450px',
-                  objectFit: isZoomed ? 'cover' : 'contain',
+                  objectFit: isZoomed ? 'contain' : 'contain',
                   transition: 'transform 0.3s ease',
                   transform: isZoomed ? 'scale(1.5)' : 'scale(1)',
+                  display: 'block',
+                  margin: '0 auto'
                 }}
                 onError={(e) => { e.currentTarget.src = FALLBACK }}
               />
@@ -287,6 +286,16 @@ export default function ProductPage() {
                 ))}
               </div>
             )}
+
+            {/* Product Description Card */}
+            <div className="card" style={{ padding: 24 }}>
+              <h2 style={{ marginTop: 0, fontSize: '20px', marginBottom: 12 }}>
+                Product Description
+              </h2>
+              <p style={{ lineHeight: 1.6, color: '#555', margin: 0 }}>
+                {p.longDescription || p.description || 'No description available.'}
+              </p>
+            </div>
           </div>
 
           {/* Right Column: Product Information */}
@@ -505,14 +514,55 @@ export default function ProductPage() {
               </div>
             </div>
 
-            {/* Product Description Card */}
+            {/* Product Specifications Card */}
             <div className="card" style={{ padding: 24 }}>
               <h2 style={{ marginTop: 0, fontSize: '20px', marginBottom: 12 }}>
-                Product Description
+                Product Specifications
               </h2>
-              <p style={{ lineHeight: 1.6, color: '#555', margin: 0 }}>
-                {p.description || p.fullDescription || 'No description available.'}
-              </p>
+              {specifications ? (
+                <div 
+                  style={{ 
+                    display: 'grid', 
+                    gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+                    gap: 16 
+                  }}
+                >
+                  {Object.entries(specifications).map(([key, value]) => (
+                    <div 
+                      key={key}
+                      style={{ 
+                        padding: '12px',
+                        background: '#f8f9fa',
+                        borderRadius: '6px',
+                        border: '1px solid #e9ecef'
+                      }}
+                    >
+                      <div style={{ fontSize: '12px', color: '#666', marginBottom: 4, textTransform: 'uppercase' }}>
+                        {key}
+                      </div>
+                      <div style={{ fontSize: '16px', fontWeight: '600', color: '#2c3e50' }}>
+                        {value}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div 
+                  style={{ 
+                    padding: '30px',
+                    background: '#f8f9fa',
+                    borderRadius: '8px',
+                    border: '2px dashed #dee2e6',
+                    textAlign: 'center'
+                  }}
+                  role="status"
+                >
+                  <div style={{ fontSize: '40px', marginBottom: 12 }}>📋</div>
+                  <div style={{ fontSize: '14px', color: '#6c757d', fontWeight: '500' }}>
+                    Feature coming soon – detailed specifications will appear here
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Shipping and Returns Information */}
@@ -551,61 +601,6 @@ export default function ProductPage() {
               </div>
             </div>
           </div>
-        </section>
-
-        {/* Key Specifications Section */}
-        <section className="card" style={{ padding: 24, marginBottom: 32 }}>
-          <h2 style={{ marginTop: 0, fontSize: '24px', marginBottom: 20 }}>
-            Product Specifications
-          </h2>
-          {specifications ? (
-            <div 
-              style={{ 
-                display: 'grid', 
-                gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
-                gap: 16 
-              }}
-            >
-              {Object.entries(specifications).map(([key, value]) => (
-                <div 
-                  key={key}
-                  style={{ 
-                    padding: '12px',
-                    background: '#f8f9fa',
-                    borderRadius: '6px',
-                    border: '1px solid #e9ecef'
-                  }}
-                >
-                  <div style={{ fontSize: '12px', color: '#666', marginBottom: 4, textTransform: 'uppercase' }}>
-                    {key}
-                  </div>
-                  <div style={{ fontSize: '16px', fontWeight: '600', color: '#2c3e50' }}>
-                    {value}
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : (
-            // TODO: Replace this placeholder when specifications data is available
-            <div 
-              style={{ 
-                padding: '40px',
-                background: '#f8f9fa',
-                borderRadius: '8px',
-                border: '2px dashed #dee2e6',
-                textAlign: 'center'
-              }}
-              role="status"
-            >
-              <div style={{ fontSize: '48px', marginBottom: 12 }}>📋</div>
-              <div style={{ fontSize: '16px', color: '#6c757d', fontWeight: '500' }}>
-                Feature coming soon – detailed specifications will appear here
-              </div>
-              <div style={{ fontSize: '14px', color: '#adb5bd', marginTop: 8 }}>
-                Including dimensions, materials, weight, and technical details
-              </div>
-            </div>
-          )}
         </section>
 
         {/* Customer Testimonials Section - Placeholder for Future Feature */}
@@ -682,6 +677,7 @@ export default function ProductPage() {
           </div>
         </section>
       </main>
-    </>
+      </div>
+    </div>
   )
 }

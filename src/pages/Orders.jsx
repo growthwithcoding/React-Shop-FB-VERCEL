@@ -1,263 +1,423 @@
-// src/pages/Orders.jsx
-import { useEffect, useState } from 'react'
-import { useAuth } from '../auth/useAuth'
-import { listOrdersForUser } from '../services/orderService'
-import { Link } from 'react-router-dom'
-import BreadcrumbNav from '../components/BreadcrumbNav';
-import { useTotalHeaderHeight } from '../hooks/useTotalHeaderHeight';
+// Orders.jsx - Regular user's orders page
+import { useState, useEffect, useMemo } from "react";
+import { Link, useSearchParams } from "react-router-dom";
+import { useAuth } from "../auth/useAuth";
+import { listOrdersForUser } from "../services/orderService";
+import { Pagination } from "../components/Pagination";
+import { Package } from "lucide-react";
+
+const USD = new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" });
 
 export default function Orders() {
-  const totalHeaderHeight = useTotalHeaderHeight();
-  const { user } = useAuth()
-  const [orders, setOrders] = useState([])
-  const [loading, setLoading] = useState(true)
-
+  const { user } = useAuth();
+  const [searchParams, setSearchParams] = useSearchParams();
+  
+  const [orders, setOrders] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [q, setQ] = useState("");
+  const [status, setStatus] = useState(searchParams.get("status") || "all");
+  
+  // Pagination state
+  const [page, setPage] = useState(1);
+  const [perPage, setPerPage] = useState(10);
+  
+  // Fetch user's orders
   useEffect(() => {
-    let active = true
-    const run = async () => {
+    async function fetchMyOrders() {
       try {
-        const data = await listOrdersForUser(user.uid)
-        if (active) setOrders(data)
+        setLoading(true);
+        const myOrders = await listOrdersForUser(user?.uid);
+        setOrders(Array.isArray(myOrders) ? myOrders : []);
+      } catch (error) {
+        console.error("Error fetching my orders:", error);
+        setOrders([]);
       } finally {
-        if (active) setLoading(false)
+        setLoading(false);
       }
     }
-    if (user?.uid) run()
-    return () => { active = false }
-  }, [user?.uid])
-
-  const getStatusColor = (status) => {
-    const colors = {
-      pending: '#fbbf24',
-      processing: '#3b82f6',
-      shipped: '#8b5cf6',
-      delivered: '#10b981',
-      cancelled: '#ef4444'
+    
+    if (user?.uid) {
+      fetchMyOrders();
     }
-    return colors[status?.toLowerCase()] || '#6b7280'
-  }
-
-  const formatDate = (timestamp) => {
-    if (!timestamp?.toDate) return 'Pending'
-    const date = timestamp.toDate()
-    return date.toLocaleDateString('en-US', { 
-      year: 'numeric', 
-      month: 'short', 
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    })
-  }
-
-  if (loading) {
+  }, [user]);
+  
+  useEffect(() => {
+    const params = new URLSearchParams(searchParams);
+    if (status === "all") params.delete("status");
+    else params.set("status", status);
+    setSearchParams(params, { replace: true });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [status]);
+  
+  // Filter orders
+  const filteredOrders = useMemo(() => {
+    return orders.filter(o => {
+      // Local status filter
+      if (status === "paid" && o.paymentStatus !== "paid") return false;
+      if (status === "unpaid" && o.paymentStatus !== "unpaid") return false;
+      if (status === "fulfilled" && o.fulfillmentStatus !== "fulfilled") return false;
+      if (status === "unfulfilled" && o.fulfillmentStatus !== "unfulfilled") return false;
+      
+      // Search query filter
+      if (q) {
+        const searchTerm = q.toLowerCase();
+        const matchesId = (o.id || "").toLowerCase().includes(searchTerm);
+        
+        if (!matchesId) return false;
+      }
+      
+      return true;
+    });
+  }, [orders, q, status]);
+  
+  // Calculate order metrics
+  const orderMetrics = useMemo(() => {
+    const total = filteredOrders.length;
+    const unpaid = filteredOrders.filter(o => 
+      o.paymentStatus === "unpaid" || o.paymentStatus === "pending" || o.status === "unpaid"
+    ).length;
+    const unfulfilled = filteredOrders.filter(o => {
+      const paymentStatus = o.paymentStatus || o.status || "pending";
+      const fulfillmentStatus = o.fulfillmentStatus || o.fulfillment || "unfulfilled";
+      return (paymentStatus === "paid" || paymentStatus === "completed") && 
+        fulfillmentStatus === "unfulfilled";
+    }).length;
+    const totalSpent = filteredOrders.reduce((sum, o) => sum + (Number(o.total) || 0), 0);
+    
+    return { total, unpaid, unfulfilled, totalSpent };
+  }, [filteredOrders]);
+  
+  // Paginated orders
+  const paginatedOrders = useMemo(() => {
+    const start = (page - 1) * perPage;
+    const end = start + perPage;
+    return filteredOrders.slice(start, end);
+  }, [filteredOrders, page, perPage]);
+  
+  const totalPages = Math.ceil(filteredOrders.length / perPage);
+  
+  // Format date helper
+  const formatDate = (date) => {
+    if (!date) return "—";
+    try {
+      const d = date.toDate ? date.toDate() : new Date(date.seconds * 1000);
+      return d.toLocaleDateString('en-US', { year: 'numeric', month: '2-digit', day: '2-digit' });
+    } catch {
+      return "—";
+    }
+  };
+  
+  // Color palette - Purple/Blue Theme for regular users
+  const userColors = {
+    primary: "#8b5cf6",
+    lightPurple: "#a78bfa",
+    darkPurple: "#5b21b6",
+    skyBlue: "#0ea5e9",
+    textLight: "#FFFFFF",
+    textDark: "#0F1111",
+    borderLight: "#DDD",
+    success: "#067D62",
+    warning: "#F9C74F",
+    danger: "#E53E3E",
+  };
+  
+  // Enhanced box shadow styles
+  const cardShadow = {
+    boxShadow: "0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24)",
+    transition: "all 0.3s cubic-bezier(.25,.8,.25,1)",
+  };
+  
+  if (!user) {
     return (
-      <div className="container" style={{ paddingTop: 40 }}>
-        <div style={{ textAlign: 'center', padding: '60px 20px' }}>
-          <div style={{ fontSize: 48, marginBottom: 16 }}>📦</div>
-          <div style={{ fontSize: 18, color: 'var(--muted)' }}>Loading your orders...</div>
-        </div>
-      </div>
-    )
+      <div className="container" style={{ padding: 24 }}>Please log in to view your orders.</div>
+    );
   }
-
-  if (!orders.length) {
-    return (
-      <>
-        <BreadcrumbNav
-          currentPage="My Orders"
-          backButton={{ label: "Back to Dashboard", path: "/dashboard" }}
-        />
-        <div className="container" style={{ paddingTop: 40 }}>
-        <div className="card" style={{ textAlign: 'center', padding: 60 }}>
-          <div style={{ fontSize: 64, marginBottom: 16, opacity: 0.3 }}>🛍️📦</div>
-          <h3 style={{ margin: '0 0 8px', fontSize: 20 }}>No orders yet</h3>
-          <p style={{ color: 'var(--muted)', marginBottom: 20 }}>
-            You haven't placed any orders yet. Start shopping to see your orders here!
-          </p>
-          <Link to="/" className="btn btn-primary">
-            Start Shopping
-          </Link>
-        </div>
-        </div>
-      </>
-    )
-  }
-
+  
   return (
-    <>
-      <BreadcrumbNav
-        currentPage="My Orders"
-        backButton={{ label: "Back to Dashboard", path: "/dashboard" }}
-        centerContent={
-          <span style={{ fontSize: 14, color: "#565959" }}>
-            {orders.length} {orders.length === 1 ? 'order' : 'orders'} found
-          </span>
-        }
-      />
-      <div className="container" style={{ paddingTop: 40, paddingBottom: 60 }}>
-        <div className="hero-headline" style={{ marginBottom: 24 }}>
+    <div className="min-h-screen">
+      <div className="container-xl" style={{ paddingTop: 24, paddingBottom: 24 }}>
+        {/* Hero Headline */}
+        <div className="hero-headline" style={{ marginBottom: 16 }}>
           <div>
             <div className="kicker">Order History</div>
             <h1 style={{ margin: 0 }}>My Orders</h1>
             <div className="meta" style={{ marginTop: 8 }}>
-              Track and manage all your orders in one place.
+              View your complete order history and track deliveries
             </div>
           </div>
+          <Link 
+            to="/dashboard" 
+            className="btn btn-secondary"
+            style={{
+              fontSize: "13px",
+              padding: "8px 14px",
+              whiteSpace: "nowrap"
+            }}
+          >
+            ← Back to Dashboard
+          </Link>
         </div>
-
-      <div style={{ display: 'grid', gap: 16 }}>
-        {orders.map(o => {
-          const totalItems = o.items?.reduce((n, i) => n + (i.quantity || 0), 0) || 0
-          const status = o.status || 'pending'
           
-          return (
-            <Link 
-              key={o.id} 
-              to={`/orders/${o.id}`} 
-              className="card" 
-              style={{ 
-                textDecoration: 'none',
-                transition: 'all 0.2s ease',
-                cursor: 'pointer'
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.transform = 'translateY(-2px)'
-                e.currentTarget.style.boxShadow = '0 12px 28px rgba(0,0,0,.12)'
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.transform = 'translateY(0)'
-                e.currentTarget.style.boxShadow = 'var(--shadow)'
-              }}
-            >
-              {/* Header Row */}
+          {/* Summary Stats Card */}
+          <div className="card" style={{ 
+            padding: 20,
+            background: "#fff",
+            borderRadius: "12px",
+            marginBottom: 16,
+            ...cardShadow
+          }}>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 16 }}>
               <div style={{ 
-                display: 'flex', 
-                justifyContent: 'space-between', 
-                alignItems: 'center',
-                marginBottom: 12,
-                paddingBottom: 12,
-                borderBottom: '1px solid var(--border)'
+                padding: "16px",
+                background: "linear-gradient(135deg, #f3e8ff 0%, #ddd6fe 50%)",
+                borderRadius: "8px",
+                border: "2px solid #ddd6fe"
               }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                  <span style={{ 
-                    fontSize: 32,
-                    lineHeight: 1
-                  }}>
-                    📦
-                  </span>
-                  <div>
-                    <div style={{ 
-                      fontWeight: 800, 
-                      fontSize: 16,
-                      marginBottom: 2
-                    }}>
-                      Order #{o.id.slice(-6).toUpperCase()}
-                    </div>
-                    <div style={{ 
-                      fontSize: 13, 
-                      color: 'var(--muted)'
-                    }}>
-                      {formatDate(o.createdAt)}
-                    </div>
-                  </div>
+                <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "8px" }}>
+                  <Package size={20} color={userColors.primary} />
+                  <span style={{ fontSize: "12px", fontWeight: 600, color: "#718096" }}>TOTAL ORDERS</span>
+                </div>
+                <div style={{ fontSize: "28px", fontWeight: 800, color: userColors.darkPurple }}>{orderMetrics.total}</div>
+              </div>
+              
+              <div style={{ 
+                padding: "16px",
+                background: "#faf5ff",
+                borderRadius: "8px",
+                border: "2px solid #ddd6fe"
+              }}>
+                <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "8px" }}>
+                  <span style={{ fontSize: "12px", fontWeight: 600, color: "#718096" }}>TOTAL SPENT</span>
+                </div>
+                <div style={{ fontSize: "28px", fontWeight: 800, color: userColors.primary }}>{USD.format(orderMetrics.totalSpent)}</div>
+              </div>
+              
+              <div style={{ 
+                padding: "16px",
+                background: "#fff7e6",
+                borderRadius: "8px",
+                border: "2px solid #ffd8a8"
+              }}>
+                <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "8px" }}>
+                  <span style={{ fontSize: "12px", fontWeight: 600, color: "#718096" }}>UNPAID</span>
+                </div>
+                <div style={{ fontSize: "28px", fontWeight: 800, color: userColors.warning }}>{orderMetrics.unpaid}</div>
+              </div>
+              
+              <div style={{ 
+                padding: "16px",
+                background: "#faf5ff",
+                borderRadius: "8px",
+                border: "2px solid #ddd6fe"
+              }}>
+                <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "8px" }}>
+                  <span style={{ fontSize: "12px", fontWeight: 600, color: "#718096" }}>UNFULFILLED</span>
+                </div>
+                <div style={{ fontSize: "28px", fontWeight: 800, color: userColors.primary }}>{orderMetrics.unfulfilled}</div>
+              </div>
+            </div>
+          </div>
+          
+          <div className="card" style={{ 
+            padding: 20,
+            background: "#fff",
+            borderRadius: "12px",
+            ...cardShadow
+          }}>
+            {/* Single Row: Title - Filters */}
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 24, marginBottom: 16 }}>
+              {/* Title */}
+              <h2 style={{ margin: 0, fontSize: 20, fontWeight: 800, color: userColors.darkPurple, minWidth: "140px" }}>My Orders List</h2>
+              
+              {/* Filters - Centered */}
+              <div
+                className="grid"
+                style={{ gridTemplateColumns: "2fr 1fr", gap: 6, flex: 1, maxWidth: "500px" }}
+              >
+                <input
+                  className="input"
+                  placeholder="Search order ID…"
+                  value={q}
+                  onChange={(e) => setQ(e.target.value)}
+                  style={{ fontSize: "13px", padding: "6px 10px" }}
+                />
+                <select
+                  className="select"
+                  value={status}
+                  onChange={(e) => setStatus(e.target.value)}
+                  style={{ fontSize: "13px", padding: "6px 10px" }}
+                >
+                  <option value="all">All statuses</option>
+                  <option value="paid">Paid</option>
+                  <option value="unpaid">Unpaid</option>
+                  <option value="fulfilled">Fulfilled</option>
+                  <option value="unfulfilled">Unfulfilled</option>
+                </select>
+              </div>
+            </div>
+            
+            {loading ? (
+              <div style={{ padding: 20, paddingTop: 0, textAlign: 'center' }}>Loading your orders...</div>
+            ) : (
+              <>
+                <div style={{ overflowX: "auto", borderRadius: 12 }}>
+                  <table style={{ width: "100%", borderCollapse: "separate", borderSpacing: 0 }}>
+                    <thead style={{ background: "#f9fafb" }}>
+                      <tr>
+                        <Th>Order ID</Th>
+                        <Th>Date</Th>
+                        <Th>Items</Th>
+                        <Th>Payment Status</Th>
+                        <Th>Fulfillment</Th>
+                        <Th align="right">Total</Th>
+                        <Th align="center">Actions</Th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {paginatedOrders.map((o, index) => (
+                        <tr key={o.id} style={{ 
+                          borderBottom: "1px solid var(--border)",
+                          background: index % 2 === 0 ? "#fff" : "#f9fafb"
+                        }}>
+                          <Td>
+                            <div style={{ fontFamily: "monospace", fontWeight: 700 }}>{o.id.slice(0, 8)}...</div>
+                          </Td>
+                          <Td>{formatDate(o.createdAt)}</Td>
+                          <Td>
+                            <div style={{ fontSize: "13px" }}>{o.items?.length || 0} item{o.items?.length !== 1 ? 's' : ''}</div>
+                          </Td>
+                          <Td>
+                            <span
+                              className="pill"
+                              style={badgeTone(
+                                o.paymentStatus === "paid" || o.paymentStatus === "completed" ? "success" : 
+                                o.paymentStatus === "unpaid" || o.paymentStatus === "pending" ? "warn" : "muted"
+                              )}
+                            >
+                              {o.paymentStatus || o.status || "pending"}
+                            </span>
+                          </Td>
+                          <Td>
+                            <span
+                              className="pill"
+                              style={badgeTone(o.fulfillmentStatus === "fulfilled" ? "info" : "muted")}
+                            >
+                              {o.fulfillmentStatus || "unfulfilled"}
+                            </span>
+                          </Td>
+                          <Td align="right" style={{ fontWeight: 700 }}>{USD.format(o.total || 0)}</Td>
+                          <Td align="center" style={{ whiteSpace: "nowrap" }}>
+                            <Link to={`/orders/${o.id}`} style={{
+                              padding: "6px 12px",
+                              fontSize: "12px",
+                              fontWeight: 600,
+                              background: "#f3f4f6",
+                              border: "1px solid #d1d5db",
+                              borderRadius: "6px",
+                              textDecoration: "none",
+                              color: "#374151",
+                              transition: "all 0.2s ease"
+                            }}
+                            onMouseEnter={(e) => e.currentTarget.style.background = "#e5e7eb"}
+                            onMouseLeave={(e) => e.currentTarget.style.background = "#f3f4f6"}
+                            >View Details</Link>
+                          </Td>
+                        </tr>
+                      ))}
+                      {!paginatedOrders.length && (
+                        <tr>
+                          <Td colSpan={7} align="center" style={{ padding: 40, color: "var(--muted)" }}>
+                            {loading ? "Loading..." : (
+                              <div>
+                                <Package size={48} style={{ color: "#d1d5db", margin: "0 auto 16px" }} />
+                                <p style={{ margin: 0, fontSize: "16px", fontWeight: 600, marginBottom: "8px" }}>No orders yet</p>
+                                <p style={{ margin: 0, fontSize: "14px", color: "#9ca3af" }}>Your order history will appear here</p>
+                                <Link to="/" style={{
+                                  display: "inline-block",
+                                  marginTop: "16px",
+                                  padding: "8px 16px",
+                                  background: userColors.primary,
+                                  color: "#fff",
+                                  textDecoration: "none",
+                                  borderRadius: "6px",
+                                  fontWeight: 600,
+                                  fontSize: "14px"
+                                }}>Start Shopping</Link>
+                              </div>
+                            )}
+                          </Td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
                 </div>
                 
-                {/* Status Badge */}
-                <span style={{ 
-                  padding: '4px 12px',
-                  borderRadius: 999,
-                  fontSize: 12,
-                  fontWeight: 700,
-                  textTransform: 'capitalize',
-                  backgroundColor: getStatusColor(status) + '20',
-                  color: getStatusColor(status),
-                  border: `1px solid ${getStatusColor(status)}40`
-                }}>
-                  {status}
-                </span>
-              </div>
-
-              {/* Order Details */}
-              <div style={{ 
-                display: 'grid', 
-                gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))',
-                gap: 16
-              }}>
-                <div>
-                  <div style={{ 
-                    fontSize: 12, 
-                    color: 'var(--muted)', 
-                    marginBottom: 4,
-                    fontWeight: 600
-                  }}>
-                    Total Amount
-                  </div>
-                  <div style={{ 
-                    fontSize: 20, 
-                    fontWeight: 800,
-                    color: 'var(--primary-dark)'
-                  }}>
-                    ${Number(o.total || 0).toFixed(2)}
-                  </div>
-                </div>
-
-                <div>
-                  <div style={{ 
-                    fontSize: 12, 
-                    color: 'var(--muted)', 
-                    marginBottom: 4,
-                    fontWeight: 600
-                  }}>
-                    Items
-                  </div>
-                  <div style={{ 
-                    fontSize: 18, 
-                    fontWeight: 700
-                  }}>
-                    {totalItems} {totalItems === 1 ? 'item' : 'items'}
-                  </div>
-                </div>
-
-                {o.paymentMethod && (
-                  <div>
-                    <div style={{ 
-                      fontSize: 12, 
-                      color: 'var(--muted)', 
-                      marginBottom: 4,
-                      fontWeight: 600
-                    }}>
-                      Payment
-                    </div>
-                    <div style={{ 
-                      fontSize: 14, 
-                      fontWeight: 600,
-                      textTransform: 'capitalize'
-                    }}>
-                      {o.paymentMethod.replace(/_/g, ' ')}
-                    </div>
-                  </div>
+                {/* Pagination */}
+                {totalPages > 1 && (
+                  <Pagination
+                    currentPage={page}
+                    totalPages={totalPages}
+                    onPageChange={setPage}
+                    totalItems={filteredOrders.length}
+                    itemsPerPage={perPage}
+                    onItemsPerPageChange={(newPerPage) => {
+                      setPerPage(newPerPage);
+                      setPage(1);
+                    }}
+                  />
                 )}
-              </div>
+              </>
+            )}
+          </div>
+      </div>
+    </div>
+  );
+}
 
-              {/* View Details Arrow */}
-              <div style={{ 
-                marginTop: 12,
-                paddingTop: 12,
-                borderTop: '1px solid var(--border)',
-                display: 'flex',
-                justifyContent: 'flex-end',
-                alignItems: 'center',
-                fontSize: 14,
-                fontWeight: 600,
-                color: 'var(--accent)'
-              }}>
-                View Details →
-              </div>
-            </Link>
-          )
-        })}
-      </div>
-      </div>
-    </>
-  )
+function Th({ children, align }) {
+  return (
+    <th
+      style={{
+        textAlign: align || "left",
+        fontWeight: 700,
+        padding: "10px 12px",
+        borderBottom: "1px solid var(--border)",
+      }}
+    >
+      {children}
+    </th>
+  );
+}
+
+function Td({ children, align, colSpan, style }) {
+  return (
+    <td
+      colSpan={colSpan}
+      style={{
+        textAlign: align || "left",
+        padding: "10px 12px",
+        verticalAlign: "top",
+        ...style,
+      }}
+    >
+      {children}
+    </td>
+  );
+}
+
+function badgeTone(kind) {
+  switch (kind) {
+    case "success":
+      return { background: "#eaf8f0", border: "1px solid #d1fae5", color: "#065f46" };
+    case "warn":
+      return { background: "#fff7e6", border: "1px solid #ffd8a8", color: "#8a5a00" };
+    case "info":
+      return { background: "#eaf4ff", border: "1px solid #bfdbfe", color: "#1e3a8a" };
+    case "danger":
+      return { background: "#fef2f2", border: "1px solid #fecaca", color: "#991b1b" };
+    case "muted":
+      return { background: "#f3f4f6", border: "1px solid #e5e7eb", color: "#374151" };
+    default:
+      return { background: "#fff", border: "1px solid #e5e7eb", color: "#111827" };
+  }
 }

@@ -1,0 +1,351 @@
+/* ============================================================================
+   Amazon-Inspired Stats Container
+   A unified, compact statistics display with minimal whitespace
+   ============================================================================ */
+
+/* CSS Variables - Amazon-inspired Design System */
+:root {
+  /* Primary Colors */
+  --amazon-orange: #FF9900;
+  --amazon-dark-orange: #FF6600;
+  --amazon-navy: #232F3E;
+  --amazon-slate: #37475A;
+  --amazon-blue: #146EB4;
+  
+  /* Neutral Palette */
+  --neutral-50: #F7FAFC;
+  --neutral-100: #EDF2F7;
+  --neutral-200: #E2E8F0;
+  --neutral-300: #CBD5E0;
+  --neutral-400: #A0AEC0;
+  --neutral-500: #718096;
+  --neutral-600: #4A5568;
+  --neutral-700: #2D3748;
+  --neutral-800: #1A202C;
+  --neutral-900: #171923;
+  
+  /* Status Colors */
+  --status-success: #067D62;
+  --status-warning: #F9C74F;
+  --status-danger: #E53E3E;
+  --status-info: #0F62FE;
+  
+  /* Spacing */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  
+  /* Shadows */
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+  --shadow-lg: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  
+  /* Borders */
+  --border-radius-sm: 2px;
+  --border-radius-md: 4px;
+  --border-radius-lg: 8px;
+}
+
+/* ============================================================================
+   Container Wrapper & Header
+   ============================================================================ */
+
+.stats-container-wrapper {
+  margin-bottom: var(--space-4);
+}
+
+.stats-container-header {
+  margin-bottom: var(--space-2);
+}
+
+.stats-container-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--neutral-900);
+  margin: 0 0 var(--space-2) 0;
+  letter-spacing: -0.02em;
+}
+
+.stats-container-divider {
+  height: 2px;
+  background: linear-gradient(to right, var(--amazon-orange), transparent);
+  border-radius: var(--border-radius-sm);
+}
+
+/* ============================================================================
+   Main Stats Container - Unified Card
+   ============================================================================ */
+
+.stats-container {
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  gap: var(--space-2);
+  padding: var(--space-3);
+  background: #ffffff;
+  border: 1px solid var(--neutral-200);
+  border-radius: var(--border-radius-lg);
+  box-shadow: var(--shadow-md);
+  transition: box-shadow 0.3s ease;
+}
+
+.stats-container:hover {
+  box-shadow: var(--shadow-lg);
+}
+
+/* ============================================================================
+   Individual Stat Item
+   ============================================================================ */
+
+.stat-item {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  min-height: 50px;
+  padding: var(--space-2);
+  border-radius: var(--border-radius-md);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  outline: none;
+  position: relative;
+}
+
+.stat-item:hover {
+  background: var(--neutral-50);
+  transform: translateY(-1px);
+}
+
+.stat-item:focus-visible {
+  background: var(--neutral-50);
+  box-shadow: 0 0 0 3px rgba(20, 110, 180, 0.2);
+}
+
+.stat-item:active {
+  transform: translateY(0);
+}
+
+/* Stat Header - Icon + Label */
+.stat-header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.stat-icon {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+  stroke-width: 2;
+}
+
+.stat-label {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--neutral-600);
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  line-height: 1.2;
+}
+
+/* Stat Body - Value + Change */
+.stat-body {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+.stat-value {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--neutral-900);
+  line-height: 1;
+  letter-spacing: -0.02em;
+}
+
+/* Change Indicator Badge */
+.stat-change {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px var(--space-1);
+  border-radius: var(--border-radius-sm);
+  white-space: nowrap;
+}
+
+.stat-change.positive {
+  color: var(--status-success);
+  background: rgba(6, 125, 98, 0.1);
+}
+
+.stat-change.negative {
+  color: var(--status-danger);
+  background: rgba(229, 62, 62, 0.1);
+}
+
+.stat-change.neutral {
+  color: var(--neutral-500);
+  background: var(--neutral-100);
+}
+
+.stat-change svg {
+  width: 14px;
+  height: 14px;
+}
+
+/* Stat Footer - Previous Value */
+.stat-footer {
+  font-size: 10px;
+  color: var(--neutral-500);
+  margin-top: auto;
+  display: none; /* Hide for compact single-row layout */
+}
+
+/* ============================================================================
+   Responsive Design - Mobile First
+   ============================================================================ */
+
+/* Mobile (< 768px) - Stack vertically */
+@media (max-width: 767px) {
+  .stats-container {
+    grid-template-columns: 1fr;
+    gap: var(--space-4);
+    padding: var(--space-4);
+  }
+  
+  .stat-item {
+    min-height: 70px;
+    padding: var(--space-4);
+  }
+  
+  .stat-value {
+    font-size: 28px;
+  }
+  
+  .stats-container-title {
+    font-size: 18px;
+  }
+}
+
+/* Tablet (768px - 1023px) - 2 columns */
+@media (min-width: 768px) and (max-width: 1023px) {
+  .stats-container {
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--space-5);
+    padding: var(--space-5);
+  }
+  
+  .stat-value {
+    font-size: 30px;
+  }
+}
+
+/* Desktop (1024px - 1439px) - Keep 8 columns */
+@media (min-width: 1024px) and (max-width: 1439px) {
+  .stats-container {
+    grid-template-columns: repeat(8, 1fr);
+  }
+}
+
+/* Large Desktop (≥ 1440px) - Keep 8 columns */
+@media (min-width: 1440px) {
+  .stats-container {
+    grid-template-columns: repeat(8, 1fr);
+  }
+}
+
+/* ============================================================================
+   Touch Device Enhancements
+   ============================================================================ */
+
+@media (hover: none) {
+  .stat-item {
+    /* Larger touch targets for mobile */
+    padding: var(--space-4);
+    min-height: 88px;
+  }
+  
+  .stat-item:hover {
+    /* Remove hover effect on touch devices */
+    background: transparent;
+    transform: none;
+  }
+  
+  .stat-item:active {
+    background: var(--neutral-100);
+  }
+}
+
+/* ============================================================================
+   Print Styles
+   ============================================================================ */
+
+@media print {
+  .stats-container {
+    box-shadow: none;
+    border: 1px solid var(--neutral-300);
+    page-break-inside: avoid;
+  }
+  
+  .stat-item {
+    cursor: default;
+  }
+  
+  .stat-item:hover {
+    background: transparent;
+    transform: none;
+  }
+}
+
+/* ============================================================================
+   Dark Mode Support (if needed in future)
+   ============================================================================ */
+
+@media (prefers-color-scheme: dark) {
+  .stats-container {
+    background: var(--neutral-800);
+    border-color: var(--neutral-700);
+  }
+  
+  .stats-container-title {
+    color: var(--neutral-100);
+  }
+  
+  .stat-item:hover,
+  .stat-item:focus-visible {
+    background: var(--neutral-700);
+  }
+  
+  .stat-label {
+    color: var(--neutral-400);
+  }
+  
+  .stat-value {
+    color: var(--neutral-100);
+  }
+  
+  .stat-footer {
+    color: var(--neutral-500);
+  }
+  
+  .stat-change.neutral {
+    background: var(--neutral-700);
+  }
+}
+
+/* ============================================================================
+   Reduced Motion Support (Accessibility)
+   ============================================================================ */
+
+@media (prefers-reduced-motion: reduce) {
+  .stats-container,
+  .stat-item,
+  .stat-item:hover {
+    transition: none;
+  }
+}

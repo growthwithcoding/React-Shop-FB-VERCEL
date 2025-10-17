@@ -94,7 +94,38 @@ export default function CreateSupportTicketModal({ isOpen, onClose, onSuccess })
       <div className="modal" style={{ maxWidth: 720, width: "100%" }} onClick={(e) => e.stopPropagation()}>
         {!showSuccess ? (
           <>
-            <h2 style={{ marginTop: 0 }}>Create Support Ticket</h2>
+            <div className="hero-title-row" style={{ alignItems: "center", marginBottom: 16 }}>
+              <h3 style={{ margin: 0 }}>Create Support Ticket</h3>
+              <button
+                onClick={handleClose}
+                disabled={ticketSubmitting}
+                style={{
+                  background: "transparent",
+                  border: "none",
+                  color: "#6b7280",
+                  cursor: "pointer",
+                  padding: "4px",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  borderRadius: "4px",
+                  transition: "all 0.2s ease",
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = "#f3f4f6";
+                  e.currentTarget.style.color = "#374151";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = "transparent";
+                  e.currentTarget.style.color = "#6b7280";
+                }}
+              >
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="18" y1="6" x2="6" y2="18"></line>
+                  <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+              </button>
+            </div>
             <p className="meta" style={{ marginBottom: 20 }}>
               Our support team typically responds within 24 hours. For urgent matters, please call us directly.
             </p>
@@ -160,19 +191,56 @@ export default function CreateSupportTicketModal({ isOpen, onClose, onSuccess })
                 />
               </label>
 
-              <div className="actions" style={{ display: "flex", gap: 8, justifyContent: "flex-end" }}>
+              <div className="actions" style={{ display: "flex", gap: 8, justifyContent: "flex-end", marginTop: 16 }}>
                 <button
                   type="button"
-                  className="btn btn-secondary"
                   onClick={handleClose}
                   disabled={ticketSubmitting}
+                  style={{
+                    padding: "8px 14px",
+                    fontSize: "13px",
+                    fontWeight: 600,
+                    background: "#fff",
+                    border: "1px solid #e5e7eb",
+                    borderRadius: "6px",
+                    color: "#374151",
+                    cursor: "pointer",
+                    transition: "all 0.2s ease",
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.background = "#f9fafb";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.background = "#fff";
+                  }}
                 >
                   Cancel
                 </button>
                 <button
-                  className="btn btn-primary"
                   type="submit"
                   disabled={ticketSubmitting}
+                  style={{
+                    padding: "8px 14px",
+                    fontSize: "13px",
+                    fontWeight: 600,
+                    background: ticketSubmitting ? "#9ca3af" : "#067D62",
+                    color: "#fff",
+                    border: "none",
+                    borderRadius: "6px",
+                    cursor: ticketSubmitting ? "not-allowed" : "pointer",
+                    transition: "all 0.2s ease",
+                    opacity: ticketSubmitting ? 0.6 : 1,
+                  }}
+                  onMouseEnter={(e) => {
+                    if (!ticketSubmitting) {
+                      e.currentTarget.style.background = "#055A4A";
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (!ticketSubmitting) {
+                      e.currentTarget.style.background = "#067D62";
+                    }
+                  }}
                 >
                   {ticketSubmitting ? "Submitting..." : "Submit Ticket"}
                 </button>
@@ -197,10 +265,26 @@ export default function CreateSupportTicketModal({ isOpen, onClose, onSuccess })
                 You can view and track your ticket in the "Support Tickets" section below.
               </p>
             </div>
-            <div className="actions" style={{ display: "flex", gap: 8, justifyContent: "center" }}>
+            <div className="actions" style={{ display: "flex", gap: 8, justifyContent: "flex-end", marginTop: 16 }}>
               <button 
-                className="btn btn-primary" 
                 onClick={handleClose}
+                style={{
+                  padding: "8px 14px",
+                  fontSize: "13px",
+                  fontWeight: 600,
+                  background: "#067D62",
+                  color: "#fff",
+                  border: "none",
+                  borderRadius: "6px",
+                  cursor: "pointer",
+                  transition: "all 0.2s ease",
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = "#055A4A";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = "#067D62";
+                }}
               >
                 Done
               </button>

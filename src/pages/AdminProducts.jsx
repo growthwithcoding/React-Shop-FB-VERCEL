@@ -1,11 +1,11 @@
 // src/pages/AdminProducts.jsx
 import { useEffect, useMemo, useState } from "react";
+import { Link } from "react-router-dom";
 import { listProducts, createProduct, updateProduct, deleteProduct } from "../services/productService";
+import { listCategories, createCategory, getCategoriesFromProducts } from "../services/categoryService";
 import { useDashboard } from "../hooks/useDashboard";
 import { Pagination } from "../components/Pagination";
-import BreadcrumbNav from '../components/BreadcrumbNav';
-import { Package } from "lucide-react";
-import { useTotalHeaderHeight } from "../hooks/useTotalHeaderHeight";
+import { Package, Plus } from "lucide-react";
 
 /* --------------------------- helpers / formatters --------------------------- */
 const USD = new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" });
@@ -18,16 +18,21 @@ function asNumber(v, fallback = 0) {
 
 function normalizeProduct(p) {
   // Allow missing fields from older docs
+  // Use inventory field (from seed data) or stock field (legacy)
+  const inv = asNumber(p?.inventory ?? p?.stock, 0);
   return {
     id: p?.id ?? "",
     title: p?.title ?? "",
     price: asNumber(p?.price, 0),
     image: p?.image ?? "",
+    shortDescription: p?.shortDescription ?? "",
+    longDescription: p?.longDescription ?? "",
+    // Fallback for old single description field
     description: p?.description ?? "",
     category: p?.category ?? "general",
     sku: p?.sku ?? "",
-    stock: asNumber(p?.stock, 0),
-    status: p?.status ?? (asNumber(p?.stock, 0) > 0 ? "active" : "inactive"),
+    inventory: inv,
+    status: p?.status ?? (inv > 0 ? "active" : "inactive"),
   };
 }
 
@@ -66,32 +71,60 @@ function ProductModal({ open, mode, initial, onClose, onCreate, onUpdate, onDele
     title: "",
     price: 0,
     image: "",
-    description: "",
+    shortDescription: "",
+    longDescription: "",
     category: "general",
     sku: "",
-    stock: 0,
+    inventory: 0,
     status: "active",
   });
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState("");
+  const [categories, setCategories] = useState([]);
+  const [showAddCategory, setShowAddCategory] = useState(false);
+  const [newCategoryName, setNewCategoryName] = useState("");
+  const [categoryBusy, setCategoryBusy] = useState(false);
 
+  // Load categories when modal opens
   useEffect(() => {
     if (!open) return;
     setErr("");
     setBusy(false);
+    
+    async function loadCategories() {
+      try {
+        let cats = await listCategories();
+        // If no categories in DB, get from products
+        if (cats.length === 0) {
+          cats = await getCategoriesFromProducts();
+        }
+        // Add "general" if not present
+        if (!cats.find(c => c.name === "general")) {
+          cats = [{ name: "general" }, ...cats];
+        }
+        setCategories(cats);
+      } catch (e) {
+        console.error("Failed to load categories:", e);
+        setCategories([{ name: "general" }]);
+      }
+    }
+    
+    loadCategories();
+    
     if (isEdit && initial) {
       setDraft({
         title: initial.title || "",
         price: asNumber(initial.price, 0),
         image: initial.image || "",
-        description: initial.description || "",
+        shortDescription: initial.shortDescription || "",
+        longDescription: initial.longDescription || "",
         category: initial.category || "general",
         sku: initial.sku || "",
-        stock: asNumber(initial.stock, 0),
-        status: initial.status || (asNumber(initial.stock, 0) > 0 ? "active" : "inactive"),
+        inventory: asNumber(initial.inventory, 0),
+        status: initial.status || (asNumber(initial.inventory, 0) > 0 ? "active" : "inactive"),
       });
     } else if (isCreate) {
-      setDraft({ title: "", price: 0, image: "", description: "", category: "general", sku: "", stock: 0, status: "active" });
+      setDraft({ title: "", price: 0, image: "", shortDescription: "", longDescription: "", category: "general", sku: "", inventory: 0, status: "active" });
     }
   }, [open, isCreate, isEdit, initial]);
 
@@ -102,7 +135,7 @@ function ProductModal({ open, mode, initial, onClose, onCreate, onUpdate, onDele
     if (isDelete) return;
     if (!draft.title.trim()) return setErr("Title is required.");
     if (draft.price < 0) return setErr("Price cannot be negative.");
-    if (draft.stock < 0) return setErr("Stock cannot be negative.");
+    if (draft.inventory < 0) return setErr("Inventory cannot be negative.");
     try {
       setBusy(true);
       if (isCreate) await onCreate?.(draft);
@@ -136,7 +169,35 @@ function ProductModal({ open, mode, initial, onClose, onCreate, onUpdate, onDele
             {isEdit && "Edit Product"}
             {isDelete && "Delete Product"}
           </h3>
-          <button className="btn btn-secondary btn-slim" onClick={onClose} disabled={busy}>Close</button>
+          <button
+            onClick={onClose}
+            disabled={busy}
+            style={{
+              background: "transparent",
+              border: "none",
+              color: "#6b7280",
+              cursor: "pointer",
+              padding: "4px",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              borderRadius: "4px",
+              transition: "all 0.2s ease",
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = "#f3f4f6";
+              e.currentTarget.style.color = "#374151";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = "transparent";
+              e.currentTarget.style.color = "#6b7280";
+            }}
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+          </button>
         </div>
 
         {isDelete ? (
@@ -144,8 +205,49 @@ function ProductModal({ open, mode, initial, onClose, onCreate, onUpdate, onDele
             <p>Are you sure you want to delete <strong>{initial?.title || "this product"}</strong>?</p>
             {err && <div className="card" style={{ padding: 8, color: "var(--danger, #991b1b)" }}>{err}</div>}
             <div className="actions">
-              <button className="btn btn-secondary" onClick={onClose} disabled={busy}>Cancel</button>
-              <button className="btn btn-primary" onClick={handleDelete} disabled={busy}>
+              <button
+                onClick={onClose}
+                disabled={busy}
+                style={{
+                  padding: "8px 14px",
+                  fontSize: "13px",
+                  fontWeight: 600,
+                  background: "#fff",
+                  border: "1px solid #e5e7eb",
+                  borderRadius: "6px",
+                  color: "#374151",
+                  cursor: "pointer",
+                  transition: "all 0.2s ease",
+                }}
+                onMouseEnter={(e) => e.currentTarget.style.background = "#f9fafb"}
+                onMouseLeave={(e) => e.currentTarget.style.background = "#fff"}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleDelete}
+                disabled={busy}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "6px",
+                  padding: "8px 14px",
+                  fontSize: "13px",
+                  fontWeight: 600,
+                  background: busy ? "#9ca3af" : "#dc2626",
+                  color: "#fff",
+                  border: "none",
+                  borderRadius: "6px",
+                  cursor: busy ? "not-allowed" : "pointer",
+                  transition: "all 0.2s ease",
+                }}
+                onMouseEnter={(e) => { if (!busy) e.currentTarget.style.background = "#b91c1c"; }}
+                onMouseLeave={(e) => { if (!busy) e.currentTarget.style.background = "#dc2626"; }}
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="3 6 5 6 21 6"></polyline>
+                  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                </svg>
                 {busy ? "Deleting…" : "Delete"}
               </button>
             </div>
@@ -155,49 +257,231 @@ function ProductModal({ open, mode, initial, onClose, onCreate, onUpdate, onDele
             <div className="grid" style={{ gridTemplateColumns: "2fr 1fr 1fr", gap: 8 }}>
               <label className="field" style={{ gridColumn: "1 / -1" }}>
                 <div className="meta">Title</div>
-                <input className="input" value={draft.title} onChange={(e) => setDraft(d => ({ ...d, title: e.target.value }))} placeholder="Product title" />
+                <input className="input" value={draft.title} onChange={(e) => setDraft(d => ({ ...d, title: e.target.value }))} placeholder="Product title" style={{ padding: "6px 10px", fontSize: "13px" }} />
               </label>
               <label className="field">
                 <div className="meta">Price</div>
                 <input className="input" type="number" min="0" step="0.01" value={draft.price}
-                  onChange={(e) => setDraft(d => ({ ...d, price: asNumber(e.target.value, 0) }))} />
+                  onChange={(e) => setDraft(d => ({ ...d, price: asNumber(e.target.value, 0) }))} style={{ padding: "6px 10px", fontSize: "13px" }} />
               </label>
               <label className="field">
-                <div className="meta">Stock</div>
-                <input className="input" type="number" min="0" step="1" value={draft.stock}
-                  onChange={(e) => setDraft(d => ({ ...d, stock: Math.max(0, Math.floor(asNumber(e.target.value, 0))) }))} />
+                <div className="meta">Inventory</div>
+                <input className="input" type="number" min="0" step="1" value={draft.inventory}
+                  onChange={(e) => setDraft(d => ({ ...d, inventory: Math.max(0, Math.floor(asNumber(e.target.value, 0))) }))} style={{ padding: "6px 10px", fontSize: "13px" }} />
               </label>
               <label className="field">
                 <div className="meta">SKU</div>
-                <input className="input" value={draft.sku} onChange={(e) => setDraft(d => ({ ...d, sku: e.target.value }))} placeholder="SKU-1234" />
+                <input className="input" value={draft.sku} onChange={(e) => setDraft(d => ({ ...d, sku: e.target.value }))} placeholder="SKU-1234" style={{ padding: "6px 10px", fontSize: "13px" }} />
               </label>
               <label className="field" style={{ gridColumn: "1 / -1" }}>
                 <div className="meta">Image URL</div>
-                <input className="input" value={draft.image} onChange={(e) => setDraft(d => ({ ...d, image: e.target.value }))} placeholder="https://…" />
+                <input className="input" value={draft.image} onChange={(e) => setDraft(d => ({ ...d, image: e.target.value }))} placeholder="https://…" style={{ padding: "6px 10px", fontSize: "13px" }} />
               </label>
-              <label className="field">
+              <div className="field">
                 <div className="meta">Category</div>
-                <input className="input" value={draft.category} onChange={(e) => setDraft(d => ({ ...d, category: e.target.value }))} placeholder="general" />
-              </label>
+                <div style={{ display: "flex", gap: 6 }}>
+                  <select 
+                    className="select" 
+                    value={draft.category} 
+                    onChange={(e) => setDraft(d => ({ ...d, category: e.target.value }))}
+                    style={{ flex: 1, padding: "6px 10px", fontSize: "13px" }}
+                  >
+                    {categories.map((cat) => (
+                      <option key={cat.name} value={cat.name}>
+                        {cat.name}
+                      </option>
+                    ))}
+                  </select>
+                  <button
+                    type="button"
+                    onClick={() => setShowAddCategory(true)}
+                    disabled={categoryBusy}
+                    style={{ 
+                      padding: "6px 12px", 
+                      display: "flex", 
+                      alignItems: "center", 
+                      gap: 4,
+                      background: categoryBusy ? "#9ca3af" : "#067D62",
+                      color: "#fff",
+                      border: "none",
+                      borderRadius: "6px",
+                      fontSize: "13px",
+                      fontWeight: 600,
+                      cursor: categoryBusy ? "not-allowed" : "pointer",
+                      transition: "all 0.2s ease",
+                    }}
+                    onMouseEnter={(e) => {
+                      if (!categoryBusy) {
+                        e.currentTarget.style.background = "#055A4A";
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      if (!categoryBusy) {
+                        e.currentTarget.style.background = "#067D62";
+                      }
+                    }}
+                  >
+                    <Plus size={14} />
+                    Add
+                  </button>
+                </div>
+                {showAddCategory && (
+                  <div style={{ marginTop: 8, display: "flex", gap: 6 }}>
+                    <input
+                      className="input"
+                      value={newCategoryName}
+                      onChange={(e) => setNewCategoryName(e.target.value)}
+                      placeholder="New category name"
+                      style={{ flex: 1, padding: "6px 10px", fontSize: "13px" }}
+                      autoFocus
+                    />
+                    <button
+                      type="button"
+                      onClick={async () => {
+                        if (!newCategoryName.trim()) return;
+                        try {
+                          setCategoryBusy(true);
+                          await createCategory({ name: newCategoryName.trim() });
+                          // Reload categories
+                          const cats = await listCategories();
+                          setCategories(cats);
+                          setDraft(d => ({ ...d, category: newCategoryName.trim() }));
+                          setNewCategoryName("");
+                          setShowAddCategory(false);
+                        } catch (e) {
+                          setErr(e?.message || "Failed to create category");
+                        } finally {
+                          setCategoryBusy(false);
+                        }
+                      }}
+                      disabled={categoryBusy || !newCategoryName.trim()}
+                      style={{ 
+                        padding: "6px 12px",
+                        fontSize: "13px",
+                        fontWeight: 600,
+                        background: categoryBusy || !newCategoryName.trim() ? "#9ca3af" : "#067D62",
+                        color: "#fff",
+                        border: "none",
+                        borderRadius: "6px",
+                        cursor: categoryBusy || !newCategoryName.trim() ? "not-allowed" : "pointer",
+                        transition: "all 0.2s ease",
+                      }}
+                      onMouseEnter={(e) => {
+                        if (!categoryBusy && newCategoryName.trim()) {
+                          e.currentTarget.style.background = "#055A4A";
+                        }
+                      }}
+                      onMouseLeave={(e) => {
+                        if (!categoryBusy && newCategoryName.trim()) {
+                          e.currentTarget.style.background = "#067D62";
+                        }
+                      }}
+                    >
+                      {categoryBusy ? "Creating…" : "Create"}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowAddCategory(false);
+                        setNewCategoryName("");
+                      }}
+                      disabled={categoryBusy}
+                      style={{ 
+                        padding: "6px 12px",
+                        fontSize: "13px",
+                        fontWeight: 600,
+                        background: "#fff",
+                        border: "1px solid #e5e7eb",
+                        borderRadius: "6px",
+                        color: "#374151",
+                        cursor: "pointer",
+                        transition: "all 0.2s ease",
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.background = "#f9fafb";
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.background = "#fff";
+                      }}
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                )}
+              </div>
               <label className="field">
                 <div className="meta">Status</div>
-                <select className="select" value={draft.status} onChange={(e) => setDraft(d => ({ ...d, status: e.target.value }))}>
+                <select className="select" value={draft.status} onChange={(e) => setDraft(d => ({ ...d, status: e.target.value }))} style={{ padding: "6px 10px", fontSize: "13px" }}>
                   <option value="active">Active</option>
                   <option value="inactive">Inactive</option>
                 </select>
               </label>
               <label className="field" style={{ gridColumn: "1 / -1" }}>
-                <div className="meta">Description</div>
-                <textarea className="input" rows={4} value={draft.description}
-                  onChange={(e) => setDraft(d => ({ ...d, description: e.target.value }))} />
+                <div className="meta">Short Description</div>
+                <textarea className="input" rows={2} value={draft.shortDescription}
+                  onChange={(e) => setDraft(d => ({ ...d, shortDescription: e.target.value }))} 
+                  placeholder="Brief product summary (shown on product cards)"
+                  style={{ padding: "6px 10px", fontSize: "13px" }} />
+              </label>
+              <label className="field" style={{ gridColumn: "1 / -1" }}>
+                <div className="meta">Long Description</div>
+                <textarea className="input" rows={6} value={draft.longDescription}
+                  onChange={(e) => setDraft(d => ({ ...d, longDescription: e.target.value }))} 
+                  placeholder="Detailed product description (shown on product page)"
+                  style={{ padding: "6px 10px", fontSize: "13px" }} />
               </label>
             </div>
 
             {err && <div className="card" style={{ padding: 8, marginTop: 8, color: "var(--danger, #991b1b)" }}>{err}</div>}
 
             <div className="actions" style={{ marginTop: 12 }}>
-              <button type="button" className="btn btn-secondary" onClick={onClose} disabled={busy}>Cancel</button>
-              <button className="btn btn-primary" disabled={busy}>{busy ? (isEdit ? "Saving…" : "Creating…") : (isEdit ? "Save" : "Create")}</button>
+              <button
+                type="button"
+                onClick={onClose}
+                disabled={busy}
+                style={{
+                  padding: "8px 14px",
+                  fontSize: "13px",
+                  fontWeight: 600,
+                  background: "#fff",
+                  border: "1px solid #e5e7eb",
+                  borderRadius: "6px",
+                  color: "#374151",
+                  cursor: "pointer",
+                  transition: "all 0.2s ease",
+                }}
+                onMouseEnter={(e) => e.currentTarget.style.background = "#f9fafb"}
+                onMouseLeave={(e) => e.currentTarget.style.background = "#fff"}
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={busy}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "6px",
+                  padding: "8px 14px",
+                  fontSize: "13px",
+                  fontWeight: 600,
+                  background: busy ? "#9ca3af" : "#067D62",
+                  color: "#fff",
+                  border: "none",
+                  borderRadius: "6px",
+                  cursor: busy ? "not-allowed" : "pointer",
+                  transition: "all 0.2s ease",
+                }}
+                onMouseEnter={(e) => { if (!busy) e.currentTarget.style.background = "#055A4A"; }}
+                onMouseLeave={(e) => { if (!busy) e.currentTarget.style.background = "#067D62"; }}
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+                  <polyline points="17 21 17 13 7 13 7 21"></polyline>
+                  <polyline points="7 3 7 8 15 8"></polyline>
+                </svg>
+                {busy ? (isEdit ? "Saving…" : "Creating…") : (isEdit ? "Save" : "Create")}
+              </button>
             </div>
           </form>
         )}
@@ -208,7 +492,6 @@ function ProductModal({ open, mode, initial, onClose, onCreate, onUpdate, onDele
 
 /* ------------------------------- page body -------------------------------- */
 export default function AdminProducts() {
-  const { totalHeaderHeight } = useTotalHeaderHeight();
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -242,11 +525,11 @@ export default function AdminProducts() {
   // derived stats
   const stats = useMemo(() => {
     const total = items.length;
-    const totalStock = items.reduce((s, x) => s + (x.stock || 0), 0);
-    const low = items.filter(x => x.stock > 0 && x.stock <= 5).length;
-    const out = items.filter(x => (x.stock || 0) === 0).length;
+    const totalStock = items.reduce((s, x) => s + (x.inventory || 0), 0);
+    const low = items.filter(x => x.inventory > 0 && x.inventory <= 5).length;
+    const out = items.filter(x => (x.inventory || 0) === 0).length;
     const active = items.filter(x => x.status === "active").length;
-    const value = items.reduce((s, x) => s + x.price * (x.stock || 0), 0);
+    const value = items.reduce((s, x) => s + x.price * (x.inventory || 0), 0);
     return { total, totalStock, low, out, active, value };
   }, [items]);
 
@@ -255,8 +538,8 @@ export default function AdminProducts() {
     const s = q.trim().toLowerCase();
     return items.filter((x) => {
       if (cat !== "all" && (x.category || "general") !== cat) return false;
-      if (stockView === "low" && !(x.stock > 0 && x.stock <= 5)) return false;
-      if (stockView === "out" && (x.stock || 0) !== 0) return false;
+      if (stockView === "low" && !(x.inventory > 0 && x.inventory <= 5)) return false;
+      if (stockView === "out" && (x.inventory || 0) !== 0) return false;
       if (stockView === "active" && x.status !== "active") return false;
       if (stockView === "inactive" && x.status !== "inactive") return false;
       if (s) {
@@ -282,6 +565,15 @@ export default function AdminProducts() {
 
   const totalPages = Math.ceil(filtered.length / perPage);
 
+  // Calculate inventory metrics for inline stats
+  const inventoryMetrics = useMemo(() => {
+    const lowStock = filtered.filter(x => x.inventory > 0 && x.inventory <= 5).length;
+    const outOfStock = filtered.filter(x => (x.inventory || 0) === 0).length;
+    const active = filtered.filter(x => x.status === "active").length;
+    
+    return { lowStock, outOfStock, active };
+  }, [filtered]);
+
   // categories for filter
   const categories = useMemo(() => {
     const set = new Set(items.map((i) => i.category || "general"));
@@ -306,61 +598,89 @@ export default function AdminProducts() {
     await load();
   }
 
+  // Amazon color palette
+  const amazonColors = {
+    orange: "#FF9900",
+    darkOrange: "#FF6600",
+    darkBg: "#232F3E",
+    lightBg: "#37475A",
+    accentBlue: "#146EB4",
+    textLight: "#FFFFFF",
+    textDark: "#0F1111",
+    borderLight: "#DDD",
+    success: "#067D62",
+    warning: "#F9C74F",
+    danger: "#E53E3E",
+  };
+  
+  // Enhanced box shadow styles
+  const cardShadow = {
+    boxShadow: "0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24)",
+    transition: "all 0.3s cubic-bezier(.25,.8,.25,1)",
+  };
+
   /* ------------------------------- rendering ------------------------------- */
   return (
-    <>
-      <BreadcrumbNav
-        currentPage="Products"
-        backButton={{ label: "Back to Dashboard", path: "/admin" }}
-        rightActions={
-          <div style={{
-            display: "flex",
-            gap: 8,
-            alignItems: "center",
-            background: "linear-gradient(135deg, #e0f2f1 0%, #b2dfdb 100%)",
-            padding: "6px 10px",
-            borderRadius: 8,
-            boxShadow: "0 2px 8px rgba(0, 113, 133, 0.15)"
-          }}>
-            <button 
-              type="button" 
-              onClick={openCreate}
+    <div className="min-h-screen" style={{ background: "linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%)" }}>
+      <div className="container-xl" style={{ paddingTop: 24, paddingBottom: 24 }}>
+        {/* Hero Headline with Title, Description, and Actions */}
+        <div className="hero-headline" style={{ marginBottom: 16 }}>
+          <div>
+            <div className="kicker">Admin</div>
+            <h1 style={{ margin: 0 }}>Products</h1>
+            <div className="meta" style={{ marginTop: 8 }}>
+              Manage product catalog, inventory, and pricing
+            </div>
+          </div>
+          <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+            <Link 
+              to="/admin" 
+              className="btn btn-secondary"
               style={{
-                background: "none",
-                border: "none",
-                color: "#00695c",
-                fontSize: 13,
-                cursor: "pointer",
+                fontSize: "13px",
+                padding: "8px 14px",
+                whiteSpace: "nowrap"
+              }}
+            >
+              ← Back
+            </Link>
+            <button
+              onClick={openCreate}
+              className="btn btn-primary"
+              style={{
                 display: "flex",
                 alignItems: "center",
-                gap: 6,
-                padding: "6px 12px",
-                fontWeight: 600,
-                whiteSpace: "nowrap",
-                borderRadius: 6,
-                transition: "background 0.2s"
+                gap: "8px",
+                fontSize: "13px",
+                padding: "8px 14px",
+                whiteSpace: "nowrap"
               }}
-              onMouseEnter={(e) => e.target.style.background = "rgba(255, 255, 255, 0.4)"}
-              onMouseLeave={(e) => e.target.style.background = "none"}
             >
-              <Package style={{ width: 16, height: 16 }} />
+              <Package size={14} />
               Add Product
             </button>
           </div>
-        }
-      />
-      
-      <div className="container-xl" style={{ paddingTop: totalHeaderHeight, paddingBottom: 24 }}>
-        {/* Header */}
-        <div className="hero-headline" style={{ marginBottom: 8, marginTop: -8 }}>
-          <div>
-            <div className="kicker" style={{ marginBottom: 0 }}>Admin</div>
-            <h1 style={{ margin: 0 }}>Products</h1>
-          </div>
         </div>
 
-      {/* KPI widgets */}
-      <div className="grid" style={{ gridTemplateColumns: "repeat(5, minmax(0, 1fr))", gap: 8, marginBottom: 12 }}>
+        {/* Section Title */}
+        <div style={{ marginBottom: 12 }}>
+          <h2 style={{ 
+            fontSize: 20, 
+            fontWeight: 800, 
+            color: amazonColors.darkBg,
+            margin: 0,
+            marginBottom: 4
+          }}>Key Metrics</h2>
+          <div style={{ 
+            height: 2, 
+            width: 60,
+            background: "linear-gradient(to right, #FF9900, transparent)",
+            borderRadius: 2
+          }} />
+        </div>
+
+          {/* KPI widgets */}
+          <div className="grid" style={{ gridTemplateColumns: "repeat(5, minmax(0, 1fr))", gap: 8, marginBottom: 16 }}>
         <StatCard icon={<IconBox />} title="Products" value={stats.total} />
         <StatCard icon={<IconCheck />} title="Active" value={stats.active} />
         <StatCard icon={<IconAlert />} title="Low stock" value={stats.low} tone="warn" />
@@ -368,34 +688,59 @@ export default function AdminProducts() {
         <StatCard icon={<IconDollar />} title="Inventory value" value={USD.format(stats.value)} />
       </div>
 
-      {/* Filters row */}
-      <div className="card" style={{ padding: 12, marginBottom: 12 }}>
-        <div className="grid" style={{ gridTemplateColumns: "2fr 1fr 1fr 1fr", gap: 8 }}>
-          <input className="input" placeholder="Search title, SKU, category…" value={q} onChange={(e) => setQ(e.target.value)} />
-          <select className="select" value={cat} onChange={(e) => setCat(e.target.value)}>
-            {categories.map((c) => <option key={c} value={c}>{c[0].toUpperCase() + c.slice(1)}</option>)}
-          </select>
-          <select className="select" value={stockView} onChange={(e) => setStockView(e.target.value)}>
-            <option value="all">All stock</option>
-            <option value="low">Low (≤5)</option>
-            <option value="out">Out of stock</option>
-            <option value="active">Active only</option>
-            <option value="inactive">Inactive only</option>
-          </select>
-          <button className="btn btn-secondary" type="button" onClick={() => { setQ(""); setCat("all"); setStockView("all"); }}>
-            Reset
-          </button>
-        </div>
-      </div>
-
-      {/* Catalog */}
-      <div className="card" style={{ padding: 0 }}>
-        {loading ? (
-          <div style={{ padding: 16 }}>Loading…</div>
-        ) : (
-          <>
-            <div style={{ overflowX: "auto", borderRadius: 12 }}>
-            <table style={{ width: "100%", borderCollapse: "separate", borderSpacing: 0 }}>
+          {/* Catalog */}
+          <div className="card" style={{
+            padding: 20,
+            background: "#fff",
+            borderRadius: "12px",
+            ...cardShadow
+          }}>
+            {/* Single Row: Title - Filters - Stats */}
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 24, marginBottom: 16 }}>
+              {/* Title */}
+              <h2 style={{ margin: 0, fontSize: 20, fontWeight: 800, color: amazonColors.darkBg, minWidth: "150px" }}>Product Catalog</h2>
+              
+              {/* Filters - Centered */}
+              <div className="grid" style={{ gridTemplateColumns: "2fr 1fr 1fr 1fr", gap: 6, flex: 1, maxWidth: "700px" }}>
+                <input className="input" placeholder="Search title, SKU, category…" value={q} onChange={(e) => setQ(e.target.value)} style={{ fontSize: "13px", padding: "6px 10px" }} />
+                <select className="select" value={cat} onChange={(e) => setCat(e.target.value)} style={{ fontSize: "13px", padding: "6px 10px" }}>
+                  {categories.map((c) => <option key={c} value={c}>{c[0].toUpperCase() + c.slice(1)}</option>)}
+                </select>
+                <select className="select" value={stockView} onChange={(e) => setStockView(e.target.value)} style={{ fontSize: "13px", padding: "6px 10px" }}>
+                <option value="all">All stock</option>
+                <option value="low">Low (≤5)</option>
+                <option value="out">Out of stock</option>
+                  <option value="active">Active only</option>
+                  <option value="inactive">Inactive only</option>
+                </select>
+                <button className="btn btn-secondary" type="button" onClick={() => { setQ(""); setCat("all"); setStockView("all"); }} style={{ fontSize: "13px", padding: "6px 10px" }}>
+                  Reset
+                </button>
+              </div>
+              
+              {/* Inventory Mini Stats */}
+              <div style={{ display: "flex", gap: "16px", alignItems: "center", minWidth: "280px" }}>
+                <div style={{ textAlign: "center" }}>
+                  <div style={{ fontSize: "10px", color: "#718096", fontWeight: 600, marginBottom: "2px" }}>ACTIVE</div>
+                  <div style={{ fontSize: "16px", fontWeight: 700, color: "#067D62" }}>{inventoryMetrics.active}</div>
+                </div>
+                <div style={{ textAlign: "center" }}>
+                  <div style={{ fontSize: "10px", color: "#718096", fontWeight: 600, marginBottom: "2px" }}>LOW STOCK</div>
+                  <div style={{ fontSize: "16px", fontWeight: 700, color: "#FF9900" }}>{inventoryMetrics.lowStock}</div>
+                </div>
+                <div style={{ textAlign: "center" }}>
+                  <div style={{ fontSize: "10px", color: "#718096", fontWeight: 600, marginBottom: "2px" }}>OUT OF STOCK</div>
+                  <div style={{ fontSize: "16px", fontWeight: 700, color: "#E53E3E" }}>{inventoryMetrics.outOfStock}</div>
+                </div>
+              </div>
+            </div>
+            
+            {loading ? (
+              <div style={{ padding: 16, paddingTop: 0 }}>Loading…</div>
+            ) : (
+              <>
+                <div style={{ overflowX: "auto", borderRadius: 12 }}>
+                  <table style={{ width: "100%", borderCollapse: "separate", borderSpacing: 0 }}>
               <thead style={{ background: "#f9fafb" }}>
                 <tr>
                   <Th>Product</Th>
@@ -408,8 +753,11 @@ export default function AdminProducts() {
                 </tr>
               </thead>
               <tbody>
-                {paginatedItems.map((p) => (
-                  <tr key={p.id} style={{ borderBottom: "1px solid var(--border)" }}>
+                {paginatedItems.map((p, index) => (
+                  <tr key={p.id} style={{ 
+                    borderBottom: "1px solid var(--border)",
+                    background: index % 2 === 0 ? "#fff" : "#f9fafb"
+                  }}>
                     <Td>
                       <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
                         <img
@@ -421,7 +769,7 @@ export default function AdminProducts() {
                         />
                         <div>
                           <div style={{ fontWeight: 700 }}>{p.title || "Untitled"}</div>
-                          <div className="meta">{p.description?.slice(0, 64) || "—"}</div>
+                          <div className="meta">{(p.shortDescription || p.description)?.slice(0, 64) || "—"}</div>
                         </div>
                       </div>
                     </Td>
@@ -429,17 +777,43 @@ export default function AdminProducts() {
                     <Td>{p.category || "general"}</Td>
                     <Td align="right">{USD.format(p.price)}</Td>
                     <Td align="center">
-                      <InventoryBadge stock={p.stock} />
+                      <InventoryBadge stock={p.inventory} />
                     </Td>
                     <Td align="center">
                       <span className="pill" style={pillTone(p.status === "active" ? "success" : "muted")}>
                         {p.status || "inactive"}
                       </span>
                     </Td>
-                    <Td align="center">
-                      <div style={{ display: "flex", gap: 8, justifyContent: "center", flexWrap: "wrap" }}>
-                        <button className="btn btn-secondary btn-slim" onClick={() => openEdit(p)}>Edit</button>
-                        <button className="btn btn-secondary btn-slim" onClick={() => openDelete(p)}>Delete</button>
+                    <Td align="center" style={{ whiteSpace: "nowrap" }}>
+                      <div style={{ display: "flex", gap: 6, justifyContent: "center" }}>
+                        <button style={{
+                          padding: "6px 12px",
+                          fontSize: "12px",
+                          fontWeight: 600,
+                          background: "#f3f4f6",
+                          border: "1px solid #d1d5db",
+                          borderRadius: "6px",
+                          color: "#374151",
+                          cursor: "pointer",
+                          transition: "all 0.2s ease"
+                        }}
+                        onMouseEnter={(e) => e.currentTarget.style.background = "#e5e7eb"}
+                        onMouseLeave={(e) => e.currentTarget.style.background = "#f3f4f6"}
+                        onClick={() => openEdit(p)}>Edit</button>
+                        <button style={{
+                          padding: "6px 12px",
+                          fontSize: "12px",
+                          fontWeight: 600,
+                          background: "#fef2f2",
+                          border: "1px solid #fecaca",
+                          borderRadius: "6px",
+                          color: "#991b1b",
+                          cursor: "pointer",
+                          transition: "all 0.2s ease"
+                        }}
+                        onMouseEnter={(e) => e.currentTarget.style.background = "#fee2e2"}
+                        onMouseLeave={(e) => e.currentTarget.style.background = "#fef2f2"}
+                        onClick={() => openDelete(p)}>Delete</button>
                       </div>
                     </Td>
                   </tr>
@@ -455,36 +829,36 @@ export default function AdminProducts() {
             </table>
             </div>
 
-            {/* Pagination */}
-            {totalPages > 1 && (
-              <Pagination
-                currentPage={page}
-                totalPages={totalPages}
-                onPageChange={setPage}
-                totalItems={filtered.length}
-                itemsPerPage={perPage}
-                onItemsPerPageChange={(newPerPage) => {
-                  setPerPage(newPerPage);
-                  setPage(1);
-                }}
-              />
+                {/* Pagination */}
+                {totalPages > 1 && (
+                  <Pagination
+                    currentPage={page}
+                    totalPages={totalPages}
+                    onPageChange={setPage}
+                    totalItems={filtered.length}
+                    itemsPerPage={perPage}
+                    onItemsPerPageChange={(newPerPage) => {
+                      setPerPage(newPerPage);
+                      setPage(1);
+                    }}
+                  />
+                )}
+              </>
             )}
-          </>
-        )}
-      </div>
+          </div>
 
-      {/* Modal */}
-      <ProductModal
-        open={modalOpen}
-        mode={modalMode}
-        initial={active}
-        onClose={() => setModalOpen(false)}
-        onCreate={doCreate}
-        onUpdate={doUpdate}
-        onDelete={doDelete}
-      />
+        {/* Modal */}
+        <ProductModal
+          open={modalOpen}
+          mode={modalMode}
+          initial={active}
+          onClose={() => setModalOpen(false)}
+          onCreate={doCreate}
+          onUpdate={doUpdate}
+          onDelete={doDelete}
+        />
       </div>
-    </>
+    </div>
   );
 }
 

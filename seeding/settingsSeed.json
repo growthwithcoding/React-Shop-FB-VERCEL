@@ -2,8 +2,9 @@
   "store": {
     "name": "Advanced Shop",
     "email": "support@advancedshop.com",
-    "logo": "",
+    "logo": "/logos/LOGO_TRANS.png",
     "supportPhone": "+1-801-555-SHOP (7467)",
+    "serverTimeZone": "America/Denver",
     "supportHours": {
       "monday": { "isOpen": true, "open": "09:00", "close": "17:00" },
       "tuesday": { "isOpen": true, "open": "09:00", "close": "17:00" },

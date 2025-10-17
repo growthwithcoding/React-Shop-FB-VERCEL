@@ -1,19 +1,25 @@
 import { useState, useEffect, useMemo } from "react";
 import { useAuth } from "../auth/useAuth";
+import { useNavigate } from "react-router-dom";
 import { listOrders } from "../services/orderService";
 import { collection, query, orderBy, getDocs, doc, updateDoc } from "firebase/firestore";
 import { db, firebaseInitialized } from "../lib/firebase";
 import { 
-  ShoppingCart, AlertTriangle, RefreshCw, Users, MessageSquare
+  Users, ShoppingCart, AlertTriangle, MessageSquare, 
+  RefreshCw, Package
 } from "lucide-react";
-import { useNavigate } from "react-router-dom";
 
 import { DashboardProvider } from "../contexts/DashboardContext";
 import { useDashboard } from "../hooks/useDashboard";
+import { StatsContainer } from "../components/dashboard/StatsContainer";
+import { FilteredResultsFeedback } from "../components/dashboard/FilteredResultsFeedback";
 import { OrdersTable } from "../components/dashboard/OrdersTable";
 import { TicketsKanban } from "../components/dashboard/TicketsKanban";
-import { FilteredResultsFeedback } from "../components/dashboard/FilteredResultsFeedback";
-import { getDateFromTimestamp, toISODate } from "../lib/utils";
+import {
+  USD, 
+  getDateFromTimestamp, 
+  toISODate
+} from "../lib/utils";
 
 function AgentDashboardContent() {
   const { user } = useAuth();
@@ -25,10 +31,12 @@ function AgentDashboardContent() {
   const [customers, setCustomers] = useState([]);
   const [loading, setLoading] = useState(true);
   
-  // Redirect admins to their dashboard
+  // Redirect non-agents
   useEffect(() => {
     if (user && user.role === "admin") {
       navigate("/admin");
+    } else if (user && user.role !== "agent") {
+      navigate("/");
     }
   }, [user, navigate]);
   
@@ -55,8 +63,7 @@ function AgentDashboardContent() {
         const ticketsData = ticketsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         
         const customersQuery = query(
-          collection(db, "users"),
-          orderBy("createdAt", "desc")
+          collection(db, "users")
         );
         const customersSnapshot = await getDocs(customersQuery);
         const customersData = customersSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
@@ -65,7 +72,7 @@ function AgentDashboardContent() {
         
         setOrders(Array.isArray(ordersData) ? ordersData : []);
         setTickets(ticketsData);
-        setCustomers(customersData);
+        setCustomers(customersData.filter(c => c.role === "customer"));
       } catch (error) {
         console.error("Error fetching agent dashboard data:", error);
         setOrders([]);
@@ -94,18 +101,18 @@ function AgentDashboardContent() {
         if (fulfillment !== filters.fulfillmentStatus) return false;
       }
       
-      // Category filter - check if any item in the order matches the category
+      // Category filter
       if (filters.category !== "all") {
         const hasCategory = o.items?.some(item => item.category === filters.category);
         if (!hasCategory) return false;
       }
       
-      // Channel filter (if orders have channel data)
+      // Channel filter
       if (filters.channel !== "all" && o.channel) {
         if (o.channel !== filters.channel) return false;
       }
       
-      // Region filter (if orders have region data)
+      // Region filter
       if (filters.region !== "all" && o.region) {
         if (o.region !== filters.region) return false;
       }
@@ -126,45 +133,43 @@ function AgentDashboardContent() {
   
   // Calculate agent-specific metrics
   const metrics = useMemo(() => {
-    const unpaidCount = filteredOrders.filter(o => 
+    const totalCustomers = customers.length;
+    
+    const openTickets = tickets.filter(t => t.status === "open").length;
+    const inProgressTickets = tickets.filter(t => t.status === "in_progress").length;
+    const urgentTickets = tickets.filter(t => 
+      t.priority === "urgent" && (t.status === "open" || t.status === "in_progress")
+    ).length;
+    
+    const ongoingOrders = filteredOrders.filter(o => {
+      const fulfillment = o.fulfillmentStatus || "unfulfilled";
+      return fulfillment === "unfulfilled" || fulfillment === "shipped";
+    }).length;
+    
+    return {
+      totalCustomers,
+      openTickets,
+      inProgressTickets,
+      urgentTickets,
+      ongoingOrders,
+    };
+  }, [filteredOrders, tickets, customers]);
+  
+  // Attention metrics
+  const attentionMetrics = useMemo(() => {
+    const unpaid = filteredOrders.filter(o => 
       o.paymentStatus === "unpaid" || o.paymentStatus === "pending" || o.status === "unpaid"
     ).length;
     
-    const unfulfilledCount = filteredOrders.filter(o => {
+    const unfulfilled = filteredOrders.filter(o => {
       const paymentStatus = o.paymentStatus || o.status || "pending";
       const fulfillmentStatus = o.fulfillmentStatus || o.fulfillment || "unfulfilled";
       return (paymentStatus === "paid" || paymentStatus === "completed") && 
         fulfillmentStatus === "unfulfilled";
     }).length;
     
-    const openTickets = tickets.filter(t => 
-      t.status === "open"
-    ).length;
-    
-    const inProgressTickets = tickets.filter(t => 
-      t.status === "in_progress"
-    ).length;
-    
-    const resolvedTickets = tickets.filter(t => 
-      t.status === "resolved"
-    ).length;
-    
-    const urgentTickets = tickets.filter(t => 
-      t.priority === "urgent" && (t.status === "open" || t.status === "in_progress")
-    ).length;
-    
-    const totalCustomers = customers.filter(c => c.role === "customer").length;
-    
-    return {
-      unpaidOrders: unpaidCount,
-      unfulfilledOrders: unfulfilledCount,
-      openTickets,
-      inProgressTickets,
-      resolvedTickets,
-      urgentTickets,
-      totalCustomers,
-    };
-  }, [filteredOrders, tickets, customers]);
+    return { unpaid, unfulfilled };
+  }, [filteredOrders]);
   
   // Handle ticket status change
   const handleTicketStatusChange = async (ticketId, newStatus) => {
@@ -184,11 +189,12 @@ function AgentDashboardContent() {
     }
   };
   
-  // Agent color palette
+  // Agent color palette - Light Blue Theme
   const agentColors = {
-    blue: "#3b82f6",
-    lightBlue: "#60a5fa",
-    darkBlue: "#1e3a8a",
+    primary: "#3b82f6",      // Blue
+    lightBlue: "#60a5fa",    // Light Blue
+    darkBlue: "#1e3a8a",     // Dark Blue
+    skyBlue: "#0ea5e9",      // Sky Blue
     textLight: "#FFFFFF",
     textDark: "#0F1111",
     borderLight: "#DDD",
@@ -197,11 +203,47 @@ function AgentDashboardContent() {
     danger: "#E53E3E",
   };
   
-  // Card shadow styles
+  // Enhanced box shadow styles
   const cardShadow = {
     boxShadow: "0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24)",
     transition: "all 0.3s cubic-bezier(.25,.8,.25,1)",
   };
+  
+  // Prepare stats data for unified container
+  const statsData = useMemo(() => [
+    {
+      title: "Total Customers",
+      value: metrics.totalCustomers,
+      previousValue: metrics.totalCustomers,
+      format: "number",
+      icon: Users,
+      iconColor: agentColors.primary
+    },
+    {
+      title: "Open Tickets",
+      value: metrics.openTickets,
+      previousValue: metrics.openTickets,
+      format: "number",
+      icon: MessageSquare,
+      iconColor: agentColors.skyBlue
+    },
+    {
+      title: "Ongoing Orders",
+      value: metrics.ongoingOrders,
+      previousValue: metrics.ongoingOrders,
+      format: "number",
+      icon: ShoppingCart,
+      iconColor: agentColors.lightBlue
+    },
+    {
+      title: "Urgent Tickets",
+      value: metrics.urgentTickets,
+      previousValue: metrics.urgentTickets,
+      format: "number",
+      icon: AlertTriangle,
+      iconColor: agentColors.danger
+    }
+  ], [metrics, agentColors]);
   
   if (!user || user.role !== "agent") {
     return (
@@ -230,12 +272,15 @@ function AgentDashboardContent() {
   return (
     <div>
       <div className="min-h-screen" style={{ background: "linear-gradient(135deg, #e0f2fe 0%, #bfdbfe 100%)" }}>
-        <div className="container-xl" style={{ paddingTop: 16, paddingBottom: 24 }}>
-          {/* Page Title */}
-          <div className="hero-headline" style={{ marginBottom: 24 }}>
+        <div className="container-xl" style={{ paddingTop: 24, paddingBottom: 24 }}>
+          {/* Hero Headline */}
+          <div className="hero-headline" style={{ marginBottom: 16 }}>
             <div>
               <div className="kicker">Agent</div>
               <h1 style={{ margin: 0 }}>Dashboard</h1>
+              <div className="meta" style={{ marginTop: 8 }}>
+                Monitor orders, support tickets, and customer interactions
+              </div>
             </div>
           </div>
           
@@ -246,127 +291,133 @@ function AgentDashboardContent() {
             entityName="orders" 
           />
           
-          {/* Quick Stats */}
-          <div className="grid" style={{ 
-            gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", 
-            gap: 16, 
-            marginBottom: 24 
+          {/* Key Metrics Header with Quick Actions */}
+          <div style={{ 
+            display: "flex", 
+            justifyContent: "space-between", 
+            alignItems: "flex-end",
+            marginBottom: 8
           }}>
-            {/* Orders Requiring Attention */}
-            <div className="card" style={{ 
-              padding: "20px",
-              background: "#fff",
-              borderRadius: "12px",
-              border: `2px solid ${agentColors.warning}`,
-              ...cardShadow
-            }}>
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
-                <span style={{ fontSize: "14px", fontWeight: 600, color: "#666" }}>Unpaid Orders</span>
-                <ShoppingCart size={20} style={{ color: agentColors.warning }} />
-              </div>
-              <div style={{ fontSize: "32px", fontWeight: 800, color: agentColors.warning }}>{metrics.unpaidOrders}</div>
-              <div style={{ fontSize: "12px", color: "#999", marginTop: 4 }}>Require payment</div>
+            <div>
+              <h2 style={{ 
+                fontSize: 20, 
+                fontWeight: 800, 
+                color: agentColors.darkBlue,
+                margin: 0,
+                marginBottom: 4
+              }}>Key Metrics</h2>
+              <div style={{ 
+                height: 2, 
+                width: 60,
+                background: "linear-gradient(to right, #3b82f6, transparent)",
+                borderRadius: 2
+              }} />
             </div>
             
-            <div className="card" style={{ 
-              padding: "20px",
-              background: "#fff",
-              borderRadius: "12px",
-              border: `2px solid ${agentColors.blue}`,
-              ...cardShadow
-            }}>
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
-                <span style={{ fontSize: "14px", fontWeight: 600, color: "#666" }}>Unfulfilled Orders</span>
-                <ShoppingCart size={20} style={{ color: agentColors.blue }} />
-              </div>
-              <div style={{ fontSize: "32px", fontWeight: 800, color: agentColors.blue }}>{metrics.unfulfilledOrders}</div>
-              <div style={{ fontSize: "12px", color: "#999", marginTop: 4 }}>Ready to ship</div>
-            </div>
-            
-            <div className="card" style={{ 
-              padding: "20px",
-              background: "#fff",
-              borderRadius: "12px",
-              border: `2px solid ${agentColors.danger}`,
-              ...cardShadow
-            }}>
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
-                <span style={{ fontSize: "14px", fontWeight: 600, color: "#666" }}>Urgent Tickets</span>
-                <AlertTriangle size={20} style={{ color: agentColors.danger }} />
-              </div>
-              <div style={{ fontSize: "32px", fontWeight: 800, color: agentColors.danger }}>{metrics.urgentTickets}</div>
-              <div style={{ fontSize: "12px", color: "#999", marginTop: 4 }}>Need immediate attention</div>
-            </div>
-            
-            <div className="card" style={{ 
-              padding: "20px",
-              background: "#fff",
-              borderRadius: "12px",
-              border: `2px solid ${agentColors.lightBlue}`,
-              ...cardShadow
-            }}>
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
-                <span style={{ fontSize: "14px", fontWeight: 600, color: "#666" }}>Total Customers</span>
-                <Users size={20} style={{ color: agentColors.lightBlue }} />
-              </div>
-              <div style={{ fontSize: "32px", fontWeight: 800, color: agentColors.lightBlue }}>{metrics.totalCustomers}</div>
-              <div style={{ fontSize: "12px", color: "#999", marginTop: 4 }}>Registered users</div>
+            {/* Quick Actions Buttons */}
+            <div style={{ display: "flex", gap: "12px" }}>
+              <button
+                onClick={() => navigate("/agent/orders")}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "8px",
+                  padding: "10px 16px",
+                  background: agentColors.primary,
+                  color: "#fff",
+                  border: "none",
+                  borderRadius: "6px",
+                  fontSize: "13px",
+                  fontWeight: 600,
+                  cursor: "pointer",
+                  boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
+                  transition: "all 0.2s ease",
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = agentColors.darkBlue;
+                  e.currentTarget.style.transform = "translateY(-1px)";
+                  e.currentTarget.style.boxShadow = "0 4px 8px rgba(0,0,0,0.15)";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = agentColors.primary;
+                  e.currentTarget.style.transform = "translateY(0)";
+                  e.currentTarget.style.boxShadow = "0 2px 4px rgba(0,0,0,0.1)";
+                }}
+              >
+                <ShoppingCart size={14} />
+                Manage Orders
+              </button>
+              
+              <button
+                onClick={() => navigate("/agent/users")}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "8px",
+                  padding: "10px 16px",
+                  background: agentColors.skyBlue,
+                  color: "#fff",
+                  border: "none",
+                  borderRadius: "6px",
+                  fontSize: "13px",
+                  fontWeight: 600,
+                  cursor: "pointer",
+                  boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
+                  transition: "all 0.2s ease",
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = "#0284c7";
+                  e.currentTarget.style.transform = "translateY(-1px)";
+                  e.currentTarget.style.boxShadow = "0 4px 8px rgba(0,0,0,0.15)";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = agentColors.skyBlue;
+                  e.currentTarget.style.transform = "translateY(0)";
+                  e.currentTarget.style.boxShadow = "0 2px 4px rgba(0,0,0,0.1)";
+                }}
+              >
+                <Users size={14} />
+                View Customers
+              </button>
+              
+              <button
+                onClick={() => navigate("/agent/tickets")}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "8px",
+                  padding: "10px 16px",
+                  background: agentColors.success,
+                  color: "#fff",
+                  border: "none",
+                  borderRadius: "6px",
+                  fontSize: "13px",
+                  fontWeight: 600,
+                  cursor: "pointer",
+                  boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
+                  transition: "all 0.2s ease",
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = "#055A4A";
+                  e.currentTarget.style.transform = "translateY(-1px)";
+                  e.currentTarget.style.boxShadow = "0 4px 8px rgba(0,0,0,0.15)";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = agentColors.success;
+                  e.currentTarget.style.transform = "translateY(0)";
+                  e.currentTarget.style.boxShadow = "0 2px 4px rgba(0,0,0,0.1)";
+                }}
+              >
+                <MessageSquare size={14} />
+                Support Tickets
+              </button>
             </div>
           </div>
           
-          {/* Support Ticket Status Cards */}
-          <div className="grid" style={{ 
-            gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", 
-            gap: 16, 
-            marginBottom: 24 
-          }}>
-            <div className="card" style={{ 
-              padding: "20px",
-              background: "#fff",
-              borderRadius: "12px",
-              border: `2px solid ${agentColors.blue}`,
-              ...cardShadow
-            }}>
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
-                <span style={{ fontSize: "14px", fontWeight: 600, color: "#666" }}>Open Tickets</span>
-                <MessageSquare size={20} style={{ color: agentColors.blue }} />
-              </div>
-              <div style={{ fontSize: "32px", fontWeight: 800, color: agentColors.blue }}>{metrics.openTickets}</div>
-              <div style={{ fontSize: "12px", color: "#999", marginTop: 4 }}>Awaiting response</div>
-            </div>
-            
-            <div className="card" style={{ 
-              padding: "20px",
-              background: "#fff",
-              borderRadius: "12px",
-              border: `2px solid ${agentColors.warning}`,
-              ...cardShadow
-            }}>
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
-                <span style={{ fontSize: "14px", fontWeight: 600, color: "#666" }}>In Progress</span>
-                <RefreshCw size={20} style={{ color: agentColors.warning }} />
-              </div>
-              <div style={{ fontSize: "32px", fontWeight: 800, color: agentColors.warning }}>{metrics.inProgressTickets}</div>
-              <div style={{ fontSize: "12px", color: "#999", marginTop: 4 }}>Being worked on</div>
-            </div>
-            
-            <div className="card" style={{ 
-              padding: "20px",
-              background: "#fff",
-              borderRadius: "12px",
-              border: `2px solid ${agentColors.success}`,
-              ...cardShadow
-            }}>
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
-                <span style={{ fontSize: "14px", fontWeight: 600, color: "#666" }}>Resolved</span>
-                <ShoppingCart size={20} style={{ color: agentColors.success }} />
-              </div>
-              <div style={{ fontSize: "32px", fontWeight: 800, color: agentColors.success }}>{metrics.resolvedTickets}</div>
-              <div style={{ fontSize: "12px", color: "#999", marginTop: 4 }}>Ready to close</div>
-            </div>
-          </div>
+          {/* Agent Stats Container */}
+          <StatsContainer stats={statsData} />
           
-          {/* Main Content: Orders and Tickets Side by Side */}
+          {/* Orders and Support Tickets - Side by Side (50/50) */}
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 24, marginBottom: 24 }}>
             {/* Orders Table */}
             <div className="card" style={{ 
@@ -375,17 +426,41 @@ function AgentDashboardContent() {
               borderRadius: "12px",
               ...cardShadow
             }}>
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
-                <h2 style={{ margin: 0, fontSize: 20, fontWeight: 800, color: agentColors.darkBlue }}>Recent Orders</h2>
-                <button 
-                  onClick={() => navigate("/agent/orders")}
-                  className="btn btn-primary"
-                  style={{ padding: "6px 12px", fontSize: "14px" }}
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+                <h2 
+                  onClick={() => navigate('/agent/orders')}
+                  style={{ 
+                    margin: 0, 
+                    fontSize: 20, 
+                    fontWeight: 800, 
+                    color: agentColors.darkBlue,
+                    cursor: 'pointer',
+                    transition: 'color 0.2s ease'
+                  }}
+                  onMouseEnter={(e) => e.currentTarget.style.color = agentColors.primary}
+                  onMouseLeave={(e) => e.currentTarget.style.color = agentColors.darkBlue}
                 >
-                  View All
-                </button>
+                  Recent Orders
+                </h2>
+                
+                {/* Order Status Mini Stats - Inline */}
+                <div style={{ display: "flex", gap: "16px", alignItems: "center" }}>
+                  <div style={{ textAlign: "center" }}>
+                    <div style={{ fontSize: "10px", color: "#718096", fontWeight: 600, marginBottom: "2px" }}>UNPAID</div>
+                    <div style={{ fontSize: "16px", fontWeight: 700, color: "#F9C74F" }}>{attentionMetrics.unpaid}</div>
+                  </div>
+                  <div style={{ textAlign: "center" }}>
+                    <div style={{ fontSize: "10px", color: "#718096", fontWeight: 600, marginBottom: "2px" }}>UNFULFILLED</div>
+                    <div style={{ fontSize: "16px", fontWeight: 700, color: "#3b82f6" }}>{attentionMetrics.unfulfilled}</div>
+                  </div>
+                </div>
               </div>
-              <OrdersTable orders={filteredOrders.slice(0, 10)} onOrderClick={(orderId) => navigate(`/orders/${orderId}`)} />
+              
+              <OrdersTable 
+                orders={filteredOrders.slice(0, 10)} 
+                onOrderClick={(order) => navigate(`/orders/${order.id}`)}
+                zebraStripe={true}
+              />
             </div>
             
             {/* Support Tickets Kanban */}
@@ -395,7 +470,46 @@ function AgentDashboardContent() {
               borderRadius: "12px",
               ...cardShadow
             }}>
-              <h2 style={{ margin: "0 0 16px 0", fontSize: 20, fontWeight: 800, color: agentColors.darkBlue }}>Support Tickets</h2>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+                <h2 
+                  onClick={() => navigate('/agent/tickets')}
+                  style={{ 
+                    margin: 0, 
+                    fontSize: 20, 
+                    fontWeight: 800, 
+                    color: agentColors.darkBlue,
+                    cursor: 'pointer',
+                    transition: 'color 0.2s ease'
+                  }}
+                  onMouseEnter={(e) => e.currentTarget.style.color = agentColors.primary}
+                  onMouseLeave={(e) => e.currentTarget.style.color = agentColors.darkBlue}
+                >
+                  Support Tickets
+                </h2>
+                
+                {/* Ticket Status Mini Stats - Inline */}
+                <div style={{ display: "flex", gap: "16px", alignItems: "center" }}>
+                  <div style={{ textAlign: "center" }}>
+                    <div style={{ fontSize: "10px", color: "#718096", fontWeight: 600, marginBottom: "2px" }}>OPEN</div>
+                    <div style={{ fontSize: "16px", fontWeight: 700, color: "#3b82f6" }}>
+                      {tickets.filter(t => t.status === "open").length}
+                    </div>
+                  </div>
+                  <div style={{ textAlign: "center" }}>
+                    <div style={{ fontSize: "10px", color: "#718096", fontWeight: 600, marginBottom: "2px" }}>IN PROGRESS</div>
+                    <div style={{ fontSize: "16px", fontWeight: 700, color: "#F9C74F" }}>
+                      {tickets.filter(t => t.status === "in_progress").length}
+                    </div>
+                  </div>
+                  <div style={{ textAlign: "center" }}>
+                    <div style={{ fontSize: "10px", color: "#718096", fontWeight: 600, marginBottom: "2px" }}>URGENT</div>
+                    <div style={{ fontSize: "16px", fontWeight: 700, color: "#E53E3E" }}>
+                      {metrics.urgentTickets}
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
               <TicketsKanban 
                 tickets={tickets.slice(0, 8)} 
                 onStatusChange={handleTicketStatusChange} 
@@ -403,7 +517,7 @@ function AgentDashboardContent() {
             </div>
           </div>
           
-          {/* Quick Actions */}
+          {/* Quick Customer Data Actions */}
           <div className="card" style={{ 
             padding: 20,
             background: "#fff",
@@ -411,28 +525,124 @@ function AgentDashboardContent() {
             ...cardShadow
           }}>
             <h2 style={{ margin: "0 0 16px 0", fontSize: 20, fontWeight: 800, color: agentColors.darkBlue }}>Quick Actions</h2>
-            <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 12 }}>
               <button 
                 onClick={() => navigate("/agent/orders")}
-                className="btn btn-primary"
-                style={{ display: "flex", alignItems: "center", gap: 8 }}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: "8px",
+                  padding: "12px 16px",
+                  background: "#f0f9ff",
+                  border: "2px solid #bfdbfe",
+                  borderRadius: "8px",
+                  fontSize: "14px",
+                  fontWeight: 600,
+                  color: agentColors.darkBlue,
+                  cursor: "pointer",
+                  transition: "all 0.2s ease",
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = "#dbeafe";
+                  e.currentTarget.style.borderColor = "#93c5fd";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = "#f0f9ff";
+                  e.currentTarget.style.borderColor = "#bfdbfe";
+                }}
               >
-                <ShoppingCart size={16} />
-                Manage Orders
+                <ShoppingCart size={18} />
+                Manage All Orders
               </button>
+              
+              <button 
+                onClick={() => navigate("/agent/my-orders")}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: "8px",
+                  padding: "12px 16px",
+                  background: "#f0f9ff",
+                  border: "2px solid #bfdbfe",
+                  borderRadius: "8px",
+                  fontSize: "14px",
+                  fontWeight: 600,
+                  color: agentColors.darkBlue,
+                  cursor: "pointer",
+                  transition: "all 0.2s ease",
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = "#dbeafe";
+                  e.currentTarget.style.borderColor = "#93c5fd";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = "#f0f9ff";
+                  e.currentTarget.style.borderColor = "#bfdbfe";
+                }}
+              >
+                <Package size={18} />
+                My Orders
+              </button>
+              
               <button 
                 onClick={() => navigate("/agent/users")}
-                className="btn btn-secondary"
-                style={{ display: "flex", alignItems: "center", gap: 8 }}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: "8px",
+                  padding: "12px 16px",
+                  background: "#f0f9ff",
+                  border: "2px solid #bfdbfe",
+                  borderRadius: "8px",
+                  fontSize: "14px",
+                  fontWeight: 600,
+                  color: agentColors.darkBlue,
+                  cursor: "pointer",
+                  transition: "all 0.2s ease",
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = "#dbeafe";
+                  e.currentTarget.style.borderColor = "#93c5fd";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = "#f0f9ff";
+                  e.currentTarget.style.borderColor = "#bfdbfe";
+                }}
               >
-                <Users size={16} />
-                View Customers
+                <Users size={18} />
+                Customer Data
               </button>
+              
               <button 
-                className="btn btn-secondary"
-                style={{ display: "flex", alignItems: "center", gap: 8 }}
+                onClick={() => navigate("/agent/tickets")}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: "8px",
+                  padding: "12px 16px",
+                  background: "#f0f9ff",
+                  border: "2px solid #bfdbfe",
+                  borderRadius: "8px",
+                  fontSize: "14px",
+                  fontWeight: 600,
+                  color: agentColors.darkBlue,
+                  cursor: "pointer",
+                  transition: "all 0.2s ease",
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = "#dbeafe";
+                  e.currentTarget.style.borderColor = "#93c5fd";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = "#f0f9ff";
+                  e.currentTarget.style.borderColor = "#bfdbfe";
+                }}
               >
-                <MessageSquare size={16} />
+                <MessageSquare size={18} />
                 Support Tickets
               </button>
             </div>

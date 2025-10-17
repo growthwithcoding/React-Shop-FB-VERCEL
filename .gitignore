@@ -33,5 +33,11 @@ dist-ssr/
 # Firebase credentials
 firebase-admin.json
 
+# Setup/onboarding flag
+.onboarding-complete
+
 # Misc
 *.tgz
+
+# Note: The public/ folder and all its contents (including logos and product images) 
+# SHOULD be committed to git. No images are ignored in this project.

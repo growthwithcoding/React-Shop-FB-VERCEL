@@ -10,11 +10,13 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 // --- Files (rename here if your filenames differ)
-const SERVICE_JSON   = path.join(__dirname, "firebase-admin.json");
+const SERVICE_JSON   = path.join(__dirname, "..", "firebase-admin.json");
 const PRODUCTS_JSON  = path.join(__dirname, "productSeed.json");
 const USERS_JSON     = path.join(__dirname, "usersSeed.json");
 const ORDERS_JSON    = path.join(__dirname, "ordersSeed.json");
 const DISCOUNTS_JSON = path.join(__dirname, "discountsSeed.json");
+const SUPPORT_TICKETS_JSON = path.join(__dirname, "supportTicketsSeed.json");
+const TICKET_REPLIES_JSON = path.join(__dirname, "ticketRepliesSeed.json");
 
 // --- Init Admin SDK (explicit project)
 const serviceAccount = JSON.parse(fs.readFileSync(SERVICE_JSON, "utf8"));
@@ -27,7 +29,9 @@ const runUsers     = flags.has("--users");
 const runProducts  = flags.has("--products");
 const runOrders    = flags.has("--orders");
 const runDiscounts = flags.has("--discounts");
-const runAll = !runUsers && !runProducts && !runOrders && !runDiscounts; // no flags -> seed everything
+const runTickets   = flags.has("--tickets");
+const runReplies   = flags.has("--replies");
+const runAll = !runUsers && !runProducts && !runOrders && !runDiscounts && !runTickets && !runReplies; // no flags -> seed everything
 
 // --- Utils
 function chunk(arr, size) { const out = []; for (let i = 0; i < arr.length; i += size) out.push(arr.slice(i, i + size)); return out; }
@@ -258,6 +262,67 @@ async function seedOrders(collectionName = "orders", productsMap, usersMap) {
   console.log(`Orders: seeded ${wrote} docs to '${collectionName}'.`);
 }
 
+// --- Seed SUPPORT TICKETS
+async function seedSupportTickets(collectionName = "supportTickets") {
+  const tickets = JSON.parse(fs.readFileSync(SUPPORT_TICKETS_JSON, "utf8"));
+  if (!Array.isArray(tickets)) throw new Error("supportTicketsSeed.json must be an array");
+
+  const chunks = chunk(tickets, 400);
+  let wrote = 0;
+
+  for (const slice of chunks) {
+    const batch = db.batch();
+    for (const t of slice) {
+      if (!t.id) throw new Error("Support ticket missing id");
+      if (!t.userId) throw new Error(`Ticket ${t.id} missing userId`);
+      if (!t.subject) throw new Error(`Ticket ${t.id} missing subject`);
+      
+      const ref = db.collection(collectionName).doc(t.id);
+      batch.set(ref, {
+        ...t,
+        createdAt: t.createdAt ? new Date(t.createdAt) : FieldValue.serverTimestamp(),
+        updatedAt: t.updatedAt ? new Date(t.updatedAt) : FieldValue.serverTimestamp(),
+        readAt: t.readAt ? new Date(t.readAt) : null,
+        resolvedAt: t.resolvedAt ? new Date(t.resolvedAt) : null,
+        closedAt: t.closedAt ? new Date(t.closedAt) : null,
+        lastReplyAt: t.lastReplyAt ? new Date(t.lastReplyAt) : null
+      }, { merge: true });
+    }
+    await batch.commit();
+    wrote += slice.length;
+    console.log(`Support Tickets: committed ${slice.length} docs...`);
+  }
+  console.log(`Support Tickets: seeded ${wrote} docs to '${collectionName}'.`);
+}
+
+// --- Seed TICKET REPLIES
+async function seedTicketReplies(collectionName = "ticketReplies") {
+  const replies = JSON.parse(fs.readFileSync(TICKET_REPLIES_JSON, "utf8"));
+  if (!Array.isArray(replies)) throw new Error("ticketRepliesSeed.json must be an array");
+
+  const chunks = chunk(replies, 400);
+  let wrote = 0;
+
+  for (const slice of chunks) {
+    const batch = db.batch();
+    for (const r of slice) {
+      if (!r.id) throw new Error("Ticket reply missing id");
+      if (!r.ticketId) throw new Error(`Reply ${r.id} missing ticketId`);
+      if (!r.userId) throw new Error(`Reply ${r.id} missing userId`);
+      
+      const ref = db.collection(collectionName).doc(r.id);
+      batch.set(ref, {
+        ...r,
+        createdAt: r.createdAt ? new Date(r.createdAt) : FieldValue.serverTimestamp()
+      }, { merge: true });
+    }
+    await batch.commit();
+    wrote += slice.length;
+    console.log(`Ticket Replies: committed ${slice.length} docs...`);
+  }
+  console.log(`Ticket Replies: seeded ${wrote} docs to '${collectionName}'.`);
+}
+
 // --- Run in dependency-safe order
 (async () => {
   console.log("Project ID:", serviceAccount.project_id);
@@ -276,6 +341,12 @@ async function seedOrders(collectionName = "orders", productsMap, usersMap) {
   }
   if (runAll || runOrders) {
     await seedOrders("orders", productsMap, usersMap);
+  }
+  if (runAll || runTickets) {
+    await seedSupportTickets("supportTickets");
+  }
+  if (runAll || runReplies) {
+    await seedTicketReplies("ticketReplies");
   }
 
   console.log("Done.");

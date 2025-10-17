@@ -3,6 +3,7 @@ import { useAuth } from "../auth/useAuth";
 import { useNavigate } from "react-router-dom";
 import { listOrders } from "../services/orderService";
 import { listProducts } from "../services/productService";
+import { createDiscount } from "../services/discountService";
 import { collection, query, orderBy, getDocs, doc, updateDoc } from "firebase/firestore";
 import { db, firebaseInitialized } from "../lib/firebase";
 import { 
@@ -12,19 +13,21 @@ import {
 
 import { DashboardProvider } from "../contexts/DashboardContext";
 import { useDashboard } from "../hooks/useDashboard";
-import { KpiCard } from "../components/dashboard/KpiCard";
+import { StatsContainer } from "../components/dashboard/StatsContainer";
 import { AttentionCard, InsightCard } from "../components/dashboard/AttentionCard";
 import { FilteredResultsFeedback } from "../components/dashboard/FilteredResultsFeedback";
 import { TotalSalesChart } from "../components/dashboard/Charts";
 import { OrdersTable } from "../components/dashboard/OrdersTable";
 import { TicketsKanban } from "../components/dashboard/TicketsKanban";
 import { useKeyboardShortcuts } from "../hooks/useKeyboardShortcuts";
-import { 
+import CreateDiscountModal from "../components/CreateDiscountModal";
+import AddProductModal from "../components/AddProductModal";
+import CreateOrderModal from "../components/CreateOrderModal";
+import {
   USD, 
   getDateFromTimestamp, 
   toISODate, 
-  generateSparklineData,
-  calculateChange 
+  calculateChange
 } from "../lib/utils";
 
 function AdminDashboardContent() {
@@ -36,6 +39,9 @@ function AdminDashboardContent() {
   const [products, setProducts] = useState([]);
   const [tickets, setTickets] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [showDiscountModal, setShowDiscountModal] = useState(false);
+  const [showProductModal, setShowProductModal] = useState(false);
+  const [showOrderModal, setShowOrderModal] = useState(false);
   
   // Redirect agents to their dashboard
   useEffect(() => {
@@ -71,6 +77,10 @@ function AdminDashboardContent() {
           listProducts({ take: 500 }),
         ]);
         
+        console.log("AdminDashboard - Orders loaded:", ordersData?.length || 0);
+        console.log("AdminDashboard - Products loaded:", productsData?.length || 0);
+        console.log("AdminDashboard - Sample order:", ordersData?.[0]);
+        
         setOrders(Array.isArray(ordersData) ? ordersData : []);
         setProducts(Array.isArray(productsData) ? productsData : []);
         setTickets(ticketsData);
@@ -91,10 +101,15 @@ function AdminDashboardContent() {
   
   // Filter orders by date range and ALL global filters
   const filteredOrders = useMemo(() => {
-    return orders.filter(o => {
+    console.log("Filtering orders - Total orders:", orders.length);
+    console.log("Date range:", dateRange);
+    
+    const filtered = orders.filter(o => {
       // Date range filter
       const orderDate = toISODate(getDateFromTimestamp(o.createdAt));
-      if (orderDate < dateRange.from || orderDate > dateRange.to) return false;
+      if (orderDate < dateRange.from || orderDate > dateRange.to) {
+        return false;
+      }
       
       // Fulfillment status filter
       if (filters.fulfillmentStatus !== "all") {
@@ -130,17 +145,24 @@ function AdminDashboardContent() {
       
       return true;
     });
+    
+    console.log("Filtered orders count:", filtered.length);
+    return filtered;
   }, [orders, dateRange, filters, searchQuery]);
   
   // Calculate KPIs
   const kpis = useMemo(() => {
+    // Use ALL filtered orders for order count (not just paid)
+    const orderCount = filteredOrders.length;
+    
+    // Calculate revenue from all orders (you can filter by paid if needed)
+    const revenue = filteredOrders.reduce((sum, o) => sum + (Number(o.total) || 0), 0);
+    const aov = orderCount > 0 ? revenue / orderCount : 0;
+    
+    // Keep paid orders for specific calculations if needed
     const paidOrders = filteredOrders.filter(o => 
       o.paymentStatus === "paid" || o.status === "paid" || o.paymentStatus === "completed"
     );
-    
-    const revenue = paidOrders.reduce((sum, o) => sum + (Number(o.total) || 0), 0);
-    const orderCount = paidOrders.length;
-    const aov = orderCount > 0 ? revenue / orderCount : 0;
     
     // Previous period for comparison
     const daysDiff = Math.ceil(
@@ -159,7 +181,7 @@ function AdminDashboardContent() {
     const previousAov = previousOrderCount > 0 ? previousRevenue / previousOrderCount : 0;
     
     const inventoryValue = products.reduce((sum, p) => {
-      const stock = Number(p.stock) || 0;
+      const stock = Number(p.inventory) || 0;
       const price = Number(p.price) || 0;
       return sum + (stock * price);
     }, 0);
@@ -167,19 +189,50 @@ function AdminDashboardContent() {
     const refunds = filteredOrders.filter(o => o.paymentStatus === "refunded" || o.status === "refunded");
     const refundAmount = refunds.reduce((sum, o) => sum + (Number(o.total) || 0), 0);
     
+    // Calculate previous period refunds
+    const previousRefunds = previousOrders.filter(o => o.paymentStatus === "refunded" || o.status === "refunded");
+    const previousRefundAmount = previousRefunds.reduce((sum, o) => sum + (Number(o.total) || 0), 0);
+    
     const openTicketsCount = tickets.filter(t => 
       t.status === "open" || t.status === "in_progress"
     ).length;
+    
+    // Calculate gross margin if products have cost data
+    const totalCost = paidOrders.reduce((sum, o) => {
+      const orderCost = (o.items || []).reduce((itemSum, item) => {
+        const product = products.find(p => p.id === item.productId);
+        const cost = Number(product?.cost) || 0;
+        const quantity = Number(item.quantity) || 0;
+        return itemSum + (cost * quantity);
+      }, 0);
+      return sum + orderCost;
+    }, 0);
+    const grossProfit = revenue - totalCost;
+    const grossMarginPercent = revenue > 0 ? (grossProfit / revenue) * 100 : 0;
+    
+    const previousTotalCost = previousOrders.filter(o => 
+      o.paymentStatus === "paid" || o.status === "paid" || o.paymentStatus === "completed"
+    ).reduce((sum, o) => {
+      const orderCost = (o.items || []).reduce((itemSum, item) => {
+        const product = products.find(p => p.id === item.productId);
+        const cost = Number(product?.cost) || 0;
+        const quantity = Number(item.quantity) || 0;
+        return itemSum + (cost * quantity);
+      }, 0);
+      return sum + orderCost;
+    }, 0);
+    const previousGrossProfit = previousRevenue - previousTotalCost;
+    const previousGrossMarginPercent = previousRevenue > 0 ? (previousGrossProfit / previousRevenue) * 100 : 0;
     
     return {
       revenue: { current: revenue, previous: previousRevenue },
       orders: { current: orderCount, previous: previousOrderCount },
       aov: { current: aov, previous: previousAov },
-      conversionRate: { current: 2.4, previous: 2.1 },
-      grossMargin: { current: 44.0, previous: 42.5 },
-      refunds: { current: refundAmount, previous: 0 },
+      conversionRate: { current: 0, previous: 0 }, // Requires visitor/session data not in DB
+      grossMargin: { current: grossMarginPercent, previous: previousGrossMarginPercent },
+      refunds: { current: refundAmount, previous: previousRefundAmount },
       inventoryValue: { current: inventoryValue, previous: inventoryValue * 0.95 },
-      ticketsBacklog: { current: openTicketsCount, previous: openTicketsCount + 3 },
+      ticketsBacklog: { current: openTicketsCount, previous: openTicketsCount },
     };
   }, [filteredOrders, orders, products, tickets, dateRange]);
   
@@ -217,7 +270,7 @@ function AdminDashboardContent() {
     ).length;
 
     const lowStockCount = products.filter(p => {
-      const stock = Number(p.stock) || 0;
+      const stock = Number(p.inventory) || 0;
       const threshold = Number(p.threshold) || Number(p.lowStockThreshold) || 5;
       return stock <= threshold;
     }).length;
@@ -276,16 +329,104 @@ function AdminDashboardContent() {
     }
   };
   
-  // Calculate support ticket status counts
-  const ticketStatusCounts = useMemo(() => {
-    const open = tickets.filter(t => t.status === "open").length;
-    const inProgress = tickets.filter(t => t.status === "in_progress").length;
-    const resolved = tickets.filter(t => t.status === "resolved").length;
-    const closed = tickets.filter(t => t.status === "closed").length;
-    return { open, inProgress, resolved, closed };
-  }, [tickets]);
+  // Handle discount creation
+  const handleCreateDiscount = async (discountData) => {
+    try {
+      await createDiscount(discountData);
+      // Optionally refresh data or show success message
+    } catch (error) {
+      console.error("Error creating discount:", error);
+      throw error;
+    }
+  };
   
-  const sparklineData = generateSparklineData(orders, 7);
+  // Handle product creation - refetch products after creation
+  const handleProductCreated = async () => {
+    try {
+      const productsData = await listProducts({ take: 500 });
+      setProducts(Array.isArray(productsData) ? productsData : []);
+    } catch (error) {
+      console.error("Error refreshing products:", error);
+    }
+  };
+  
+  // Handle order creation - refetch orders after creation
+  const handleOrderCreated = async () => {
+    try {
+      const ordersData = await listOrders({ take: 500 });
+      setOrders(Array.isArray(ordersData) ? ordersData : []);
+    } catch (error) {
+      console.error("Error refreshing orders:", error);
+    }
+  };
+  
+  // Prepare stats data for unified container
+  const statsData = useMemo(() => [
+    {
+      title: "Revenue",
+      value: kpis.revenue.current,
+      previousValue: kpis.revenue.previous,
+      format: "currency",
+      icon: DollarSign,
+      iconColor: "#146EB4"
+    },
+    {
+      title: "Orders",
+      value: kpis.orders.current,
+      previousValue: kpis.orders.previous,
+      format: "number",
+      icon: ShoppingCart,
+      iconColor: "#FF9900"
+    },
+    {
+      title: "AOV",
+      value: kpis.aov.current,
+      previousValue: kpis.aov.previous,
+      format: "currency",
+      icon: TrendingUp,
+      iconColor: "#067D62"
+    },
+    {
+      title: "Conversion",
+      value: kpis.conversionRate.current,
+      previousValue: kpis.conversionRate.previous,
+      format: "percent",
+      icon: Percent,
+      iconColor: "#146EB4"
+    },
+    {
+      title: "Gross Margin",
+      value: kpis.grossMargin.current,
+      previousValue: kpis.grossMargin.previous,
+      format: "percent",
+      icon: Percent,
+      iconColor: "#067D62"
+    },
+    {
+      title: "Inventory",
+      value: kpis.inventoryValue.current,
+      previousValue: kpis.inventoryValue.previous,
+      format: "currency",
+      icon: Package,
+      iconColor: "#37475A"
+    },
+    {
+      title: "Refunds",
+      value: kpis.refunds.current,
+      previousValue: kpis.refunds.previous,
+      format: "currency",
+      icon: RefreshCw,
+      iconColor: "#E53E3E"
+    },
+    {
+      title: "Open Tickets",
+      value: kpis.ticketsBacklog.current,
+      previousValue: kpis.ticketsBacklog.previous,
+      format: "number",
+      icon: AlertTriangle,
+      iconColor: "#F9C74F"
+    }
+  ], [kpis]);
   
   // Amazon color palette
   const amazonColors = {
@@ -335,7 +476,7 @@ function AdminDashboardContent() {
   return (
     <div>
       <div className="min-h-screen" style={{ background: "linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%)" }}>
-        <div className="container-xl" style={{ paddingTop: 60, paddingBottom: 24 }}>
+        <div className="container-xl" style={{ paddingTop: 24, paddingBottom: 24 }}>
           {/* Page Title */}
           <div className="hero-headline" style={{ marginBottom: 8 }}>
             <div>
@@ -351,99 +492,132 @@ function AdminDashboardContent() {
             entityName="orders" 
           />
           
-          {/* KPI Strip */}
-          <div className="grid" style={{ 
-            gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", 
-            gap: 16,
-            marginBottom: 24 
+          {/* Key Metrics Header with Quick Actions on Same Row */}
+          <div style={{ 
+            display: "flex", 
+            justifyContent: "space-between", 
+            alignItems: "flex-end",
+            marginBottom: 8
           }}>
-            <KpiCard title="Revenue" value={kpis.revenue.current} previousValue={kpis.revenue.previous} format="currency" sparklineData={sparklineData} icon={DollarSign} />
-            <KpiCard title="Orders" value={kpis.orders.current} previousValue={kpis.orders.previous} format="number" icon={ShoppingCart} />
-            <KpiCard title="AOV" value={kpis.aov.current} previousValue={kpis.aov.previous} format="currency" icon={TrendingUp} />
-            <KpiCard title="Conversion Rate" value={kpis.conversionRate.current} previousValue={kpis.conversionRate.previous} format="percent" icon={Percent} />
-            <KpiCard title="Gross Margin" value={kpis.grossMargin.current} previousValue={kpis.grossMargin.previous} format="percent" icon={Percent} />
-            <KpiCard title="Inventory Value" value={kpis.inventoryValue.current} previousValue={kpis.inventoryValue.previous} format="currency" icon={Package} />
+            <div>
+              <h2 style={{ 
+                fontSize: 20, 
+                fontWeight: 800, 
+                color: amazonColors.darkBg,
+                margin: 0,
+                marginBottom: 4
+              }}>Key Metrics</h2>
+              <div style={{ 
+                height: 2, 
+                width: 60,
+                background: "linear-gradient(to right, #FF9900, transparent)",
+                borderRadius: 2
+              }} />
+            </div>
+            
+            {/* Quick Actions Buttons */}
+            <div style={{ display: "flex", gap: "12px" }}>
+              <button
+                onClick={() => setShowDiscountModal(true)}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "8px",
+                  padding: "10px 16px",
+                  background: amazonColors.orange,
+                  color: "#fff",
+                  border: "none",
+                  borderRadius: "6px",
+                  fontSize: "13px",
+                  fontWeight: 600,
+                  cursor: "pointer",
+                  boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
+                  transition: "all 0.2s ease",
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = amazonColors.darkOrange;
+                  e.currentTarget.style.transform = "translateY(-1px)";
+                  e.currentTarget.style.boxShadow = "0 4px 8px rgba(0,0,0,0.15)";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = amazonColors.orange;
+                  e.currentTarget.style.transform = "translateY(0)";
+                  e.currentTarget.style.boxShadow = "0 2px 4px rgba(0,0,0,0.1)";
+                }}
+              >
+                <Percent size={14} />
+                Create Discount
+              </button>
+              
+              <button
+                onClick={() => setShowProductModal(true)}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "8px",
+                  padding: "10px 16px",
+                  background: amazonColors.accentBlue,
+                  color: "#fff",
+                  border: "none",
+                  borderRadius: "6px",
+                  fontSize: "13px",
+                  fontWeight: 600,
+                  cursor: "pointer",
+                  boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
+                  transition: "all 0.2s ease",
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = "#0F4C8A";
+                  e.currentTarget.style.transform = "translateY(-1px)";
+                  e.currentTarget.style.boxShadow = "0 4px 8px rgba(0,0,0,0.15)";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = amazonColors.accentBlue;
+                  e.currentTarget.style.transform = "translateY(0)";
+                  e.currentTarget.style.boxShadow = "0 2px 4px rgba(0,0,0,0.1)";
+                }}
+              >
+                <Package size={14} />
+                Add Product
+              </button>
+              
+              <button
+                onClick={() => setShowOrderModal(true)}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "8px",
+                  padding: "10px 16px",
+                  background: amazonColors.success,
+                  color: "#fff",
+                  border: "none",
+                  borderRadius: "6px",
+                  fontSize: "13px",
+                  fontWeight: 600,
+                  cursor: "pointer",
+                  boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
+                  transition: "all 0.2s ease",
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = "#055A4A";
+                  e.currentTarget.style.transform = "translateY(-1px)";
+                  e.currentTarget.style.boxShadow = "0 4px 8px rgba(0,0,0,0.15)";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = amazonColors.success;
+                  e.currentTarget.style.transform = "translateY(0)";
+                  e.currentTarget.style.boxShadow = "0 2px 4px rgba(0,0,0,0.1)";
+                }}
+              >
+                <ShoppingCart size={14} />
+                Create Order
+              </button>
+            </div>
           </div>
           
-          {/* Attention & Tasks */}
-          <div className="grid" style={{ 
-            gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", 
-            gap: 16, 
-            marginBottom: 24 
-          }}>
-            <AttentionCard title="Unpaid Orders" count={attentionMetrics.unpaid} severity="warning" ctaText="Collect Payment" ctaAction={() => {}} />
-            <AttentionCard title="Unfulfilled Orders" count={attentionMetrics.unfulfilled} severity="info" ctaText="Create Shipment" ctaAction={() => {}} />
-            <AttentionCard title="Flagged Orders" count={attentionMetrics.flagged} severity="danger" ctaText="Review Flags" ctaAction={() => {}} />
-            <AttentionCard title="Low Stock Items" count={attentionMetrics.lowStock} severity="warning" ctaText="View Inventory" ctaAction={() => {}} icon={Package} />
-            <AttentionCard title="Urgent Tickets" count={attentionMetrics.urgentTickets} severity="danger" ctaText="View Tickets" ctaAction={() => {}} icon={AlertTriangle} />
-          </div>
+          {/* Amazon-Inspired Stats Container */}
+          <StatsContainer stats={statsData} />
           
-          {/* Support Ticket Status Cards */}
-          <div className="grid" style={{ 
-            gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", 
-            gap: 16, 
-            marginBottom: 24 
-          }}>
-            <div className="card" style={{ 
-              padding: "20px",
-              background: "#fff",
-              borderRadius: "12px",
-              border: `2px solid ${amazonColors.accentBlue}`,
-              ...cardShadow
-            }}>
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
-                <span style={{ fontSize: "14px", fontWeight: 600, color: "#666" }}>Open Tickets</span>
-                <AlertTriangle size={20} style={{ color: amazonColors.accentBlue }} />
-              </div>
-              <div style={{ fontSize: "32px", fontWeight: 800, color: amazonColors.accentBlue }}>{ticketStatusCounts.open}</div>
-              <div style={{ fontSize: "12px", color: "#999", marginTop: 4 }}>Need attention</div>
-            </div>
-            
-            <div className="card" style={{ 
-              padding: "20px",
-              background: "#fff",
-              borderRadius: "12px",
-              border: `2px solid ${amazonColors.warning}`,
-              ...cardShadow
-            }}>
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
-                <span style={{ fontSize: "14px", fontWeight: 600, color: "#666" }}>In Progress</span>
-                <RefreshCw size={20} style={{ color: amazonColors.warning }} />
-              </div>
-              <div style={{ fontSize: "32px", fontWeight: 800, color: amazonColors.warning }}>{ticketStatusCounts.inProgress}</div>
-              <div style={{ fontSize: "12px", color: "#999", marginTop: 4 }}>Being worked on</div>
-            </div>
-            
-            <div className="card" style={{ 
-              padding: "20px",
-              background: "#fff",
-              borderRadius: "12px",
-              border: `2px solid ${amazonColors.success}`,
-              ...cardShadow
-            }}>
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
-                <span style={{ fontSize: "14px", fontWeight: 600, color: "#666" }}>Resolved</span>
-                <ShoppingCart size={20} style={{ color: amazonColors.success }} />
-              </div>
-              <div style={{ fontSize: "32px", fontWeight: 800, color: amazonColors.success }}>{ticketStatusCounts.resolved}</div>
-              <div style={{ fontSize: "12px", color: "#999", marginTop: 4 }}>Awaiting closure</div>
-            </div>
-            
-            <div className="card" style={{ 
-              padding: "20px",
-              background: "#fff",
-              borderRadius: "12px",
-              border: "2px solid #999",
-              ...cardShadow
-            }}>
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
-                <span style={{ fontSize: "14px", fontWeight: 600, color: "#666" }}>Closed</span>
-                <Package size={20} style={{ color: "#999" }} />
-              </div>
-              <div style={{ fontSize: "32px", fontWeight: 800, color: "#666" }}>{ticketStatusCounts.closed}</div>
-              <div style={{ fontSize: "12px", color: "#999", marginTop: 4 }}>Completed</div>
-            </div>
-          </div>
           
           {/* Insights */}
           {insights.length > 0 && (
@@ -452,17 +626,68 @@ function AdminDashboardContent() {
             </div>
           )}
           
-          {/* Orders and Support Tickets in Columns */}
+          {/* Orders and Support Tickets - Side by Side (50/50) */}
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 24, marginBottom: 24 }}>
-            {/* Orders Table */}
+            {/* Orders Table with Sales Trend */}
             <div className="card" style={{ 
               padding: 20,
               background: "#fff",
               borderRadius: "12px",
               ...cardShadow
             }}>
-              <h2 style={{ margin: "0 0 16px 0", fontSize: 20, fontWeight: 800, color: amazonColors.darkBg }}>Recent Orders</h2>
-              <OrdersTable orders={filteredOrders.slice(0, 10)} onOrderClick={() => {}} />
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+                <h2 
+                  onClick={() => navigate('/admin/orders')}
+                  style={{ 
+                    margin: 0, 
+                    fontSize: 20, 
+                    fontWeight: 800, 
+                    color: amazonColors.darkBg,
+                    cursor: 'pointer',
+                    transition: 'color 0.2s ease'
+                  }}
+                  onMouseEnter={(e) => e.currentTarget.style.color = amazonColors.orange}
+                  onMouseLeave={(e) => e.currentTarget.style.color = amazonColors.darkBg}
+                >
+                  Recent Orders
+                </h2>
+                
+                {/* Order Status Mini Stats - Inline */}
+                <div style={{ display: "flex", gap: "16px", alignItems: "center" }}>
+                  <div style={{ textAlign: "center" }}>
+                    <div style={{ fontSize: "10px", color: "#718096", fontWeight: 600, marginBottom: "2px" }}>UNPAID</div>
+                    <div style={{ fontSize: "16px", fontWeight: 700, color: "#F9C74F" }}>{attentionMetrics.unpaid}</div>
+                  </div>
+                  <div style={{ textAlign: "center" }}>
+                    <div style={{ fontSize: "10px", color: "#718096", fontWeight: 600, marginBottom: "2px" }}>UNFULFILLED</div>
+                    <div style={{ fontSize: "16px", fontWeight: 700, color: "#146EB4" }}>{attentionMetrics.unfulfilled}</div>
+                  </div>
+                  <div style={{ textAlign: "center" }}>
+                    <div style={{ fontSize: "10px", color: "#718096", fontWeight: 600, marginBottom: "2px" }}>FLAGGED</div>
+                    <div style={{ fontSize: "16px", fontWeight: 700, color: "#E53E3E" }}>{attentionMetrics.flagged}</div>
+                  </div>
+                  <div style={{ textAlign: "center" }}>
+                    <div style={{ fontSize: "10px", color: "#718096", fontWeight: 600, marginBottom: "2px" }}>LOW STOCK</div>
+                    <div style={{ fontSize: "16px", fontWeight: 700, color: "#FF9900" }}>{attentionMetrics.lowStock}</div>
+                  </div>
+                </div>
+              </div>
+              
+              <OrdersTable 
+                orders={filteredOrders.slice(0, 10)} 
+                onOrderClick={(order) => navigate(`/admin/orders/${order.id}`)}
+                onEditOrder={(order) => {
+                  console.log("Edit order:", order);
+                  // TODO: Implement edit order modal
+                }}
+                onDeleteOrder={(order) => {
+                  if (window.confirm(`Are you sure you want to delete order #${order.id.slice(0, 8)}?`)) {
+                    console.log("Delete order:", order);
+                    // TODO: Implement delete order
+                  }
+                }}
+                zebraStripe={true} 
+              />
             </div>
             
             {/* Support Tickets Kanban */}
@@ -472,7 +697,52 @@ function AdminDashboardContent() {
               borderRadius: "12px",
               ...cardShadow
             }}>
-              <h2 style={{ margin: "0 0 16px 0", fontSize: 20, fontWeight: 800, color: amazonColors.darkBg }}>Support Tickets</h2>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+                <h2 
+                  onClick={() => navigate('/admin/tickets')}
+                  style={{ 
+                    margin: 0, 
+                    fontSize: 20, 
+                    fontWeight: 800, 
+                    color: amazonColors.darkBg,
+                    cursor: 'pointer',
+                    transition: 'color 0.2s ease'
+                  }}
+                  onMouseEnter={(e) => e.currentTarget.style.color = amazonColors.orange}
+                  onMouseLeave={(e) => e.currentTarget.style.color = amazonColors.darkBg}
+                >
+                  Support Tickets
+                </h2>
+                
+                {/* Ticket Status Mini Stats - Inline */}
+                <div style={{ display: "flex", gap: "16px", alignItems: "center" }}>
+                  <div style={{ textAlign: "center" }}>
+                    <div style={{ fontSize: "10px", color: "#718096", fontWeight: 600, marginBottom: "2px" }}>OPEN</div>
+                    <div style={{ fontSize: "16px", fontWeight: 700, color: "#146EB4" }}>
+                      {tickets.filter(t => t.status === "open").length}
+                    </div>
+                  </div>
+                  <div style={{ textAlign: "center" }}>
+                    <div style={{ fontSize: "10px", color: "#718096", fontWeight: 600, marginBottom: "2px" }}>IN PROGRESS</div>
+                    <div style={{ fontSize: "16px", fontWeight: 700, color: "#F9C74F" }}>
+                      {tickets.filter(t => t.status === "in_progress").length}
+                    </div>
+                  </div>
+                  <div style={{ textAlign: "center" }}>
+                    <div style={{ fontSize: "10px", color: "#718096", fontWeight: 600, marginBottom: "2px" }}>RESOLVED</div>
+                    <div style={{ fontSize: "16px", fontWeight: 700, color: "#067D62" }}>
+                      {tickets.filter(t => t.status === "resolved").length}
+                    </div>
+                  </div>
+                  <div style={{ textAlign: "center" }}>
+                    <div style={{ fontSize: "10px", color: "#718096", fontWeight: 600, marginBottom: "2px" }}>CLOSED</div>
+                    <div style={{ fontSize: "16px", fontWeight: 700, color: "#718096" }}>
+                      {tickets.filter(t => t.status === "closed").length}
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
               <TicketsKanban tickets={tickets.slice(0, 8)} onStatusChange={handleTicketStatusChange} />
             </div>
           </div>
@@ -492,6 +762,28 @@ function AdminDashboardContent() {
           </div>
         </div>
       </div>
+      
+      {/* Discount Creation Modal */}
+      <CreateDiscountModal
+        open={showDiscountModal}
+        onClose={() => setShowDiscountModal(false)}
+        onSave={handleCreateDiscount}
+      />
+      
+      {/* Product Creation Modal */}
+      <AddProductModal
+        open={showProductModal}
+        mode="create"
+        onClose={() => setShowProductModal(false)}
+        onSuccess={handleProductCreated}
+      />
+      
+      {/* Order Creation Modal */}
+      <CreateOrderModal
+        open={showOrderModal}
+        onClose={() => setShowOrderModal(false)}
+        onSave={handleOrderCreated}
+      />
     </div>
   );
 }

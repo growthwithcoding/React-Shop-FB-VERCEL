@@ -272,6 +272,23 @@ body:has(.onboarding-container) {
   margin-bottom: 16px;
 }
 
+/* Time Picker Styling */
+.onboarding-container input[type="time"] {
+  accent-color: #ff9900;
+  color-scheme: light;
+}
+
+.onboarding-container input[type="time"]::-webkit-calendar-picker-indicator {
+  filter: invert(56%) sepia(89%) saturate(2476%) hue-rotate(0deg) brightness(101%) contrast(101%);
+  cursor: pointer;
+}
+
+.onboarding-container input[type="time"]:focus {
+  border-color: #ff9900;
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(255, 153, 0, 0.1);
+}
+
 /* Responsive */
 @media (max-width: 640px) {
   .step-indicator {

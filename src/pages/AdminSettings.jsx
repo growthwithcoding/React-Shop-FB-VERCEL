@@ -1,10 +1,10 @@
 // src/pages/AdminSettings.jsx
 import { useEffect, useMemo, useState } from "react";
+import { Link } from "react-router-dom";
 import { useAuth } from "../auth/useAuth";
 import { getSettings, saveSettings, resetSettings } from "../services/settingsService";
-import BreadcrumbNav from '../components/BreadcrumbNav';
+import { COMMON_TIMEZONES } from "../services/timezoneService";
 import { Save } from "lucide-react";
-import { useTotalHeaderHeight } from "../hooks/useTotalHeaderHeight";
 
 /* ------------------------------ tiny icon set ------------------------------ */
 const IconStore = (props) => (
@@ -87,7 +87,6 @@ function StatCard({ icon, title, value, hint }) {
 /* ---------------------------------- page ---------------------------------- */
 export function AdminSettings() {
   const { user } = useAuth();
-  const { totalHeaderHeight } = useTotalHeaderHeight();
 
   const [tab, setTab] = useState("store");
 
@@ -97,6 +96,7 @@ export function AdminSettings() {
     email: "", 
     logo: "", 
     supportPhone: "",
+    serverTimeZone: "America/Denver",
     supportHours: {
       monday: { isOpen: true, open: "09:00", close: "17:00" },
       tuesday: { isOpen: true, open: "09:00", close: "17:00" },
@@ -179,6 +179,27 @@ export function AdminSettings() {
     };
   }, [store, payments, shipping, taxes]);
 
+  // Admin color palette - Green Theme
+  const adminColors = {
+    green: "#067D62",
+    darkGreen: "#055A4A",
+    darkBg: "#232F3E",
+    lightBg: "#37475A",
+    accentBlue: "#146EB4",
+    textLight: "#FFFFFF",
+    textDark: "#0F1111",
+    borderLight: "#DDD",
+    success: "#067D62",
+    warning: "#F9C74F",
+    danger: "#E53E3E",
+  };
+  
+  // Enhanced box shadow styles
+  const cardShadow = {
+    boxShadow: "0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24)",
+    transition: "all 0.3s cubic-bezier(.25,.8,.25,1)",
+  };
+
   if (!user || user.role !== "admin") {
     return <div className="container" style={{ padding: 24 }}>Access denied.</div>;
   }
@@ -232,107 +253,141 @@ export function AdminSettings() {
   }
 
   return (
-    <>
-      <BreadcrumbNav
-        currentPage="Settings"
-        backButton={{ label: "Back to Dashboard", path: "/admin" }}
-        rightActions={
-          <div style={{
-            display: "flex",
-            gap: 8,
-            alignItems: "center",
-            background: "linear-gradient(135deg, #e0f2f1 0%, #b2dfdb 100%)",
-            padding: "6px 10px",
-            borderRadius: 8,
-            boxShadow: "0 2px 8px rgba(0, 113, 133, 0.15)"
-          }}>
-            <button 
-              type="button" 
-              onClick={handleSave} 
-              disabled={saving || loading}
+    <div className="min-h-screen" style={{ background: "linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%)" }}>
+      <div className="container-xl" style={{ paddingTop: 24, paddingBottom: 24 }}>
+        {/* Hero Headline with Title, Description, and Actions */}
+        <div className="hero-headline" style={{ marginBottom: 16 }}>
+          <div>
+            <div className="kicker">Admin</div>
+            <h1 style={{ margin: 0 }}>Settings</h1>
+            <div className="meta" style={{ marginTop: 8 }}>
+              Configure store, payments, shipping, and taxes
+            </div>
+          </div>
+          <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+            <Link 
+              to="/admin" 
+              className="btn btn-secondary"
               style={{
-                background: "none",
-                border: "none",
-                color: saving || loading ? "#999" : "#00695c",
-                fontSize: 13,
-                cursor: saving || loading ? "not-allowed" : "pointer",
+                fontSize: "13px",
+                padding: "8px 14px",
+                whiteSpace: "nowrap"
+              }}
+            >
+              ← Back
+            </Link>
+            <button
+              onClick={handleSave}
+              disabled={saving || loading}
+              className="btn btn-primary"
+              style={{
                 display: "flex",
                 alignItems: "center",
-                gap: 6,
-                padding: "6px 12px",
-                fontWeight: 600,
-                whiteSpace: "nowrap",
-                borderRadius: 6,
-                transition: "background 0.2s"
+                gap: "8px",
+                fontSize: "13px",
+                padding: "8px 14px",
+                whiteSpace: "nowrap"
               }}
-              onMouseEnter={(e) => !saving && !loading && (e.target.style.background = "rgba(255, 255, 255, 0.4)")}
-              onMouseLeave={(e) => e.target.style.background = "none"}
             >
-              <Save style={{ width: 16, height: 16 }} />
+              <Save size={14} />
               {saving ? "Saving…" : "Save Changes"}
             </button>
           </div>
-        }
-      />
-      
-      <div className="container-xl" style={{ paddingTop: totalHeaderHeight, paddingBottom: 24 }}>
-        <div className="hero-headline" style={{ marginBottom: 8, marginTop: -8 }}>
-          <div>
-            <div className="kicker" style={{ marginBottom: 0 }}>Admin</div>
-            <h1 style={{ margin: 0 }}>Settings</h1>
-          </div>
         </div>
 
-      {/* Error banner */}
-      {error && (
-        <div className="card" style={{ padding: 10, color: "var(--danger, #991b1b)", marginBottom: 12 }}>
-          {error}
-        </div>
-      )}
+          {/* Error banner */}
+          {error && (
+            <div className="card" style={{ 
+              padding: 10, 
+              color: "var(--danger, #991b1b)", 
+              marginBottom: 12,
+              background: "#fff",
+              borderRadius: "12px",
+              ...cardShadow
+            }}>
+              {error}
+            </div>
+          )}
 
-      {/* Top widgets */}
-      <div className="grid" style={{ gridTemplateColumns: "repeat(4, minmax(0,1fr))", gap: 8, marginBottom: 12 }}>
+        {/* Top widgets */}
+          <div className="grid" style={{ gridTemplateColumns: "repeat(4, minmax(0,1fr))", gap: 8, marginBottom: 16 }}>
         <StatCard icon={<IconStore />} title="Store profile" value={widgets.storeOk ? "Complete" : "Incomplete"} hint={store.name || "—"} />
-        <StatCard icon={<IconCard />} title="Payments" value={widgets.paymentsConnected ? "Connected" : "Not connected"} hint={widgets.paymentsConnected ? "Stripe active" : "Stripe needed"} />
+        <StatCard icon={<IconCard />} title="Payments" value={widgets.paymentsConnected ? "Connected" : "Not connected"} hint={widgets.paymentsConnected ? "Payment gateway active" : "Setup required"} />
         <StatCard icon={<IconTruck />} title="Shipping" value={widgets.shippingSummary} />
         <StatCard icon={<IconPercent />} title="Taxes" value={widgets.taxSummary} />
-      </div>
-
-      {/* Tabs */}
-      <div style={{ display: "flex", gap: 8, marginBottom: 12, flexWrap: "wrap" }}>
-        {[
-          ["store", "Store"],
-          ["payments", "Payments"],
-          ["shipping", "Shipping"],
-          ["taxes", "Taxes"],
-          ["security", "Security"],
-        ].map(([id, label]) => (
-          <button
-            key={id}
-            className={`btn btn-secondary btn-slim ${tab === id ? "active" : ""}`}
-            onClick={() => setTab(id)}
-            type="button"
-          >
-            {label}
-          </button>
-        ))}
-      </div>
-
-      {/* Loading state */}
-      {loading && <div className="card" style={{ padding: 12 }}>Loading settings…</div>}
-
-      {/* Store */}
-      {!loading && tab === "store" && (
-        <section className="card" style={{ padding: 12 }}>
-          <div className="hero-title-row" style={{ alignItems: "center", marginBottom: 8 }}>
-            <h3 style={{ margin: 0 }}>Store</h3>
-            <span className="pill">{widgets.storeOk ? "Complete" : "Incomplete"}</span>
           </div>
-          
+
+          {/* Consolidated Card: Tabs, Content, and Actions */}
+          <div style={{ 
+            background: "#fff",
+            padding: "20px",
+            borderRadius: "12px",
+            ...cardShadow
+          }}>
+            {/* Title - Tabs (Filters) - Stats Row */}
+            <div style={{ 
+              display: "flex", 
+              justifyContent: "space-between", 
+              alignItems: "center", 
+              gap: 24, 
+              marginBottom: 20,
+              paddingBottom: 16,
+              borderBottom: "1px solid #e5e7eb"
+            }}>
+              {/* Title */}
+              <h2 style={{ margin: 0, fontSize: 20, fontWeight: 800, color: adminColors.darkBg, minWidth: "130px" }}>Configuration</h2>
+              
+              {/* Tabs - Centered (act as filters) */}
+              <div style={{ display: "flex", gap: 8, flexWrap: "wrap", flex: 1, justifyContent: "center" }}>
+                {[
+                  ["store", "Store"],
+                  ["payments", "Payments"],
+                  ["shipping", "Shipping"],
+                  ["taxes", "Taxes"],
+                  ["security", "Security"],
+                ].map(([id, label]) => (
+                  <button
+                    key={id}
+                    className={`btn btn-secondary btn-slim ${tab === id ? "active" : ""}`}
+                    onClick={() => setTab(id)}
+                    type="button"
+                    style={{
+                      fontSize: "13px",
+                      padding: "6px 12px",
+                      background: tab === id ? adminColors.green : "transparent",
+                      color: tab === id ? "#fff" : "#374151",
+                      border: tab === id ? "none" : "1px solid #e5e7eb",
+                    }}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+              
+              {/* Stats - Current Section Info */}
+              <div style={{ minWidth: "180px", textAlign: "right" }}>
+                <div style={{ fontSize: "13px", color: "#718096", fontWeight: 600 }}>
+                  {tab === "store" && widgets.storeOk ? "✓ Complete" : 
+                   tab === "store" && !widgets.storeOk ? "⚠ Incomplete" :
+                   tab === "payments" && widgets.paymentsConnected ? "✓ Connected" :
+                   tab === "payments" && !widgets.paymentsConnected ? "⚠ Not Connected" :
+                   tab === "shipping" ? widgets.shippingSummary :
+                   tab === "taxes" ? widgets.taxSummary :
+                   tab === "security" ? "Admin Only" : ""}
+                </div>
+              </div>
+            </div>
+
+            {/* Loading state */}
+            {loading && <div style={{ padding: 20, textAlign: "center" }}>Loading settings…</div>}
+
+            {/* Store */}
+            {!loading && tab === "store" && (
+              <section style={{ paddingTop: 12 }}>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
             {/* Left Column: Store Settings */}
             <div>
-              <h4 style={{ margin: "0 0 12px", fontSize: 16 }}>Store Information</h4>
+              <div className="meta" style={{ marginBottom: 8, fontWeight: 700 }}>Store Information</div>
               <div className="grid" style={{ gap: 8 }}>
                 <label className="field">
                   <div className="meta">Store name</div>
@@ -354,12 +409,29 @@ export function AdminSettings() {
                   <input className="input" placeholder="(555) 123-4567"
                     value={store.supportPhone} onChange={(e) => setStore(s => ({ ...s, supportPhone: e.target.value }))} />
                 </label>
+                <label className="field">
+                  <div className="meta">Server Time Zone</div>
+                  <select 
+                    className="input" 
+                    value={store.serverTimeZone || "America/Denver"}
+                    onChange={(e) => setStore(s => ({ ...s, serverTimeZone: e.target.value }))}
+                  >
+                    {COMMON_TIMEZONES.map((tz) => (
+                      <option key={tz.value} value={tz.value}>
+                        {tz.label} ({tz.offset})
+                      </option>
+                    ))}
+                  </select>
+                  <div className="meta" style={{ fontSize: 11, marginTop: 4 }}>
+                    All orders, tickets, and timestamps will be recorded in this timezone
+                  </div>
+                </label>
               </div>
             </div>
             
             {/* Right Column: Store Hours */}
             <div>
-              <h4 style={{ margin: "0 0 12px", fontSize: 16 }}>Store Support Hours</h4>
+              <div className="meta" style={{ marginBottom: 8, fontWeight: 700 }}>Store Support Hours</div>
               <div style={{ display: "grid", gap: 8 }}>
                 {["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"].map((day) => (
                   <div key={day} style={{ display: "grid", gridTemplateColumns: "90px 60px 1fr 1fr", gap: 6, alignItems: "center", fontSize: 13 }}>
@@ -411,33 +483,33 @@ export function AdminSettings() {
               </div>
             </div>
           </div>
-        </section>
-      )}
+              </section>
+            )}
 
-      {/* Payments */}
-      {!loading && tab === "payments" && (
-        <section className="card" style={{ padding: 12 }}>
-          <div className="hero-title-row" style={{ alignItems: "center", marginBottom: 8 }}>
-            <h3 style={{ margin: 0 }}>Payments</h3>
-            <span className="pill" style={{ ...(payments.connected || payments.pk ? {} : { background: "#fff7e6", border: "1px solid #ffd8a8", color: "#8a5a00" }) }}>
-              {payments.connected || payments.pk ? "Connected" : "Not connected"}
-            </span>
-          </div>
-          <label className="checkbox" style={{ display: "block", marginBottom: 8 }}>
-            <input type="checkbox" checked={payments.enableCards}
-              onChange={(e) => setPayments(p => ({ ...p, enableCards: e.target.checked }))} /> Enable credit cards
-          </label>
-          <label className="checkbox" style={{ display: "block", marginBottom: 16 }}>
-            <input type="checkbox" checked={payments.cod}
-              onChange={(e) => setPayments(p => ({ ...p, cod: e.target.checked }))} /> Enable Cash on Delivery
-          </label>
-          
-          <div style={{ marginBottom: 8 }}>
-            <div className="meta" style={{ marginBottom: 8, fontWeight: 700 }}>Accepted Payment Methods</div>
-            <div className="meta" style={{ marginBottom: 8, fontSize: 12 }}>
-              Select which payment methods customers can add and use:
+            {/* Payments */}
+            {!loading && tab === "payments" && (
+              <section style={{ paddingTop: 12 }}>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+            {/* Left Column: Payment Options */}
+            <div>
+              <div className="meta" style={{ marginBottom: 8, fontWeight: 700 }}>Payment Options</div>
+              <label className="checkbox" style={{ display: "block", marginBottom: 8 }}>
+                <input type="checkbox" checked={payments.enableCards}
+                  onChange={(e) => setPayments(p => ({ ...p, enableCards: e.target.checked }))} /> Enable credit cards
+              </label>
+              <label className="checkbox" style={{ display: "block", marginBottom: 8 }}>
+                <input type="checkbox" checked={payments.cod}
+                  onChange={(e) => setPayments(p => ({ ...p, cod: e.target.checked }))} /> Enable Cash on Delivery
+              </label>
             </div>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+            
+            {/* Right Column: Accepted Methods */}
+            <div>
+              <div className="meta" style={{ marginBottom: 8, fontWeight: 700 }}>Accepted Payment Methods</div>
+              <div className="meta" style={{ marginBottom: 8, fontSize: 12 }}>
+                Select which payment methods customers can add and use:
+              </div>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
               <label className="checkbox" style={{ display: "block" }}>
                 <input 
                   type="checkbox" 
@@ -498,37 +570,16 @@ export function AdminSettings() {
                   }}
                 /> 🤖 Google Pay
               </label>
+              </div>
             </div>
           </div>
-          <div className="grid" style={{ gridTemplateColumns: "1fr 1fr", gap: 8, marginTop: 8 }}>
-            <label className="field">
-              <div className="meta">Stripe Publishable Key</div>
-              <input className="input" placeholder="pk_live_…" value={payments.pk}
-                onChange={(e) => setPayments(p => ({ ...p, pk: e.target.value }))} />
-            </label>
-            <label className="field">
-              <div className="meta">Stripe Secret Key (local only)</div>
-              <input className="input" placeholder="sk_live_…" value={payments.sk}
-                onChange={(e) => setPayments(p => ({ ...p, sk: e.target.value }))} />
-            </label>
-          </div>
-          <div className="card" style={{ marginTop: 10, padding: 8, display: "flex", gap: 8, alignItems: "center" }}>
-            <IconShield />
-            <div className="meta">
-              Secret keys are <strong>not saved to Firestore</strong>. Store them in server-side config/Secret Manager and set
-              <code> payments.connected </code> via a secure admin flow.
-            </div>
-          </div>
-        </section>
-      )}
+              </section>
+            )}
 
-      {/* Shipping */}
-      {!loading && tab === "shipping" && (
-        <section className="card" style={{ padding: 12 }}>
-          <div className="hero-title-row" style={{ alignItems: "center", marginBottom: 8 }}>
-            <h3 style={{ margin: 0 }}>Shipping</h3>
-            <span className="pill">{`Base $${Number(shipping.base).toFixed(2)} • Free ≥ $${Number(shipping.freeAt).toFixed(0)}`}</span>
-          </div>
+            {/* Shipping */}
+            {!loading && tab === "shipping" && (
+              <section style={{ paddingTop: 12 }}>
+          <div className="meta" style={{ marginBottom: 8, fontWeight: 700 }}>Shipping Rates</div>
           <div className="grid" style={{ gridTemplateColumns: "1fr 1fr", gap: 8 }}>
             <label className="field">
               <div className="meta">Base rate ($)</div>
@@ -541,16 +592,13 @@ export function AdminSettings() {
                 onChange={(e) => setShipping(s => ({ ...s, freeAt: Number(e.target.value) }))} />
             </label>
           </div>
-        </section>
-      )}
+              </section>
+            )}
 
-      {/* Taxes */}
-      {!loading && tab === "taxes" && (
-        <section className="card" style={{ padding: 12 }}>
-          <div className="hero-title-row" style={{ alignItems: "center", marginBottom: 8 }}>
-            <h3 style={{ margin: 0 }}>Taxes</h3>
-            <span className="pill">{`${Number(taxes.rate).toFixed(1)}% • ${taxes.origin || "—"}`}</span>
-          </div>
+            {/* Taxes */}
+            {!loading && tab === "taxes" && (
+              <section style={{ paddingTop: 12 }}>
+          <div className="meta" style={{ marginBottom: 8, fontWeight: 700 }}>Tax Configuration</div>
           <div className="grid" style={{ gridTemplateColumns: "1fr 1fr", gap: 8 }}>
             <label className="field">
               <div className="meta">Default tax rate (%)</div>
@@ -563,30 +611,14 @@ export function AdminSettings() {
                 onChange={(e) => setTaxes(t => ({ ...t, origin: e.target.value }))} />
             </label>
           </div>
-        </section>
-      )}
+              </section>
+            )}
 
-      {/* Security / Danger Zone */}
-      {!loading && tab === "security" && (
-        <section className="card" style={{ padding: 12 }}>
-          <div className="hero-title-row" style={{ alignItems: "center", marginBottom: 8 }}>
-            <h3 style={{ margin: 0 }}>Security & Maintenance</h3>
-            <span className="pill">Admin actions</span>
-          </div>
-          <div className="grid" style={{ gridTemplateColumns: "1fr 1fr", gap: 8 }}>
-            <div className="card" style={{ padding: 12 }}>
-              <h4 style={{ margin: "0 0 6px" }}>Rotate Stripe Keys</h4>
-              <div className="meta">Rotate keys server-side, then mark connection as active.</div>
-              <div style={{ marginTop: 8, display: "flex", gap: 8 }}>
-                <button
-                  className="btn btn-secondary"
-                  type="button"
-                  onClick={() => setPayments(p => ({ ...p, connected: true }))}
-                >
-                  Mark Connected
-                </button>
-              </div>
-            </div>
+            {/* Security / Danger Zone */}
+            {!loading && tab === "security" && (
+              <section style={{ paddingTop: 12 }}>
+          <div className="meta" style={{ marginBottom: 8, fontWeight: 700 }}>Security & Maintenance</div>
+          <div className="grid" style={{ gridTemplateColumns: "1fr", gap: 8 }}>
             <div className="card" style={{ padding: 12 }}>
               <h4 style={{ margin: "0 0 6px", color: "#991b1b" }}>Danger Zone</h4>
               <div className="meta">Reset settings to defaults (Firestore). Does not delete products/orders.</div>
@@ -597,68 +629,80 @@ export function AdminSettings() {
               </div>
             </div>
           </div>
-        </section>
-      )}
+              </section>
+            )}
 
-      {/* Bottom-right sticky Save bar */}
-      {!loading && (
-        <div
-          className="save-bar"
-          style={{
-            position: "sticky",
-            bottom: 12,
-            marginTop: 12,
-            zIndex: 5,
-          }}
-        >
-          <div
-            className="card"
-            style={{
-              padding: 10,
-              display: "flex",
-              justifyContent: "flex-end",
-              gap: 8,
-              boxShadow: "0 8px 24px rgba(0,0,0,0.06)",
-            }}
-          >
-            <button
-              className="btn btn-secondary btn-slim"
-              type="button"
-              onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
-            >
-              Back to Top
-            </button>
-            <button
-              className="btn btn-primary"
-              type="button"
-              onClick={handleSave}
-              disabled={saving}
-            >
-              {saving ? "Saving…" : "Save Changes"}
-            </button>
+            {/* Bottom Actions Bar (inside card) */}
+            {!loading && (
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "flex-end",
+                  marginTop: 20,
+                  paddingTop: 16,
+                  borderTop: "1px solid #e5e7eb",
+                }}
+              >
+                <button
+                  onClick={handleSave}
+                  disabled={saving}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "8px",
+                    padding: "10px 16px",
+                    background: saving ? "#999" : adminColors.success,
+                    color: "#fff",
+                    border: "none",
+                    borderRadius: "6px",
+                    fontSize: "13px",
+                    fontWeight: 600,
+                    cursor: saving ? "not-allowed" : "pointer",
+                    boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
+                    transition: "all 0.2s ease",
+                    opacity: saving ? 0.6 : 1,
+                  }}
+                  onMouseEnter={(e) => {
+                    if (!saving) {
+                      e.currentTarget.style.background = "#055A4A";
+                      e.currentTarget.style.transform = "translateY(-1px)";
+                      e.currentTarget.style.boxShadow = "0 4px 8px rgba(0,0,0,0.15)";
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (!saving) {
+                      e.currentTarget.style.background = adminColors.success;
+                      e.currentTarget.style.transform = "translateY(0)";
+                      e.currentTarget.style.boxShadow = "0 2px 4px rgba(0,0,0,0.1)";
+                    }
+                  }}
+                >
+                  <Save size={14} />
+                  {saving ? "Saving…" : "Save Changes"}
+                </button>
+              </div>
+            )}
           </div>
-        </div>
-      )}
 
-      {/* Modals */}
-      <ConfirmModal
-        open={confirmOpen}
-        title="Changes saved"
-        message="Your settings have been saved to Firestore."
-        confirmText="OK"
-        onConfirm={() => setConfirmOpen(false)}
-        onClose={() => setConfirmOpen(false)}
-      />
-      <ConfirmModal
-        open={dangerOpen}
-        title="Reset configuration"
-        message="Are you sure you want to reset all settings to defaults? This cannot be undone."
-        confirmText="Reset"
-        onConfirm={handleReset}
-        onClose={() => setDangerOpen(false)}
-        tone="danger"
-      />
+        {/* Modals */}
+        <ConfirmModal
+          open={confirmOpen}
+          title="Changes saved"
+          message="Your settings have been saved to Firestore."
+          confirmText="OK"
+          onConfirm={() => setConfirmOpen(false)}
+          onClose={() => setConfirmOpen(false)}
+        />
+        <ConfirmModal
+          open={dangerOpen}
+          title="Reset configuration"
+          message="Are you sure you want to reset all settings to defaults? This cannot be undone."
+          confirmText="Reset"
+          onConfirm={handleReset}
+          onClose={() => setDangerOpen(false)}
+          tone="danger"
+        />
       </div>
-    </>
+    </div>
   );
 }

@@ -14,9 +14,9 @@ export default function InventoryTrendGraph({ products = [], orders = [] }) {
     const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
 
     // Calculate current totals
-    const totalStock = products.reduce((sum, p) => sum + (Number(p.stock) || 0), 0);
+    const totalStock = products.reduce((sum, p) => sum + (Number(p.inventory) || 0), 0);
     const lowStockCount = products.filter(p => {
-      const stock = Number(p.stock) || 0;
+      const stock = Number(p.inventory) || 0;
       const threshold = Number(p.threshold) || Number(p.lowStockThreshold) || 5;
       return stock <= threshold;
     }).length;

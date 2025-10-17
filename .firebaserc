@@ -1,6 +1,6 @@
 {
   "projects": {
-    "FBSTORE": "advancedshop-34b8d"
+    "default": "react-shop-fb"
   },
   "targets": {},
   "etags": {}

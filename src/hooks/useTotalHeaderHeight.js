@@ -12,13 +12,13 @@ export function useTotalHeaderHeight() {
   const STORE_NAV_HEIGHT = 67;
   const ADMIN_PANEL_HEIGHT = 98;
   const AGENT_PANEL_HEIGHT = 98;
-  const BREADCRUMB_HEIGHT = 40; // Approximate
   
   // State for measured heights
   const [measuredHeights, setMeasuredHeights] = useState({
     storeNav: STORE_NAV_HEIGHT,
     adminPanel: 0,
     agentPanel: 0,
+    breadcrumb: 40,
     totalNavbar: STORE_NAV_HEIGHT,
   });
   
@@ -29,12 +29,20 @@ export function useTotalHeaderHeight() {
       let storeNavHeight = STORE_NAV_HEIGHT;
       let adminPanelHeight = 0;
       let agentPanelHeight = 0;
+      let breadcrumbHeight = 40;
       
       // Measure store nav
       const storeNav = document.querySelector('.site-nav');
       if (storeNav) {
         const rect = storeNav.getBoundingClientRect();
         storeNavHeight = rect.height;
+      }
+      
+      // Measure breadcrumb nav
+      const breadcrumbNav = document.querySelector('[data-breadcrumb-nav]');
+      if (breadcrumbNav) {
+        const rect = breadcrumbNav.getBoundingClientRect();
+        breadcrumbHeight = rect.height;
       }
       
       // Measure admin/agent panel based on user role
@@ -76,6 +84,7 @@ export function useTotalHeaderHeight() {
         storeNav: storeNavHeight,
         adminPanel: adminPanelHeight,
         agentPanel: agentPanelHeight,
+        breadcrumb: breadcrumbHeight,
         totalNavbar,
       };
       
@@ -127,7 +136,7 @@ export function useTotalHeaderHeight() {
     
     // Combined heights
     totalNavbarHeight: measuredHeights.totalNavbar,
-    breadcrumbNavHeight: BREADCRUMB_HEIGHT,
-    totalHeaderHeight: measuredHeights.totalNavbar + BREADCRUMB_HEIGHT,
+    breadcrumbNavHeight: measuredHeights.breadcrumb,
+    totalHeaderHeight: measuredHeights.totalNavbar + measuredHeights.breadcrumb,
   };
 }

@@ -7,11 +7,15 @@
 // ------------------------------------------------------------
 
 import Hero from '../components/Hero.jsx'
+import CategorySidebar from '../components/CategorySidebar.jsx'
+import CategoryGrid from '../components/CategoryGrid.jsx'
+import CategoryBreadcrumbs from '../components/CategoryBreadcrumbs.jsx'
+import CategoryFilterBar from '../components/CategoryFilterBar.jsx'
 import { useMemo, useState, useEffect } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { listProducts, categoryLabel } from '../services/productService'
 import ProductCard from '../components/ProductCard.jsx'
-import { useSearchParams } from 'react-router-dom'
+import { useSearchParams, useNavigate } from 'react-router-dom'
 import { searchTiers } from '../utils/search.js'
 
 const PRODUCTS_PER_PAGE = 10;
@@ -24,19 +28,22 @@ export default function Home() {
   const [currentPage, setCurrentPage] = useState(1)
 
   // ───────────────────────────────────────────────────────────
-  // URL → category (unknown → "all") and filter (deals, new, bestsellers)
+  // URL → category, filter, and search query
   // ───────────────────────────────────────────────────────────
   const [params] = useSearchParams()
-  const urlCategory = (params.get('cat') || 'all')
+  const navigate = useNavigate()
+  const urlCategory = params.get('category') || params.get('cat') || 'all'  // Support both for backward compatibility
   const urlFilter = params.get('filter') || ''
+  const urlQuery = params.get('q') || ''  // FIX: Read search query from URL
 
-  // Smooth scroll to top when category changes (nice on mobile)
+  // Smooth scroll to top when category or search changes
   useEffect(() => {
-    setCurrentPage(1); // Reset to page 1 when category changes
+    setCurrentPage(1); // Reset to page 1 when category or search changes
     requestAnimationFrame(() => {
+      // Scroll to top of page to show breadcrumbs
       window.scrollTo({ top: 0, behavior: 'smooth' })
     })
-  }, [urlCategory])
+  }, [urlCategory, urlQuery])
 
 
   // Reset page and scroll when filter changes (but not on initial load)
@@ -73,7 +80,11 @@ export default function Home() {
     primary,
     primarySorted,
   } = useMemo(() => {
-    const tiers = searchTiers(allProducts, '', urlCategory === 'all' ? '' : urlCategory)
+    // CRITICAL: Filter out inactive products first - only show active products on storefront
+    const activeProducts = allProducts.filter(p => p.status === 'active')
+    
+    // FIX: Pass actual search query instead of empty string
+    const tiers = searchTiers(activeProducts, urlQuery, urlCategory === 'all' ? '' : urlCategory)
 
     // Apply special filters from nav bar
     const applyFilter = (list) => {
@@ -105,7 +116,7 @@ export default function Home() {
       primary: filteredPrimary,
       primarySorted: filteredPrimary,
     }
-  }, [allProducts, urlCategory, urlFilter])
+  }, [allProducts, urlCategory, urlFilter, urlQuery])  // FIX: Add urlQuery to dependencies
 
   // ───────────────────────────────────────────────────────────
   // Presentation helpers
@@ -140,28 +151,99 @@ export default function Home() {
     document.getElementById('products-start')?.scrollIntoView({ behavior: 'smooth' });
   };
 
+  // Helper for clearing search
+  const handleClearSearch = () => {
+    const newParams = new URLSearchParams(params);
+    newParams.delete('q');
+    navigate(newParams.toString() ? `/?${newParams.toString()}` : '/');
+  };
+
+  const isSearching = isLoadingAll && urlQuery;
+
   // ───────────────────────────────────────────────────────────
   // Render
   // ───────────────────────────────────────────────────────────
   return (
-    <>
-      <main className="container-xl" style={{ paddingTop: 16, paddingBottom: 24 }}>
-      {/* Full-width within page container (matches AdminDashboard) */}
-      <Hero activeCategory={urlCategory} />
+    <div className="home-page-wrapper">
+      {/* Category Sidebar (Desktop: sticky, Mobile: slide-in) */}
+      <CategorySidebar />
+
+      {/* Main Content Area */}
+      <main className="home-main-content">
+        <div className="container-xl" style={{ paddingTop: 16, paddingBottom: 24 }}>
+          {/* Breadcrumbs and Filter Bar Row */}
+          <div style={{ 
+            display: 'flex', 
+            alignItems: 'center', 
+            justifyContent: 'space-between',
+            gap: '16px',
+            marginBottom: '20px',
+            paddingTop: '8px'
+          }}>
+            {/* Category Breadcrumbs - Left */}
+            <CategoryBreadcrumbs currentCategory={urlCategory} />
+            
+            {/* Category Filter Bar - Right */}
+            {!urlQuery && (
+              <div style={{ marginLeft: 'auto' }}>
+                <CategoryFilterBar />
+              </div>
+            )}
+          </div>
+          
+          {/* Hero Section */}
+          <Hero activeCategory={urlCategory} />
+
+          {/* Category Grid - Only show on "all" view when not searching */}
+          {urlCategory === 'all' && !urlQuery && (
+            <CategoryGrid />
+          )}
 
       {/* Data states */}
-      {isLoadingAll && <p>Loading products…</p>}
+      {isLoadingAll && <p>{isSearching ? `Searching for "${urlQuery}"...` : 'Loading products…'}</p>}
       {isErrorAll && <p>Could not load products.</p>}
 
-      {/* ── Tier 1: in-category ──────────────────────────────── */}
-      <section style={{ marginTop: 16 }}>
+          {/* Search feedback banner */}
+          {urlQuery && !isLoadingAll && (
+        <div style={{ 
+          padding: '12px 16px',
+          background: '#f0f8ff',
+          border: '1px solid #0066cc',
+          borderRadius: '8px',
+          marginTop: '16px',
+          marginBottom: '16px',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          flexWrap: 'wrap',
+          gap: '12px'
+        }}>
+          <div>
+            <strong style={{ color: '#0066cc' }}>Search results for: "{urlQuery}"</strong>
+            {urlCategory !== 'all' && <span style={{ marginLeft: '8px', color: '#666' }}>in {label}</span>}
+            <div style={{ fontSize: '14px', color: '#666', marginTop: '4px' }}>
+              Found {primarySorted.length} product{primarySorted.length !== 1 ? 's' : ''}
+            </div>
+          </div>
+          <button
+            className="btn btn-secondary"
+            onClick={handleClearSearch}
+            style={{ whiteSpace: 'nowrap' }}
+          >
+            ✕ Clear Search
+          </button>
+          </div>
+          )}
+
+          {/* ── Tier 1: in-category ──────────────────────────────── */}
+          <section style={{ marginTop: 16 }}>
         <h2 style={{ margin: '8px 0 12px' }}>
-          {filterLabel || (urlCategory === 'all' ? 'Products for you' : `Products in ${label}`)}
+          {urlQuery ? `Search Results` : (filterLabel || 'Products')}
         </h2>
 
         <div id="products-start" />
 
-        {!noPrimary && (
+        {!noPrimary && !isLoadingAll && (
           <>
             <div className="grid products">
               {paginatedPrimary.map((p) => (
@@ -230,9 +312,47 @@ export default function Home() {
             </div>
           </>
         )}
-      </section>
 
+        {/* Empty state - No results found */}
+        {noPrimary && !isLoadingAll && (
+          <div style={{ 
+            textAlign: 'center', 
+            padding: '40px 20px',
+            background: '#f8f9fa',
+            borderRadius: '8px'
+          }}>
+            <h3 style={{ marginBottom: '8px', color: '#333' }}>No products found</h3>
+            {urlQuery ? (
+              <>
+                <p style={{ color: '#666', marginBottom: '16px' }}>
+                  We couldn't find any products matching <strong>"{urlQuery}"</strong>
+                  {urlCategory !== 'all' && ` in ${label}`}
+                </p>
+                <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', flexWrap: 'wrap' }}>
+                  <button
+                    className="btn btn-primary"
+                    onClick={() => navigate('/')}
+                  >
+                    Browse All Products
+                  </button>
+                  <button
+                    className="btn btn-secondary"
+                    onClick={handleClearSearch}
+                  >
+                    Clear Search
+                  </button>
+                </div>
+              </>
+            ) : (
+              <p style={{ color: '#666' }}>
+                No products available in this category
+              </p>
+            )}
+            </div>
+          )}
+          </section>
+        </div>
       </main>
-    </>
+    </div>
   )
 }

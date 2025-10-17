@@ -1,9 +1,7 @@
 // src/pages/Profile.jsx
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../auth/useAuth";
-import BreadcrumbNav from '../components/BreadcrumbNav';
-import { useTotalHeaderHeight } from '../hooks/useTotalHeaderHeight';;
 import { getUser, updateUser, deleteUser } from "../services/userService";
 import { Home, Trash2 } from "lucide-react";
 import {
@@ -34,7 +32,6 @@ function FullName(u) {
 }
 
 export default function Profile() {
-  const totalHeaderHeight = useTotalHeaderHeight();
   const { user } = useAuth();
   const navigate = useNavigate();
 
@@ -295,83 +292,63 @@ export default function Profile() {
   }
 
   return (
-    <>
-      <BreadcrumbNav
-        currentPage="Profile & Addresses"
-        backButton={{ label: "Back to Dashboard", path: "/dashboard" }}
-        rightActions={
-          <div style={{
-            display: "flex",
-            gap: 8,
-            alignItems: "center",
-            background: "linear-gradient(135deg, #e0f2f1 0%, #b2dfdb 100%)",
-            padding: "6px 10px",
-            borderRadius: 8,
-            boxShadow: "0 2px 8px rgba(0, 113, 133, 0.15)"
-          }}>
-            <button 
-              onClick={() => navigate("/")} 
-              type="button"
-              style={{
-                background: "none",
-                border: "none",
-                color: "#00695c",
-                fontSize: 13,
-                cursor: "pointer",
-                display: "flex",
-                alignItems: "center",
-                gap: 6,
-                padding: "6px 12px",
-                fontWeight: 600,
-                whiteSpace: "nowrap",
-                borderRadius: 6,
-                transition: "background 0.2s"
-              }}
-              onMouseEnter={(e) => e.target.style.background = "rgba(255, 255, 255, 0.4)"}
-              onMouseLeave={(e) => e.target.style.background = "none"}
-            >
-              <Home style={{ width: 16, height: 16 }} />
-              Return to Store
-            </button>
-            <button 
-              onClick={onDeleteAccount} 
-              type="button"
-              style={{
-                background: "none",
-                border: "none",
-                color: "#991b1b",
-                fontSize: 13,
-                cursor: "pointer",
-                display: "flex",
-                alignItems: "center",
-                gap: 6,
-                padding: "6px 12px",
-                fontWeight: 600,
-                whiteSpace: "nowrap",
-                borderRadius: 6,
-                transition: "background 0.2s"
-              }}
-              onMouseEnter={(e) => e.target.style.background = "rgba(255, 255, 255, 0.4)"}
-              onMouseLeave={(e) => e.target.style.background = "none"}
-            >
-              <Trash2 style={{ width: 16, height: 16 }} />
-              Delete Account
-            </button>
-          </div>
-        }
-      />
-      
-      <main className="container-xl" style={{ paddingTop: 16, paddingBottom: 24 }}>
-        {/* Header */}
-        <div className="hero-headline" style={{ marginBottom: 8 }}>
-          <div>
-            <div className="kicker">Account Settings</div>
-            <h1 style={{ margin: 0 }}>Profile & Addresses</h1>
-            <div className="meta" style={{ marginTop: 8 }}>
-              Manage your personal information, addresses, and payment methods. Signed in as {user?.email}
-            </div>
+    <main className="container-xl" style={{ paddingTop: 24, paddingBottom: 24 }}>
+      {/* Hero Headline */}
+      <div className="hero-headline" style={{ marginBottom: 16 }}>
+        <div>
+          <div className="kicker">Account Settings</div>
+          <h1 style={{ margin: 0 }}>Profile & Addresses</h1>
+          <div className="meta" style={{ marginTop: 8 }}>
+            Manage your personal information, addresses, and payment methods. Signed in as {user?.email}
           </div>
         </div>
+        <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+          <Link 
+            to="/dashboard" 
+            className="btn btn-secondary"
+            style={{
+              fontSize: "13px",
+              padding: "8px 14px",
+              whiteSpace: "nowrap"
+            }}
+          >
+            ← Back to Dashboard
+          </Link>
+          <Link 
+            to="/" 
+            className="btn btn-secondary"
+            style={{
+              fontSize: "13px",
+              padding: "8px 14px",
+              whiteSpace: "nowrap",
+              display: "flex",
+              alignItems: "center",
+              gap: 6
+            }}
+          >
+            <Home style={{ width: 16, height: 16 }} />
+            Store
+          </Link>
+          <button 
+            onClick={onDeleteAccount} 
+            className="btn btn-secondary"
+            style={{
+              fontSize: "13px",
+              padding: "8px 14px",
+              whiteSpace: "nowrap",
+              display: "flex",
+              alignItems: "center",
+              gap: 6,
+              background: "#fee",
+              borderColor: "#fcc",
+              color: "#991b1b"
+            }}
+          >
+            <Trash2 style={{ width: 16, height: 16 }} />
+            Delete Account
+          </button>
+        </div>
+      </div>
 
       <section className="grid" style={{ gridTemplateColumns: "1fr", gap: 16 }}>
         {/* Profile card */}
@@ -664,6 +641,5 @@ export default function Profile() {
         </div>
       )}
     </main>
-    </>
   );
 }

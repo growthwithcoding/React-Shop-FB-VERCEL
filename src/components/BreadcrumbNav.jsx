@@ -38,17 +38,19 @@ export default function BreadcrumbNav({
       <div style={{ 
         maxWidth: 1500, 
         margin: "0 auto", 
-        padding: centerContent ? "8px 16px" : "12px 24px",
+        padding: centerContent ? "8px 16px" : "8px 24px",
         display: "flex",
         flexDirection: "column",
-        gap: centerContent ? 8 : 0
+        gap: centerContent ? 8 : 0,
+        minHeight: 40
       }}>
         {/* Top Row: Current Page & Back Button + Right Actions */}
         <div style={{
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
-          minHeight: centerContent ? "auto" : "unset"
+          minHeight: centerContent ? "auto" : 24,
+          flex: centerContent ? "0 0 auto" : "1 0 auto"
         }}>
           {/* Left: Current Page & Back Button */}
           <div style={{ display: "flex", alignItems: "center", gap: 12, minWidth: 0 }}>
